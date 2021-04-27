@@ -98,7 +98,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ### params
 
 - `{uint64_t} grant_id` - (primary key) grant ID
-- `{name} grant_name` - (secondary key) grant name (used in memo to receive funds, must be unique)
+- `{name} grant_name` - (❗️**RESTRICTED**) grant name (used in memo to receive funds, must be unique)
 - `{set<uint64_t>} rounds` - matching rounds participation
 - `<...base...>` - extends TABLE `*base*`
 
@@ -117,7 +117,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ### params
 
 - `{uint64_t} bounty_id` - (primary key) bounty ID
-- `{name} bounty_name` - (secondary key) bounty name (used in memo to receive funds, must be unique)
+- `{name} bounty_name` - (❗️**RESTRICTED**) bounty name (used in memo to receive funds, must be unique)
 - `<...base...>` - extends TABLE `*base*`
 
 ### example
