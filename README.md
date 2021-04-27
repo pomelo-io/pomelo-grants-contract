@@ -41,9 +41,9 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ### params
 
 - `{uint64_t} user_id` - (primary key) user ID
-- `{name} eos_account` - (secondary key) EOS account name
-- `{map<name, bool>} social` - social enabled
-- `{name} status` - user status (pending/ok/disabled)
+- `{name} eos_account` - (❗️**RESTRICTED**) EOS account name (will be used as default `receiver` if none is provided)
+- `{map<name, bool>} social` - social accounts enabled
+- `{name} status` - user status (`pending/ok/disabled`)
 - `{time_point_sec} created_at` - created at time
 - `{time_point_sec} last_updated` - last updated
 
@@ -74,9 +74,9 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ### params
 
 - `{name} author_user_id` - author (Pomelo User Id)
-- `{name} [receiver=""]` - (RESTRICTED) receiver of funds (EOS account)
-- `{set<name>} [authorized_accounts=[]]` - (RESTRICTED) authorized admin (EOS accounts)
-- `{name} status` - status (pending/ok/disabled)
+- `{name} [receiver=""]` - (❗️**RESTRICTED**) receiver of funds (EOS account)
+- `{set<name>} [authorized_accounts=[]]` - (❗️**RESTRICTED**) authorized admin (EOS accounts)
+- `{name} status` - status (`pending/ok/disabled`)
 - `{time_point_sec} created_at` - created at time
 - `{time_point_sec} last_updated` - last updated
 
