@@ -46,7 +46,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 | `{uint64_t}`          | `user_id`      | (primary key) user ID                                                        |Backend       |              |
 | `{name}`              | `eos_account`  | EOS account name (will be used as default `receiver` if none is provided)    |Backend       |              |
 | `{map<name, bool>}`   | `social`       | social accounts enabled                                                      |Backend       |Backend       |
-| `{name}`              | `status`       | user status (`pending/ok/disabled`)                                          |Backend,Admin |Backend,Admin |
+| `{name}`              | `status`       | user status (`pending/ok/disabled`)                                          |Backend,SC    |Backend,Admin |
 | `{time_point_sec}`    | `created_at`   | created at time                                                              |SC            |              |
 | `{time_point_sec}`    | `last_updated` | last updated                                                                 |SC            |SC            |
 
@@ -82,7 +82,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 | `{name}`              | `author_user_id`              | author (Pomelo User Id)           |Backend       |              |
 | `{name}`              | `[receiver=""]`               | receiver of funds (EOS account)   |Backend       |              |
 | `{set<name>}`         | `[authorized_accounts=[]]`    | authorized admin (EOS accounts)   |Backend       |Owners,Admin  |
-| `{name}`              | `status`                      | status (`pending/ok/disabled`)    |Backend,Admin |Backend,Admin |
+| `{name}`              | `status`                      | status (`pending/ok/disabled`)    |Backend,SC    |Backend,Admin |
 | `{time_point_sec}`    | `created_at`                  | created at time                   |SC            |              |
 | `{time_point_sec}`    | `last_updated`                | last updated                      |SC            |SC            |
 
