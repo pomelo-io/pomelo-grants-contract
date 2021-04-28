@@ -10,6 +10,18 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "grant:myproject"
 $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ```
 
+## Definitions
+
+### Roles
+
+| `role`        | `description`                 |
+|---------------|-------------------------------|
+| Backend       | Pomelo Backend                |
+| Admin         | Pomelo Admins                 |
+| Owners        | Grant/Bounty Owners           |
+| SC            | Smart Contract                |
+
+
 ## SPECIFICATION
 
 - [ ] Users
@@ -25,9 +37,9 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 - [TABLE `users`](#table-users)
 - [TABLE `grants`](#table-grants)
 - [TABLE `bounties`](#table-bounties)
+- [TABLE `rounds`](#table-rounds)
 - [ACTION `userstatus`](#action-userstatus)
 - [ACTION `deluser`](#action-deluser)
-- [DEFINITIONS](#definitions)
 
 ## TABLE `users`
 
@@ -41,15 +53,14 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ### params
 
-| `type`                | `name`         | `comment`                                                                    |`can create`  |`can edit`    |
-|-----------------------|----------------|------------------------------------------------------------------------------|--------------|--------------|
-| `{uint64_t}`          | `user_id`      | (primary key) user ID                                                        |Backend       |              |
-| `{name}`              | `eos_account`  | EOS account name (will be used as default `receiver` if none is provided)    |Backend       |              |
-| `{map<name, bool>}`   | `social`       | social accounts enabled                                                      |Backend       |Backend       |
-| `{name}`              | `status`       | user status (`pending/ok/disabled`)                                          |Backend,SC    |Backend,Admin |
-| `{time_point_sec}`    | `created_at`   | created at time                                                              |SC            |              |
-| `{time_point_sec}`    | `last_updated` | last updated                                                                 |SC            |SC            |
-
+- `{uint64_t} user_id` - (primary key) user ID
+- `{name} [eos_account=""]` - EOS account name
+- `{name} [region=""]` - user region (ex: `ca`)
+- `{map<name, bool>} [social=[]]` - social accounts enabled
+- `{name} [status="pending"]` - user status (ex: `pending/ok/disabled`)
+- `{time_point_sec} created_at` - created at time
+- `{time_point_sec} updated_at` - updated at time
+- `{time_point_sec} deleted_at` - deleted at time
 
 ### example
 
@@ -57,14 +68,16 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 {
     "user_id": 123,
     "eos_account": "myaccount",
+    "region": "ca",
     "social": [{"key": "github", "value": true}],
     "status": "ok",
     "created_at": "2020-12-06T00:00:00",
-    "last_updated": "2020-12-06T00:00:00"
+    "updated_at": "2020-12-06T00:00:00",
+    "deleted_at": "1970-01-01T00:00:00"
 }
 ```
 
-## TABLE `*base*`
+## TABLE `grants` & `bounties`
 
 ### multi-indexes
 
@@ -77,66 +90,63 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ### params
 
-| `type`                | `name`                        | `comment`                         |`can create`  |`can edit`    |
-|-----------------------|-------------------------------|-----------------------------------|--------------|--------------|
-| `{name}`              | `author_user_id`              | author (Pomelo User Id)           |Backend       |              |
-| `{name}`              | `[receiver=""]`               | receiver of funds (EOS account)   |Backend       |              |
-| `{set<name>}`         | `[authorized_accounts=[]]`    | authorized admin (EOS accounts)   |Backend       |Owners,Admin  |
-| `{name}`              | `status`                      | status (`pending/ok/disabled`)    |Backend,SC    |Backend,Admin |
-| `{time_point_sec}`    | `created_at`                  | created at time                   |SC            |              |
-| `{time_point_sec}`    | `last_updated`                | last updated                      |SC            |SC            |
+- `{uint64_t} id` - (primary key) project ID
+- `{name} name` - (❗️**IMMUTABLE**) project name (used in memo to receive funds, must be unique)
+- `{name} category` - (❗️**IMMUTABLE**) project category (ex: `grant/bounty`)
+- `{name} author_user_id` - (❗️**IMMUTABLE**) author (Pomelo User Id)
+- `{set<name>} [authorized_user_ids=[]]` - authorized admins (Pomelo User Id)
+- `{name} [funding_account=""]` - funding account (EOS account)
+- `{set<extended_symbol>} [accepted_tokens=["4,EOS@eosio.token"]]` - accepted tokens (ex: `EOS/USDT`)
+- `{name} [status="pending"]` - status (`pending/ok/disabled`)
+- `{time_point_sec} created_at` - created at time
+- `{time_point_sec} updated_at` - updated at time
+- `{time_point_sec} deleted_at` - deleted at time
 
 ### example
 
 ```json
 {
+    "id": 345,
+    "name": "mygrant",
+    "category": "grant",
     "author_user_id": 123,
-    "receiver": "myreceiver",
-    "authorized_accounts": ["myadmin"],
+    "authorized_user_ids": [123],
+    "funding_account": "myreceiver",
+    "accepted_tokens": [{"contract": "eosio.token", "symbol": "4,EOS"}],
     "status": "ok",
-    "created_at": "2020-12-05T00:00:00",
-    "last_updated": "2020-12-06T00:00:00"
+    "created_at": "2020-12-06T00:00:00",
+    "updated_at": "2020-12-06T00:00:00",
+    "deleted_at": "1970-01-01T00:00:00"
 }
 ```
 
-## TABLE `grants`
+## TABLE `rounds`
 
 ### params
 
-| `type`                | `name`                        | `comment`                                                     |`can create`  |`can edit`    |
-|-----------------------|-------------------------------|---------------------------------------------------------------|--------------|--------------|
-| `{uint64_t}`          | `grant_id`                    | (primary key) grant ID                                        |Backend       |              |
-| `{name}`              | `grant_name`                  | grant name (used in memo to receive funds, must be unique)    |Backend       |              |
-| `{set<uint64_t>}`     | `rounds`                      | matching rounds participation                                 |Backend       |Backend,Admin  |
-| `<...base...>`        | extends TABLE `*base*`        |
+- `{uint64_t} round` - (primary key) matching rounds
+- `{set<name>} grant_ids` - grants IDs participating
+- `{set<name>} user_ids` - user IDs participating
+- `{vector<extended_asset>} accepted_tokens` - accepted tokens
+- `{time_point_sec} start_at` - start at time
+- `{time_point_sec} end_at` - end at time
+- `{time_point_sec} created_at` - created at time
+- `{time_point_sec} updated_at` - updated at time
+- `{time_point_sec} deleted_at` - deleted at time
 
 ### example
 
 ```json
 {
-    "grant_id": 345,
-    "grant_name": "mygrant",
-    "rounds": [1],
-    <...base...>
-}
-```
-## TABLE `bounties`
-
-### params
-
-| `type`                | `name`                        | `comment`                                                     |`can create`  |`can edit`    |
-|-----------------------|-------------------------------|---------------------------------------------------------------|--------------|--------------|
-| `{uint64_t}`          | `bounty_id`                   | (primary key) bounty ID                                       |Backend       |              |
-| `{name}`              | `bounty_name`                 | bounty name (used in memo to receive funds, must be unique)   |Backend       |              |
-| `<...base...>`        | extends TABLE `*base*`        |
-
-### example
-
-```json
-{
-    "bounty_id": 345,
-    "bounty_name": "mybounty",
-    <...base...>
+    "round": 1,
+    "grant_ids": [345],
+    "user_ids": [123],
+    "accepted_tokens": [{"contract": "eosio.token", "quantity": "1.0000 EOS"}],
+    "start_at": "2020-12-06T00:00:00",
+    "end_at": "2020-12-12T00:00:00",
+    "created_at": "2020-12-06T00:00:00",
+    "updated_at": "2020-12-06T00:00:00",
+    "deleted_at": "1970-01-01T00:00:00"
 }
 ```
 
@@ -170,14 +180,3 @@ $ cleos push action battle.gems setuser '[123, "myaccount", [{"key": "github", "
 ```bash
 $ cleos push action battle.gems userstatus '[123, "ok"]' -p battle.gems
 ```
-
-## Definitions
-
-### Roles
-
-| `role`        | `description`                 |
-|---------------|-------------------------------|
-| Backend       | Pomelo Backend                |
-| Admin         | Pomelo Admins                 |
-| Owners        | Grant/Bounty Owners           |
-| SC            | Smart Contract                |
