@@ -27,6 +27,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 - [TABLE `bounties`](#table-bounties)
 - [ACTION `userstatus`](#action-userstatus)
 - [ACTION `deluser`](#action-deluser)
+- [DEFINITIONS](#definitions)
 
 ## TABLE `users`
 
@@ -40,12 +41,15 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ### params
 
-- `{uint64_t} user_id` - (primary key) user ID
-- `{name} eos_account` - (❗️**RESTRICTED**) EOS account name (will be used as default `receiver` if none is provided)
-- `{map<name, bool>} social` - social accounts enabled
-- `{name} status` - user status (`pending/ok/disabled`)
-- `{time_point_sec} created_at` - created at time
-- `{time_point_sec} last_updated` - last updated
+| `type`                | `name`         | `comment`                                                                    |`can create`  |`can edit`    |
+|-----------------------|----------------|------------------------------------------------------------------------------|--------------|--------------|
+| `{uint64_t}`          | `user_id`      | (primary key) user ID                                                        |Backend       |              |
+| `{name}`              | `eos_account`  | EOS account name (will be used as default `receiver` if none is provided)    |Backend       |              |
+| `{map<name, bool>}`   | `social`       | social accounts enabled                                                      |Backend       |Backend       |
+| `{name}`              | `status`       | user status (`pending/ok/disabled`)                                          |Backend,Admin |Backend,Admin |
+| `{time_point_sec}`    | `created_at`   | created at time                                                              |SC            |              |
+| `{time_point_sec}`    | `last_updated` | last updated                                                                 |SC            |SC            |
+
 
 ### example
 
@@ -73,12 +77,14 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ### params
 
-- `{name} author_user_id` - author (Pomelo User Id)
-- `{name} [receiver=""]` - (❗️**RESTRICTED**) receiver of funds (EOS account)
-- `{set<name>} [authorized_accounts=[]]` - (❗️**RESTRICTED**) authorized admin (EOS accounts)
-- `{name} status` - status (`pending/ok/disabled`)
-- `{time_point_sec} created_at` - created at time
-- `{time_point_sec} last_updated` - last updated
+| `type`                | `name`                        | `comment`                         |`can create`  |`can edit`    |
+|-----------------------|-------------------------------|-----------------------------------|--------------|--------------|
+| `{name}`              | `author_user_id`              | author (Pomelo User Id)           |Backend       |              |
+| `{name}`              | `[receiver=""]`               | receiver of funds (EOS account)   |Backend       |              |
+| `{set<name>}`         | `[authorized_accounts=[]]`    | authorized admin (EOS accounts)   |Backend       |Owners,Admin  |
+| `{name}`              | `status`                      | status (`pending/ok/disabled`)    |Backend,Admin |Backend,Admin |
+| `{time_point_sec}`    | `created_at`                  | created at time                   |SC            |              |
+| `{time_point_sec}`    | `last_updated`                | last updated                      |SC            |SC            |
 
 ### example
 
@@ -97,10 +103,12 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ### params
 
-- `{uint64_t} grant_id` - (primary key) grant ID
-- `{name} grant_name` - (❗️**RESTRICTED**) grant name (used in memo to receive funds, must be unique)
-- `{set<uint64_t>} rounds` - matching rounds participation
-- `<...base...>` - extends TABLE `*base*`
+| `type`                | `name`                        | `comment`                                                     |`can create`  |`can edit`    |
+|-----------------------|-------------------------------|---------------------------------------------------------------|--------------|--------------|
+| `{uint64_t}`          | `grant_id`                    | (primary key) grant ID                                        |Backend       |              |
+| `{name}`              | `grant_name`                  | grant name (used in memo to receive funds, must be unique)    |Backend       |              |
+| `{set<uint64_t>}`     | `rounds`                      | matching rounds participation                                 |Backend       |Backend,Admin  |
+| `<...base...>`        | extends TABLE `*base*`        |
 
 ### example
 
@@ -116,9 +124,11 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ### params
 
-- `{uint64_t} bounty_id` - (primary key) bounty ID
-- `{name} bounty_name` - (❗️**RESTRICTED**) bounty name (used in memo to receive funds, must be unique)
-- `<...base...>` - extends TABLE `*base*`
+| `type`                | `name`                        | `comment`                                                     |`can create`  |`can edit`    |
+|-----------------------|-------------------------------|---------------------------------------------------------------|--------------|--------------|
+| `{uint64_t}`          | `bounty_id`                   | (primary key) bounty ID                                       |Backend       |              |
+| `{name}`              | `bounty_name`                 | bounty name (used in memo to receive funds, must be unique)   |Backend       |              |
+| `<...base...>`        | extends TABLE `*base*`        |
 
 ### example
 
@@ -160,3 +170,14 @@ $ cleos push action battle.gems setuser '[123, "myaccount", [{"key": "github", "
 ```bash
 $ cleos push action battle.gems userstatus '[123, "ok"]' -p battle.gems
 ```
+
+## Definitions
+
+### Roles
+
+| `role`        | `description`                 |
+|---------------|-------------------------------|
+| Backend       | Pomelo Backend                |
+| Admin         | Pomelo Admins                 |
+| Owners        | Grant/Bounty Owners           |
+| SC            | Smart Contract                |
