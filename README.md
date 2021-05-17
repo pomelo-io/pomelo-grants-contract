@@ -91,7 +91,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ### params
 
 - `{uint64_t} id` - (primary key) project ID
-- `{name} name` - (❗️**IMMUTABLE**) project name (used in memo to receive funds, must be unique)
+- `{name} project_name` - (❗️**IMMUTABLE**) project name (used in memo to receive funds, must be unique)
 - `{name} category` - (❗️**IMMUTABLE**) project category (ex: `grant/bounty`)
 - `{name} author_user_id` - (❗️**IMMUTABLE**) author (Pomelo User Id)
 - `{set<name>} [authorized_user_ids=[]]` - authorized admins (Pomelo User Id)
@@ -128,9 +128,6 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 - `{set<name>} grant_ids` - grants IDs participating
 - `{set<name>} user_ids` - user IDs participating
 - `{vector<extended_asset>} accepted_tokens` - accepted tokens
-
-** TO-DO ADD sums of `donate.grants`
-
 - `{time_point_sec} start_at` - start at time
 - `{time_point_sec} end_at` - end at time
 - `{time_point_sec} created_at` - created at time
@@ -169,7 +166,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ### params
 
 - `{uint64_t} id` - (primary key) donate ID
-- `{name} eos_account` - grants IDs participating
+- `{name} eos_account` - EOS account name
 - `{uint64_t} round` - participating round
 - `{uint64_t} grant_id` - grant ID
 - `{extended_asset} amount` - amount of tokens donated
@@ -202,10 +199,9 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 | `param`        | `index_position` | `key_type` |
 |--------------- |------------------|------------|
-| `byaccount`    | 2                | i64        |
-| `byusers`      | 3                | i64        |
-| `byvalue`      | 4                | i64        |
-| `bymatch`      | 5                | i64        |
+| `byusers`      | 2                | i64        |
+| `byvalue`      | 3                | i64        |
+| `bymatch`      | 4                | i64        |
 
 ### params
 
@@ -225,9 +221,9 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ```json
 {
     "grant_id": 123,
-    "user_value": [{ "key": "myaccount", "value": 100.0 }, { "key": "myaccount", "value": 50.0 }],
-    "user_match": [{ "key": "myaccount", "value": 225.0 }, { "key": "myaccount", "value": 100.0 }],
-    "user_sqrt":  [{ "key": "myaccount", "value": 15.0 }, { "key": "myaccount", "value": 10.0 }],
+    "user_value": [{ "key": "account1", "value": 100.0 }, { "key": "account2", "value": 50.0 }],
+    "user_match": [{ "key": "account1", "value": 225.0 }, { "key": "account2", "value": 100.0 }],
+    "user_sqrt":  [{ "key": "account1", "value": 15.0 }, { "key": "account2", "value": 10.0 }],
     "total_users": 2,
     "sum_value": 150.0,
     "sum_match": 325.0,
@@ -250,7 +246,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ### Example
 
 ```bash
-$ cleos push action battle.gems setuser '[123, "myaccount", [{"key": "github", "value": true}]]' -p battle.gems
+$ cleos push action pomelo setuser '[123, "myaccount", [{"key": "github", "value": true}]]' -p pomelo
 ```
 
 ## ACTION `userstatus`
@@ -265,5 +261,5 @@ $ cleos push action battle.gems setuser '[123, "myaccount", [{"key": "github", "
 ### Example
 
 ```bash
-$ cleos push action battle.gems userstatus '[123, "ok"]' -p battle.gems
+$ cleos push action pomelo userstatus '[123, "ok"]' -p pomelo
 ```
