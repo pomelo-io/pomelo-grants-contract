@@ -83,10 +83,9 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 | `param`        | `index_position` | `key_type` |
 |--------------- |------------------|------------|
-| `byname`       | 2                | i64        |
-| `byauthor`     | 3                | i64        |
-| `bystatus`     | 4                | i64        |
-| `byupdated`    | 5                | i64        |
+| `byauthor`     | 2                | i64        |
+| `bystatus`     | 3                | i64        |
+| `byupdated`    | 4                | i64        |
 
 ### params
 
