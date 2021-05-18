@@ -35,11 +35,12 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ## Table of Content
 
 - [TABLE `users`](#table-users)
-- [TABLE `grants`](#table-grants)
-- [TABLE `bounties`](#table-bounties)
+- [TABLES `grants` & `bounties`](#tables-grants-and-bounties)
+- [TABLE `transfers`](#table-transfers)
+- [TABLE `match.grant`](#table-match.grant)
 - [TABLE `rounds`](#table-rounds)
+- [ACTION `setuser`](#action-setuser)
 - [ACTION `userstatus`](#action-userstatus)
-- [ACTION `deluser`](#action-deluser)
 
 ## TABLE `users`
 
@@ -77,7 +78,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 }
 ```
 
-## TABLE `grants` & `bounties`
+## TABLES `grants` and `bounties`
 
 ### multi-indexes
 
@@ -117,7 +118,8 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 }
 ```
 
-## TABLE `transfers` (❗️**IMMUTABLE**)
+## TABLE `transfers`
+(❗️**IMMUTABLE**)
 
 ### multi-indexes
 
