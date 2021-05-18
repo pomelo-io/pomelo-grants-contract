@@ -39,6 +39,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 - [TABLE `transfers`](#table-transfers)
 - [TABLE `match.grant`](#table-match.grant)
 - [TABLE `rounds`](#table-rounds)
+- [ACTION `setstatus`](#action-setstatus)
 - [ACTION `setuser`](#action-setuser)
 - [ACTION `userstatus`](#action-userstatus)
 
@@ -228,6 +229,20 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
     "updated_at": "2020-12-06T00:00:00",
     "deleted_at": "1970-01-01T00:00:00"
 }
+```
+
+## ACTION `setstatus`
+
+- **authority**: `get_self()`
+
+### params
+
+- `{name} status` - contract status
+
+### Example
+
+```bash
+$ cleos push action pomelo setstatus '["maintenance"]' -p pomelo
 ```
 
 ## ACTION `setuser`

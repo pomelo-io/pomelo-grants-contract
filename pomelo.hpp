@@ -3,6 +3,7 @@
 #include <eosio/eosio.hpp>
 #include <eosio/time.hpp>
 #include <eosio/asset.hpp>
+#include <eosio/singleton.hpp>
 
 using namespace eosio;
 using namespace std;
@@ -13,6 +14,24 @@ public:
     pomelo(name rec, name code, datastream<const char*> ds)
       : eosio::contract(rec, code, ds)
     {};
+
+    /**
+     * ## TABLE `config`
+     *
+     * - `{name} status` - contract status ("ok", "testing", "maintenance")
+     *
+     * ### example
+     *
+     * ```json
+     * {
+     *   "status": "ok",
+     * }
+     * ```
+     */
+    struct [[eosio::table("config")]] config_row {
+        name                status = "testing"_n;
+    };
+    typedef eosio::singleton< "config"_n, config_row > config_table;
 
     /**
      * ## TABLE `users`
@@ -307,6 +326,20 @@ public:
         uint64_t primary_key() const { return round; };
     };
     typedef eosio::multi_index< "rounds"_n, rounds_row > rounds_table;
+
+    /**
+     * ## ACTION `setstatus`
+     *
+     * Set contract status
+     *
+     * ### params
+     *
+     * - `{name} status` - status `testing/ok/maintenance`
+     *
+     */
+
+    [[eosio::action]]
+    void setstatus( const name status );
 
     /**
      * ## ACTION `setuser`

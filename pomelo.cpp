@@ -11,3 +11,15 @@ void pomelo::userstatus( const uint64_t user_id, const name status )
 {
     check(false, "TODO");
 }
+
+[[eosio::action]]
+void pomelo::setstatus( const name status )
+{
+    require_auth( get_self() );
+
+    pomelo::config_table _config( get_self(), get_self().value );
+    auto config = _config.get_or_default();
+
+    config.status = status;
+    _config.set( config, get_self() );
+}
