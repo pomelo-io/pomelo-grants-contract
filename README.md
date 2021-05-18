@@ -34,6 +34,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ## Table of Content
 
+- [TABLE `conmfig`](#table-config)
 - [TABLE `users`](#table-users)
 - [TABLES `grants` & `bounties`](#tables-grants-and-bounties)
 - [TABLE `transfers`](#table-transfers)
@@ -42,6 +43,27 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 - [ACTION `setstatus`](#action-setstatus)
 - [ACTION `setuser`](#action-setuser)
 - [ACTION `userstatus`](#action-userstatus)
+
+## SINGLETON `config`
+
+### params
+
+- `{name} status` - contract status `testing/ok/maintenance`
+
+### example
+
+```json
+{
+    "user_id": 123,
+    "eos_account": "myaccount",
+    "region": "ca",
+    "social": [{"key": "github", "value": true}],
+    "status": "ok",
+    "created_at": "2020-12-06T00:00:00",
+    "updated_at": "2020-12-06T00:00:00",
+    "deleted_at": "1970-01-01T00:00:00"
+}
+```
 
 ## TABLE `users`
 
