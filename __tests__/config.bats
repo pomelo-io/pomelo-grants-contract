@@ -1,13 +1,27 @@
 #!/usr/bin/env bats
 
-@test "set config" {
+@test "uninitialized contract" {
+  run cleos transfer myaccount pomelo "1000.0000 A" ""
+  echo "Output: $output"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "config does not exist" ]]
+}
+
+@test "contract under maintenance" {
+  run cleos push action pomelo setstatus '["maintenance"]' -p pomelo
+  [ $status -eq 0 ]
+
+  run cleos transfer myaccount pomelo "1000.0000 A" ""
+  echo "Output: $output"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "contract is under maintenance" ]]
+}
+
+@test "set config = ok" {
   run cleos push action pomelo setstatus '["ok"]' -p pomelo
   echo "Output: $output"
   [ $status -eq 0 ]
-}
 
-@test "config.status = ok" {
   result=$(cleos get table pomelo pomelo config | jq -r '.rows[0].status')
-  echo $result
   [ $result = "ok" ]
 }

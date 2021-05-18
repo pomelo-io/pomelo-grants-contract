@@ -372,4 +372,20 @@ public:
 
     [[eosio::action]]
     void userstatus( const uint64_t user_id, const name status );
+
+    /**
+     * ## TRANSFER NOTIFY HANDLER `on_transfer`
+     *
+     * Process incoming transfer
+     *
+     * ### params
+     *
+     * - `{name} from` - from EOS account (donation sender)
+     * - `{name} to` - to EOS account (process only incoming)
+     * - `{asset} quantity` - quantity received
+     * - `{string} memo` - transfer memo, i.e. "grant:myproject"
+     *
+     */
+    [[eosio::on_notify("*::transfer")]]
+    void on_transfer( const name from, const name to, const asset quantity, const string memo );
 };

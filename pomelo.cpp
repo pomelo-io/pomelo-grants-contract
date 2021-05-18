@@ -23,3 +23,29 @@ void pomelo::setstatus( const name status )
     config.status = status;
     _config.set( config, get_self() );
 }
+
+
+/**
+ * Notify contract when any token transfer notifiers relay contract
+ */
+[[eosio::on_notify("*::transfer")]]
+void pomelo::on_transfer( const name from, const name to, const asset quantity, const string memo )
+{
+    // authenticate incoming `from` account
+    require_auth( from );
+
+    pomelo::config_table _config( get_self(), get_self().value );
+
+    // config
+    check( _config.exists(), "pomelo: config does not exist" );
+    const name status = _config.get().status;
+    check( (status == "ok"_n || status == "testing"_n ), "pomelo::on_transfer: contract is under maintenance");
+
+    // ignore outgoing/RAM/self-funding transfers
+    if ( to != get_self() || memo == get_self().to_string() || from == "eosio.ram"_n ) return;
+
+
+
+    check(false, "TODO");
+
+}
