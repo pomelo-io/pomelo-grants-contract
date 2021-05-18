@@ -24,8 +24,6 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ## SPECIFICATION
 
-- [ ] Users
-- [ ] Social
 - [ ] Grants
 - [ ] Bounties
 - [ ] Donations
@@ -34,57 +32,18 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ## Table of Content
 
-- [TABLE `conmfig`](#table-config)
-- [TABLE `users`](#table-users)
+- [TABLE `config`](#table-config)
 - [TABLES `grants` & `bounties`](#tables-grants-and-bounties)
 - [TABLE `transfers`](#table-transfers)
 - [TABLE `match.grant`](#table-match.grant)
 - [TABLE `rounds`](#table-rounds)
 - [ACTION `setstatus`](#action-setstatus)
-- [ACTION `setuser`](#action-setuser)
-- [ACTION `userstatus`](#action-userstatus)
 
 ## SINGLETON `config`
 
 ### params
 
 - `{name} status` - contract status `testing/ok/maintenance`
-
-### example
-
-```json
-{
-    "user_id": 123,
-    "eos_account": "myaccount",
-    "region": "ca",
-    "social": [{"key": "github", "value": true}],
-    "status": "ok",
-    "created_at": "2020-12-06T00:00:00",
-    "updated_at": "2020-12-06T00:00:00",
-    "deleted_at": "1970-01-01T00:00:00"
-}
-```
-
-## TABLE `users`
-
-### multi-indexes
-
-| `param`        | `index_position` | `key_type` |
-|--------------- |------------------|------------|
-| `byaccount`    | 2                | i64        |
-| `bystatus`     | 3                | i64        |
-| `byupdated`    | 4                | i64        |
-
-### params
-
-- `{uint64_t} user_id` - (primary key) user ID
-- `{name} [eos_account=""]` - EOS account name
-- `{name} [region=""]` - user region (ex: `ca`)
-- `{map<name, bool>} [social=[]]` - social accounts enabled
-- `{name} [status="pending"]` - user status (ex: `pending/ok/disabled`)
-- `{time_point_sec} created_at` - created at time
-- `{time_point_sec} updated_at` - updated at time
-- `{time_point_sec} deleted_at` - deleted at time
 
 ### example
 
@@ -267,33 +226,3 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 $ cleos push action pomelo setstatus '["maintenance"]' -p pomelo
 ```
 
-## ACTION `setuser`
-
-- **authority**: `get_self()`
-
-### params
-
-- `{uint64_t} user_id` - user ID
-- `{name} eos_account` - EOS account name
-- `{map<name, bool>} social` - social enabled
-
-### Example
-
-```bash
-$ cleos push action pomelo setuser '[123, "myaccount", [{"key": "github", "value": true}]]' -p pomelo
-```
-
-## ACTION `userstatus`
-
-- **authority**: `get_self()`
-
-### params
-
-- `{uint64_t} user_id` - user ID
-- `{name} status` - status (pending/ok/disabled/delete)
-
-### Example
-
-```bash
-$ cleos push action pomelo userstatus '[123, "ok"]' -p pomelo
-```

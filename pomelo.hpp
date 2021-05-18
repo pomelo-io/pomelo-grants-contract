@@ -34,62 +34,6 @@ public:
     typedef eosio::singleton< "config"_n, config_row > config_table;
 
     /**
-     * ## TABLE `users`
-     *
-     * *scope*: `get_self()` (name)
-     *
-     * - `{uint64_t} user_id` - (primary key) user ID
-     * - `{name} eos_account = ""` - EOS account name
-     * - `{name} region` - user region (ex: `ca`)
-     * - `{map<name, bool>} social = {}` - user status (ex: pending/ok/disabled)
-     * - `{name} status = "pending"_n` - user status (ex: pending/ok/disabled)
-     * - `{time_point_sec} created_at` - created at time
-     * - `{time_point_sec} updated_at` - updated at time
-     * - `{time_point_sec} deleted_at` - deleted at time
-     *
-     * *Multi-indexes*
-     * - `{uint64_t} byaccount` - by `eos_account`
-     * - `{uint64_t} bystatus` - by `status`
-     * - `{uint64_t} byupdated` - by `updated_at`
-     *
-     * ### example
-     *
-     * ```json
-     * {
-     *   "user_id": 123,
-     *   "eos_account": "myaccount",
-     *   "region": "ca",
-     *   "social": [{"key": "github", "value": true}],
-     *   "status": "ok",
-     *   "created_at": "2020-12-06T00:00:00",
-     *   "updated_at": "2020-12-06T00:00:00",
-     *   "deleted_at": "1970-01-01T00:00:00"
-     * }
-     * ```
-     */
-    struct [[eosio::table("users")]] users_row {
-        uint64_t                user_id;
-        name                    eos_account;
-        name                    region;
-        map<name, bool>         social;
-        name                    status = "pending"_n;
-        time_point_sec          created_at;
-        time_point_sec          updated_at;
-        time_point_sec          deleted_at;
-
-        uint64_t primary_key() const { return user_id; };
-        uint64_t byaccount() const { return eos_account.value; };
-        uint64_t bystatus() const { return status.value; };
-        uint64_t byupdated() const { return updated_at.sec_since_epoch(); };
-    };
-    typedef eosio::multi_index< "users"_n, users_row,
-        indexed_by< "byaccount"_n, const_mem_fun<users_row, uint64_t, &users_row::byaccount> >,
-        indexed_by< "bystatus"_n, const_mem_fun<users_row, uint64_t, &users_row::bystatus> >,
-        indexed_by< "byupdated"_n, const_mem_fun<users_row, uint64_t, &users_row::byupdated> >
-    > users_table;
-
-
-    /**
      * ## TABLE `grants` & `bounties`
      *
      * *scope*: `get_self()` (name)
@@ -340,38 +284,6 @@ public:
 
     [[eosio::action]]
     void setstatus( const name status );
-
-    /**
-     * ## ACTION `setuser`
-     *
-     * Set/update user, EOS account name and socials by updating `users` table
-     *
-     * ### params
-     *
-     * - `{uint64_t} user_id` - user id
-     * - `{name} eos_account` - user account on EOS mainnet if available
-     * - `{map<name, bool>} social` - social networks status
-     *
-     */
-
-    [[eosio::action]]
-    void setuser( const uint64_t user_id, const name eos_account, const map<name, uint8_t>& social );
-
-
-    /**
-     * ## ACTION `userstatus`
-     *
-     * Update user status
-     *
-     * ### params
-     *
-     * - `{uint64_t} user_id` - user id
-     * - `{name} status` - new user status `pending/ok/disabled/deleted`
-     *
-     */
-
-    [[eosio::action]]
-    void userstatus( const uint64_t user_id, const name status );
 
     /**
      * ## TRANSFER NOTIFY HANDLER `on_transfer`
