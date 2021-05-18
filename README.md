@@ -43,20 +43,17 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ### params
 
-- `{name} status` - contract status `testing/ok/maintenance`
+- `{name} status = "testing"` - contract status `testing/ok/maintenance`
+- `{extended_symbol} value_symbol = [4,USDT@tethertether]` - value symbol
+- `{name} login_contract = "login.eosn"` - login contract with user data
 
 ### example
 
 ```json
 {
-    "user_id": 123,
-    "eos_account": "myaccount",
-    "region": "ca",
-    "social": [{"key": "github", "value": true}],
-    "status": "ok",
-    "created_at": "2020-12-06T00:00:00",
-    "updated_at": "2020-12-06T00:00:00",
-    "deleted_at": "1970-01-01T00:00:00"
+    "status": "testing",
+    "value_symbol": "4,USDT@tethertether",
+    "login_contract": "login.eosn"
 }
 ```
 
@@ -224,5 +221,19 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ```bash
 $ cleos push action pomelo setstatus '["maintenance"]' -p pomelo
+```
+
+## ACTION `setvaluesym`
+
+- **authority**: `get_self()`
+
+### params
+
+- `{extended_symbol} value_symbol` - value symbol used for matching calculations
+
+### Example
+
+```bash
+$ leos push action pomelo setvaluesym '[["4,USDT", "tethertether"]]' -p pomelo
 ```
 

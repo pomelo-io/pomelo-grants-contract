@@ -17,11 +17,18 @@
   [[ "$output" =~ "contract is under maintenance" ]]
 }
 
-@test "set config = ok" {
+@test "set config" {
   run cleos push action pomelo setstatus '["ok"]' -p pomelo
+  echo "Output: $output"
+  [ $status -eq 0 ]
+
+  run cleos push action pomelo setvaluesym '[["4,B", "tethertether"]]' -p pomelo
   echo "Output: $output"
   [ $status -eq 0 ]
 
   result=$(cleos get table pomelo pomelo config | jq -r '.rows[0].status')
   [ $result = "ok" ]
+
+  result=$(cleos get table pomelo pomelo config | jq -r '.rows[0].value_symbol.contract')
+  [ $result = "tethertether" ]
 }

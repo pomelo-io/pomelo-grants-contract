@@ -7,12 +7,19 @@
 
 using namespace eosio;
 using namespace std;
+using namespace eosn;
+
+namespace eosn {
+
+static const string ERROR_INVALID_MEMO = "pomelo: invalid memo, use \"grant:mygrant\" or \"bounty:mybounty\"";
+
 
 class [[eosio::contract("pomelo")]] pomelo : public eosio::contract {
 public:
 
     pomelo(name rec, name code, datastream<const char*> ds)
       : eosio::contract(rec, code, ds)
+      , config(get_self(), get_self().value)
     {};
 
     /**
@@ -30,6 +37,8 @@ public:
      */
     struct [[eosio::table("config")]] config_row {
         name                status = "testing"_n;
+        extended_symbol     value_symbol = { symbol {"USDT", 4}, "tethertether"_n };
+        name                login_contract = "login.eosn"_n;
     };
     typedef eosio::singleton< "config"_n, config_row > config_table;
 
@@ -286,6 +295,20 @@ public:
     void setstatus( const name status );
 
     /**
+     * ## ACTION `setvaluesym`
+     *
+     * Set value extended symbol
+     *
+     * ### params
+     *
+     * - `{extended_symbol} value_symbol` - value symbol, i.e 4,USDT@tethertether
+     *
+     */
+
+    [[eosio::action]]
+    void setvaluesym( const extended_symbol value_symbol );
+
+    /**
      * ## TRANSFER NOTIFY HANDLER `on_transfer`
      *
      * Process incoming transfer
@@ -300,4 +323,13 @@ public:
      */
     [[eosio::on_notify("*::transfer")]]
     void on_transfer( const name from, const name to, const asset quantity, const string memo );
+
+
+private:
+
+    config_table config;
+
+    double get_value(const extended_asset ext_quantity);
+
 };
+}
