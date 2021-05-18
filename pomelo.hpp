@@ -10,6 +10,10 @@ using namespace std;
 class [[eosio::contract("pomelo")]] pomelo : public eosio::contract {
 public:
 
+    pomelo(name rec, name code, datastream<const char*> ds)
+      : eosio::contract(rec, code, ds)
+    {};
+
     /**
      * ## TABLE `users`
      *
@@ -304,5 +308,35 @@ public:
     };
     typedef eosio::multi_index< "rounds"_n, rounds_row > rounds_table;
 
+    /**
+     * ## ACTION `setuser`
+     *
+     * Set/update user, EOS account name and socials by updating `users` table
+     *
+     * ### params
+     *
+     * - `{uint64_t} user_id` - user id
+     * - `{name} eos_account` - user account on EOS mainnet if available
+     * - `{map<name, bool>} social` - social networks status
+     *
+     */
 
+    [[eosio::action]]
+    void setuser( const uint64_t user_id, const name eos_account, const map<name, uint8_t>& social );
+
+
+    /**
+     * ## ACTION `userstatus`
+     *
+     * Update user status
+     *
+     * ### params
+     *
+     * - `{uint64_t} user_id` - user id
+     * - `{name} status` - new user status `pending/ok/disabled/deleted`
+     *
+     */
+
+    [[eosio::action]]
+    void userstatus( const uint64_t user_id, const name status );
 };
