@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 @test "uninitialized contract" {
-  run cleos transfer user1 pomelo "1000.0000 A" ""
+  run cleos transfer user1 pomelo "1000.0000 A" "grant:grant1"
   echo "Output: $output"
   [ $status -eq 1 ]
   [[ "$output" =~ "config does not exist" ]]

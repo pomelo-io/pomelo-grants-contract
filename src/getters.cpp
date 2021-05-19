@@ -13,7 +13,7 @@ double pomelo::get_value( const extended_asset ext_quantity )
 
 name pomelo::get_user_id( const name user ){
 
-    eosn::login::accounts_table accounts( get_self(), get_self().value );
+    eosn::login::accounts_table accounts( config.get_or_default().login_contract, config.get_or_default().login_contract.value );
     const auto account = accounts.get(user.value, "pomelo: user doesn't exist");
 
     return account.user_id;
