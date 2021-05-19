@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 @test "uninitialized contract" {
-  run cleos transfer myaccount pomelo "1000.0000 A" ""
+  run cleos transfer user1 pomelo "1000.0000 A" ""
   echo "Output: $output"
   [ $status -eq 1 ]
   [[ "$output" =~ "config does not exist" ]]
@@ -11,7 +11,7 @@
   run cleos push action pomelo setstatus '["maintenance"]' -p pomelo
   [ $status -eq 0 ]
 
-  run cleos transfer myaccount pomelo "1000.0000 A" ""
+  run cleos transfer user1 pomelo "1000.0000 A" ""
   echo "Output: $output"
   [ $status -eq 1 ]
   [[ "$output" =~ "contract is under maintenance" ]]

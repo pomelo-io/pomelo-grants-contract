@@ -32,12 +32,17 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ## Table of Content
 
-- [TABLE `config`](#table-config)
+- [SINGLETON `config`](#singleton-config)
+- [SINGLETON `state`](#singleton-state)
 - [TABLES `grants` & `bounties`](#tables-grants-and-bounties)
 - [TABLE `transfers`](#table-transfers)
 - [TABLE `match.grant`](#table-match.grant)
 - [TABLE `rounds`](#table-rounds)
 - [ACTION `setstatus`](#action-setstatus)
+- [ACTION `setvaluesym`](#action-setvaluesym)
+- [ACTION `setgrant`](#action-setgrant)
+- [ACTION `setbounty`](#action-setbounty)
+- [ACTION `setprjstatus`](#action-setprjstatus)
 
 ## SINGLETON `config`
 
@@ -46,6 +51,22 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 - `{name} status = "testing"` - contract status `testing/ok/maintenance`
 - `{extended_symbol} value_symbol = [4,USDT@tethertether]` - value symbol
 - `{name} login_contract = "login.eosn"` - login contract with user data
+
+### example
+
+```json
+{
+    "status": "testing",
+    "value_symbol": "4,USDT@tethertether",
+    "login_contract": "login.eosn"
+}
+```
+
+## SINGLETON `state`
+
+### params
+
+- `{int64_t} round = -1` - current funding round ( -1 if no ongoing round)
 
 ### example
 
@@ -234,6 +255,62 @@ $ cleos push action pomelo setstatus '["maintenance"]' -p pomelo
 ### Example
 
 ```bash
-$ leos push action pomelo setvaluesym '[["4,USDT", "tethertether"]]' -p pomelo
+$ cleos push action pomelo setvaluesym '[["4,USDT", "tethertether"]]' -p pomelo
 ```
 
+## ACTION `setgrant`
+
+- **authority**: `get_self()`
+
+Creates/updates grant project with specified parameters. Project is created in "pending" state.
+
+### params
+
+- `{name} id` - grant project id
+- `{name} author_id` - author user id
+- `{set<name>}` - user ids authorized to modify project
+- `{name} funding_account` - account to forward donations to
+- `{set<extended_symbol>} accepted_tokens` - tokens accepted by the project
+
+### Example
+
+```bash
+$ cleos push action pomelo setgrant '["mygrant", "123.eosn", ["123.eosn"], "project2fund", [["4,USDT", "tethertether"]]]' -p pomelo
+```
+
+## ACTION `setbounty`
+
+- **authority**: `get_self()`
+
+Creates/updates bounty project with specified parameters. Project is created in "pending" state.
+
+### params
+
+- `{name} id` - bounty project id
+- `{name} author_id` - author user id
+- `{set<name>}` - user ids authorized to modify project
+- `{name} funding_account` - account to forward donations to
+- `{set<extended_symbol>} accepted_tokens` - tokens accepted by the project
+
+### Example
+
+```bash
+$ cleos push action pomelo setbounty '["mygrant", "123.eosn", ["123.eosn"], "project2fund", [["4,USDT", "tethertether"]]]' -p pomelo
+```
+
+## ACTION `setprjstatus`
+
+- **authority**: `get_self()`
+
+Creates/updates bounty project with specified parameters. Project is created in "pending" state.
+
+### params
+
+- `{name} id` - project id
+- `{name} status` - new status `pending/ok/disabled`
+
+### Example
+
+```bash
+$ cleos push action pomelo setprjstatus '["mygrant", "ok"]' -p pomelo
+```

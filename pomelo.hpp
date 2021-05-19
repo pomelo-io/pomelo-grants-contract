@@ -32,6 +32,8 @@ public:
      * ```json
      * {
      *   "status": "ok",
+     *   "value_symbol": "4,USDT@tethertether",
+     *   "login_contract": "login.eosn"
      * }
      * ```
      */
@@ -41,6 +43,24 @@ public:
         name                login_contract = "login.eosn"_n;
     };
     typedef eosio::singleton< "config"_n, config_row > config_table;
+
+    /**
+     * ## TABLE `state`
+     *
+     * - `{int64_t} round` - funding round
+     *
+     * ### example
+     *
+     * ```json
+     * {
+     *   "round": 1,
+     * }
+     * ```
+     */
+    struct [[eosio::table("state")]] state_row {
+        int64_t             round = -1;
+    };
+    typedef eosio::singleton< "state"_n, state_row > state_table;
 
     /**
      * ## TABLE `grants` & `bounties`
@@ -153,9 +173,9 @@ public:
 
     struct [[eosio::table]] transfers_row {
         uint64_t                transfer_id;
-        uint64_t                user_id;
+        name                    user_id;
         uint64_t                round_id;
-        uint64_t                grant_id;
+        name                    project_id;
         name                    eos_account;
         extended_asset          amount;
         double                  value;
@@ -163,9 +183,9 @@ public:
         time_point_sec          created_at;
 
         uint64_t primary_key() const { return transfer_id; }
-        uint64_t byuser() const { return user_id; };
+        uint64_t byuser() const { return user_id.value; };
         uint64_t byround() const { return round_id; };
-        uint64_t bygrant() const { return grant_id; };
+        uint64_t byproject() const { return project_id.value; };
         uint64_t byvalue() const { return static_cast<uint64_t> (value * 100); };
         uint64_t bycreated() const { return created_at.sec_since_epoch(); };
     };
@@ -173,7 +193,7 @@ public:
     typedef eosio::multi_index< "transfers"_n, transfers_row,
         indexed_by< "byuser"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byuser> >,
         indexed_by< "byround"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byround> >,
-        indexed_by< "bygrant"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::bygrant> >,
+        indexed_by< "byproject"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byproject> >,
         indexed_by< "byvalue"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byvalue> >,
         indexed_by< "bycreated"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::bycreated> >
     > transfers_table;
@@ -309,6 +329,55 @@ public:
     void setvaluesym( const extended_symbol value_symbol );
 
     /**
+     * ## ACTION `setgrant`
+     *
+     * Create/update grant project without modifying project status
+     *
+     * ### params
+     *
+     * - `{name} id` - project id
+     * - `{name} author_id` - author user id
+     * - `{set<name>} authorized_ids` - authorized user ids
+     * - `{name} funding_account` - account to forward donations to
+     * - `{set<extended_symbol>} accepted_tokens` - accepted tokens
+     */
+
+    [[eosio::action]]
+    void setgrant( const name id, const name author_id, const set<name> authorized_ids, const name funding_account, const set<extended_symbol> accepted_tokens );
+
+    /**
+     * ## ACTION `setbounty`
+     *
+     * Create/update bounty project without modifying project status
+     *
+     * ### params
+     *
+     * - `{name} id` - project id
+     * - `{name} author_id` - author user id
+     * - `{set<name>} authorized_ids` - authorized user ids
+     * - `{name} funding_account` - account to forward donations to
+     * - `{set<extended_symbol>} accepted_tokens` - accepted tokens
+     */
+
+    [[eosio::action]]
+    void setbounty( const name id, const name author_id, const set<name> authorized_ids, const name funding_account, const set<extended_symbol> accepted_tokens );
+
+
+    /**
+     * ## ACTION `setprjstatus`
+     *
+     * Update project status
+     *
+     * ### params
+     *
+     * - `{name} status` - new project status
+     */
+
+    [[eosio::action]]
+    void setprjstatus( const name project_id, const name status );
+
+
+    /**
      * ## TRANSFER NOTIFY HANDLER `on_transfer`
      *
      * Process incoming transfer
@@ -330,6 +399,18 @@ private:
     config_table config;
 
     double get_value(const extended_asset ext_quantity);
+
+    name get_user_id( const name user );
+
+    uint64_t get_current_round();
+
+    template <typename T>
+    void fund_project(const T& table, const name project, const extended_asset ext_quantity, const name user);
+
+    template <typename T>
+    void set_project(T& table, const name type, const name id, const name author_id, const set<name> authorized_ids, const name funding_account, const set<extended_symbol> accepted_tokens );
+
+    void log_transfer(const name project_id, const name user, const extended_asset ext_quantity, const double value);
 
 };
 }
