@@ -314,3 +314,21 @@ Creates/updates bounty project with specified parameters. Project is created in 
 ```bash
 $ cleos push action pomelo setprjstatus '["mygrant", "ok"]' -p pomelo
 ```
+
+## ACTION `setround`
+
+- **authority**: `get_self()`
+
+Creates/updates funding round with specified parameters.
+
+### params
+
+- `{uint64_t} round_id` - round_id
+- `{time_point_sec} start_at` - round start time
+- `{time_point_sec} end_at` - round end time
+
+### Example
+
+```bash
+$ cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00"]' -p pomelo
+```

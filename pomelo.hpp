@@ -376,6 +376,21 @@ public:
     [[eosio::action]]
     void setprjstatus( const name project_id, const name status );
 
+    /**
+     * ## ACTION `setround`
+     *
+     * Create/update round
+     *
+     * ### params
+     *
+     * - `{uint64_t} round_id` - round_id
+     * - `{time_point_sec} start_at` - round start time
+     * - `{time_point_sec} end_at` - round end time
+     */
+
+    [[eosio::action]]
+    void setround( const uint64_t round_id, const time_point_sec start_at, const time_point_sec end_at );
+
 
     /**
      * ## TRANSFER NOTIFY HANDLER `on_transfer`

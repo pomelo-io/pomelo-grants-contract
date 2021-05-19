@@ -168,4 +168,23 @@ void pomelo::setprjstatus( const name project_id, const name status )
     check( false, "pomelo: project doesn't exist" );
 }
 
+[[eosio::action]]
+void pomelo::setround( const uint64_t round_id, const time_point_sec start_at, const time_point_sec end_at )
+{
+    require_auth( get_self() );
+    pomelo::rounds_table rounds( get_self(), get_self().value );
+    const auto itr = rounds.find( round_id );
+
+    const auto insert = [&]( auto & row ) {
+        row.round = round_id;
+        row.start_at = start_at;
+        row.end_at = end_at;
+        row.updated_at = current_time_point();
+        if( itr == rounds.end() ) row.created_at = current_time_point();
+    };
+
+    if ( itr == rounds.end() ) rounds.emplace( get_self(), insert );
+    else rounds.modify( itr, get_self(), insert );
+}
+
 }
