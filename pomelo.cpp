@@ -187,4 +187,24 @@ void pomelo::setround( const uint64_t round_id, const time_point_sec start_at, c
     else rounds.modify( itr, get_self(), insert );
 }
 
+[[eosio::action]]
+void pomelo::addgrant( const name grant_id, const uint64_t round_id )
+{
+    require_auth( get_self() );
+
+    pomelo::grants_table grants( get_self(), get_self().value );
+    const auto grant = grants.get( grant_id.value, "pomelo: grant doesn't exist" );
+
+    pomelo::rounds_table rounds( get_self(), get_self().value );
+    const auto round_itr = rounds.find( round_id );
+    check( round_itr != rounds.end(),  "pomelo: round doesn't exist" );
+    check( round_itr->grant_ids.count( grant_id ) == 0, "pomelo: grant already exists in this round");
+
+    rounds.modify( round_itr, get_self(), [&]( auto & row ) {
+        row.grant_ids.insert(grant_id);
+        row.updated_at = current_time_point();
+    });
+
+}
+
 }

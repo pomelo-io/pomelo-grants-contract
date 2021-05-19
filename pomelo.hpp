@@ -383,7 +383,7 @@ public:
      *
      * ### params
      *
-     * - `{uint64_t} round_id` - round_id
+     * - `{uint64_t} round_id` - round id
      * - `{time_point_sec} start_at` - round start time
      * - `{time_point_sec} end_at` - round end time
      */
@@ -391,6 +391,19 @@ public:
     [[eosio::action]]
     void setround( const uint64_t round_id, const time_point_sec start_at, const time_point_sec end_at );
 
+    /**
+     * ## ACTION `addgrant`
+     *
+     * Add project to funding round
+     *
+     * ### params
+     *
+     * - `{name} project_id` - project id
+     * - `{uint64_t} round_id` - round id
+     */
+
+    [[eosio::action]]
+    void addgrant( const name project_id, const uint64_t round_id );
 
     /**
      * ## TRANSFER NOTIFY HANDLER `on_transfer`

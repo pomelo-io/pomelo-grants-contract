@@ -38,3 +38,33 @@
   [ $result = "bounty1" ]
 
 }
+
+
+@test "create round and add grant to it" {
+
+  run cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00"]' -p pomelo
+  [ $status -eq 0 ]
+  result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[0].round')
+  [ $result = "1" ]
+
+  run cleos push action pomelo addgrant '["grant1", 1]' -p pomelo
+  [ $status -eq 0 ]
+  result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[0].grant_ids[0]')
+  [ $result = "grant1" ]
+
+  run cleos push action pomelo addgrant '["grant1", 1]' -p pomelo
+  echo "Output: $output"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "grant already exists in this round" ]]
+
+  run cleos push action pomelo addgrant '["bounty1", 1]' -p pomelo
+  echo "Output: $output"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "grant doesn't exist" ]]
+
+  run cleos push action pomelo addgrant '["grant1", 1111]' -p pomelo
+  echo "Output: $output"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "round doesn't exist" ]]
+
+}

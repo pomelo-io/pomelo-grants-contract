@@ -332,3 +332,20 @@ Creates/updates funding round with specified parameters.
 ```bash
 $ cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00"]' -p pomelo
 ```
+
+## ACTION `addgrant`
+
+- **authority**: `get_self()`
+
+Adds project to round
+
+### params
+
+- `{name} project_id` - project_id
+- `{uint64_t} round_id` - round_id
+
+### Example
+
+```bash
+$ cleos push action pomelo addgrant '["grant1", 1]' -p pomelo
+```
