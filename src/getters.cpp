@@ -1,14 +1,36 @@
+#include <sx.defibox/defibox.hpp>
+
+using namespace sx;
 
 double pomelo::get_value( const extended_asset ext_quantity )
 {
+    const double value = ext_quantity.quantity.amount / pow( 10, ext_quantity.quantity.symbol.precision());
     const auto value_sym = config.get().value_symbol;
 
     if(ext_quantity.get_extended_symbol() == value_sym)
-        return ext_quantity.quantity.amount / pow( 10, ext_quantity.quantity.symbol.precision() );
+        return  value;
 
-    //TODO: lookup on defibox current rate and convert
+    //if local node - just multiply by 10, i.e. 10 EOS => USDT = 100.0 value
+    if(!is_account(defibox::code)){
+        return 10 * value;
+    }
 
-    return 10 * ext_quantity.quantity.amount / pow( 10, ext_quantity.quantity.symbol.precision() );
+    // loop through all defibox pairs and find the one that works (alternatively: hardcode pairs)
+    double rate = 0;
+    defibox::pairs _pairs( defibox::code, defibox::code.value );
+    for( const auto& row: _pairs ){
+        if( row.token0.contract == ext_quantity.contract && row.token0.symbol == ext_quantity.quantity.symbol
+            && row.token1.contract == value_sym.get_contract() && row.token1.symbol == value_sym.get_symbol() ){
+            return value * row.price0_last;
+        }
+        if( row.token1.contract == ext_quantity.contract && row.token1.symbol == ext_quantity.quantity.symbol
+            && row.token0.contract == value_sym.get_contract() && row.token0.symbol == value_sym.get_symbol() ){
+            return value * row.price1_last;
+        }
+    }
+
+    check(false, get_self().to_string() + "::get_value: can't convert amount to base symbol");
+    return value;
 }
 
 name pomelo::get_user_id( const name user ){
