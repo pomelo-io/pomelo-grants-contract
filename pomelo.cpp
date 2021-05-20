@@ -67,11 +67,7 @@ void pomelo::fund_project(const T& table, const name project_id, const extended_
         fund_grant( project_id, ext_quantity, user_id );
     }
 
-    const auto value = get_value( ext_quantity );
-
-    print("Funding ", project_id, " with ", ext_quantity, " == ", value, " value");
-
-    log_transfer(project.id, user, ext_quantity, value);
+    log_transfer(project.id, user, ext_quantity);
 
     eosio::token::transfer_action transfer(ext_quantity.contract, { get_self(), "active"_n });
     transfer.send( get_self(), project.funding_account, ext_quantity.quantity, "Funded!");
@@ -109,24 +105,24 @@ void pomelo::match_grant(const name grant_id, const uint64_t round_id, const ext
 {
     // do matching
     const auto value = get_value( ext_quantity );
-    const double multiplier = get_user_mutliplier( user_id );
-    const double matched = multiplier * value;   //for now - match 150%
-    const auto sqrt_value = sqrt(value);
+    const double multiplier = get_user_match_mutliplier( user_id );
+    const double boost = multiplier * value;  // boost by 0-125% based on socials and other boosters
 
     pomelo::match_grant_table match( get_self(), grant_id.value );
     const auto match_itr = match.find( round_id );
 
     auto insert = [&]( auto & row ) {
+        const auto user_sqrt = row.user_sqrt[user_id];
         row.round_id = round_id;
         row.grant_id = grant_id;
-        row.user_value[user_id] += value;
         row.user_multiplier[user_id] = multiplier;  //what if user's multiplier changed between donations - keep last?
-        row.user_match[user_id] += matched;
-        row.user_sqrt[user_id] += sqrt_value;
+        row.user_value[user_id] += value;
+        row.user_match[user_id] += boost;           //match - is it (Funding + Boost) or just Boost?
+        row.user_sqrt[user_id] = sqrt( user_sqrt * user_sqrt + value + boost );
         row.total_users = row.user_value.size();
         row.sum_value += value;
-        row.sum_match += matched;
-        row.sum_sqrt += sqrt_value;
+        row.sum_match += boost;
+        row.sum_sqrt = row.sum_sqrt - user_sqrt + row.user_sqrt[user_id];
         row.square = row.sum_sqrt * row.sum_sqrt;
         row.updated_at = current_time_point();
     };
@@ -135,14 +131,15 @@ void pomelo::match_grant(const name grant_id, const uint64_t round_id, const ext
     else match.modify( match_itr, get_self(), insert );
 }
 
-void pomelo::log_transfer(const name project_id, const name user, const extended_asset ext_quantity, const double value)
+void pomelo::log_transfer(const name project_id, const name user, const extended_asset ext_quantity)
 {
     const auto user_id = get_user_id( user );
-
     const auto round_id = get_current_round( );
+    const auto value = get_value( ext_quantity );
+
+    print("Funding ", project_id, " with ", ext_quantity, " == ", value, " value");
 
     pomelo::transfers_table transfers( get_self(), get_self().value );
-
     transfers.emplace( get_self(), [&]( auto & row ) {
         row.transfer_id = transfers.available_primary_key();
         row.user_id = user_id;

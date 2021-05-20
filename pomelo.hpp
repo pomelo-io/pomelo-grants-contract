@@ -440,7 +440,7 @@ private:
 
     name get_user_id( const name user );
 
-    double get_user_mutliplier( const name user_id );
+    double get_user_match_mutliplier( const name user_id );
 
     uint64_t get_current_round();
 
@@ -454,7 +454,7 @@ private:
     template <typename T>
     void set_project(T& table, const name type, const name id, const name author_id, const set<name> authorized_ids, const name funding_account, const set<extended_symbol> accepted_tokens );
 
-    void log_transfer(const name project_id, const name user, const extended_asset ext_quantity, const double value);
+    void log_transfer(const name project_id, const name user, const extended_asset ext_quantity);
 
 };
 }

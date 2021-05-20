@@ -137,6 +137,22 @@
   grant_balance=$(cleos get currency balance tethertether prjgrant1 B)
   [ "$grant_balance" = "80.0000 B" ]
 
+  run cleos transfer user1 pomelo "5.0000 B" "grant:grant1" --contract tethertether
+  echo "Output: $output"
+  [ $status -eq 0 ]
+  result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[1] | .user_ids[0] + .accepted_tokens[0].quantity')
+  [ "$result" = "user1.eosn55.0000 B" ]
+  result=$(cleos get table pomelo pomelo transfers | jq -r '.rows[4] | .user_id + .amount.quantity')
+  [ "$result" = "user1.eosn5.0000 B" ]
+  grant_balance=$(cleos get currency balance tethertether prjgrant1 B)
+  [ "$grant_balance" = "85.0000 B" ]
+
+  result=$(cleos get table pomelo grant1 match.grant | jq -r '.rows[0].square')
+  [ $result = "84.33300132670379412" ]
+
+  result=$(cleos get table pomelo grant1 match.grant | jq -r '.rows[1].square')
+  [ $result = "96.25000000000002842" ]
+
 }
 
 @test "disable grant" {
