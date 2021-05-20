@@ -43,6 +43,9 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 - [ACTION `setgrant`](#action-setgrant)
 - [ACTION `setbounty`](#action-setbounty)
 - [ACTION `setprjstatus`](#action-setprjstatus)
+- [ACTION `setround`](#action-setround)
+- [ACTION `startround`](#action-startround)
+- [ACTION `addgrant`](#action-addgrant)
 
 ## SINGLETON `config`
 
@@ -331,6 +334,22 @@ Creates/updates funding round with specified parameters.
 
 ```bash
 $ cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00"]' -p pomelo
+```
+
+## ACTION `startround`
+
+- **authority**: `get_self()`
+
+Start round by making sure round is defined and changing the state table
+
+### params
+
+- `{uint64_t} round_id` - round_id
+
+### Example
+
+```bash
+$ cleos push action pomelo startround '[1]' -p pomelo
 ```
 
 ## ACTION `addgrant`
