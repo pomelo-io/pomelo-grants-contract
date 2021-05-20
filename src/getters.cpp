@@ -22,13 +22,13 @@ name pomelo::get_user_id( const name user ){
 uint64_t pomelo::get_current_round(){
 
     state_table state(get_self(), get_self().value);
-    auto round = state.get_or_default().round;
-    check(round >= 0, "pomelo: no funding round ongoing");
+    auto round = state.get_or_default().round_id;
+    if(round == 0) return 0;    //return 0 if no active rounds - still allowed for bounties
 
     pomelo::rounds_table rounds( get_self(), get_self().value );
 
     const auto now = current_time_point().sec_since_epoch();
-    const auto row = rounds.get(static_cast<uint64_t>( round ));
+    const auto row = rounds.get( round, "pomelo: invalid state.round");
     check(row.start_at.sec_since_epoch() <= now && now <= row.end_at.sec_since_epoch(), "pomelo: invalid state.round");
 
     return row.round;

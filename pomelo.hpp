@@ -58,7 +58,7 @@ public:
      * ```
      */
     struct [[eosio::table("state")]] state_row {
-        int64_t             round = -1;
+        uint64_t             round_id = 0;
     };
     typedef eosio::singleton< "state"_n, state_row > state_table;
 
@@ -404,6 +404,19 @@ public:
 
     [[eosio::action]]
     void addgrant( const name project_id, const uint64_t round_id );
+
+    /**
+     * ## ACTION `startround`
+     *
+     * Start round by making sure round is defined and changing the state table
+     *
+     * ### params
+     *
+     * - `{uint64_t} round_id` - round id, 0 if no round is ongoing
+     */
+
+    [[eosio::action]]
+    void startround( const uint64_t round_id );
 
     /**
      * ## TRANSFER NOTIFY HANDLER `on_transfer`

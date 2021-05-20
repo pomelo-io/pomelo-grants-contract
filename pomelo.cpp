@@ -48,7 +48,7 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
         check(false, ERROR_INVALID_MEMO);
     }
 
-    check(false, "done");
+    //check(false, "done");
 
 }
 
@@ -59,6 +59,30 @@ void pomelo::fund_project(const T& table, const name project_id, const extended_
 
     check(project.status == "ok"_n, "pomelo: project not available for funding");
     check(project.accepted_tokens.count(ext_quantity.get_extended_symbol()), "pomelo: not accepted tokens for this project");
+
+    if( project.type == "grant"_n){
+        const auto round_id = get_current_round( );
+        check(round_id > 0, "pomelo: no funding round ongoing");
+
+        pomelo::rounds_table rounds( get_self(), get_self().value );
+        const auto round_itr = rounds.find( round_id );
+        check(round_itr != rounds.end() && round_itr->grant_ids.count( project_id ), "pomelo: grant is not part of this funding round");
+
+        rounds.modify( round_itr, get_self(), [&]( auto & row ) {
+            bool added = false;
+            for(auto& quan: row.accepted_tokens){
+                if(quan.get_extended_symbol() == ext_quantity.get_extended_symbol()){
+                    quan += ext_quantity;
+                    added = true;
+                }
+            }
+            if(!added) row.accepted_tokens.push_back(ext_quantity);
+            row.user_ids.insert( get_user_id( user ));
+            row.updated_at = current_time_point();
+        });
+
+        //TODO: calculate matching here
+    }
 
     const auto value = get_value( ext_quantity );
 
@@ -204,6 +228,26 @@ void pomelo::addgrant( const name grant_id, const uint64_t round_id )
         row.grant_ids.insert(grant_id);
         row.updated_at = current_time_point();
     });
+}
+
+[[eosio::action]]
+void pomelo::startround( const uint64_t round_id )
+{
+    require_auth( get_self() );
+
+    state_table state(get_self(), get_self().value);
+    auto state_ = state.get_or_default();
+    state_.round_id = round_id;
+    state.set(state_, get_self());
+    if(round_id == 0) return;     //close round and return
+
+    //make sure round exist and is not over
+    pomelo::rounds_table rounds( get_self(), get_self().value );
+
+    const auto round = rounds.get( round_id, "pomelo: round is not defined" );
+    const auto now = current_time_point().sec_since_epoch();
+    check( round.end_at.sec_since_epoch() > now, "pomelo: round has already ended" );
+
 
 }
 
