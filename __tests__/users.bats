@@ -31,4 +31,10 @@
   [ $status -eq 0 ]
   result=$(cleos get table login.eosn login.eosn users | jq -r '.rows[2].accounts[0]')
   [ $result = "user2" ]
+
+  run cleos push action login.eosn social '["user1.eosn", ["github", "twitter", "facebook"]]' -p login.eosn
+  [ $status -eq 0 ]
+
+  run cleos push action login.eosn social '["user2.eosn", ["github"]]' -p login.eosn
+  [ $status -eq 0 ]
 }

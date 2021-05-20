@@ -19,6 +19,21 @@ name pomelo::get_user_id( const name user ){
     return account.user_id;
 }
 
+double pomelo::get_user_mutliplier( const name user_id ){
+
+    eosn::login::users_table users( config.get_or_default().login_contract, config.get_or_default().login_contract.value );
+    const auto user = users.get(user_id.value, "pomelo: user id doesn't exist");
+
+    check(user.status != "deleted"_n, "pomelo: user is not allowed to donate");
+
+    double multiplier = 1;
+
+    //each social gives 25% boost
+    multiplier += user.socials.size() * 0.25;
+
+    return multiplier;
+}
+
 uint64_t pomelo::get_current_round(){
 
     state_table state(get_self(), get_self().value);
@@ -33,16 +48,3 @@ uint64_t pomelo::get_current_round(){
 
     return row.round;
 }
-// alternative way to pull round - from rounds table
-// uint64_t pomelo::get_current_round(){
-
-//     const auto now = current_time_point().sec_since_epoch();
-//     pomelo::rounds_table rounds( get_self(), get_self().value );
-//     for(const auto& row: rounds){
-//         if(row.start_at.sec_since_epoch() <= now && now <= row.end_at.sec_since_epoch()) return row.round;
-//     }
-
-//     check(false, "pomelo: no funding round ongoing");
-//     return -1;
-// }
-

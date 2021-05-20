@@ -110,8 +110,8 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 {
     "id": "mygrant",
     "type": "grant",
-    "author_user_id": 123,
-    "authorized_user_ids": [123],
+    "author_user_id": "user1.eosn",
+    "authorized_user_ids": ["user1.eosn"],
     "funding_account": "myreceiver",
     "accepted_tokens": [{"contract": "eosio.token", "symbol": "4,EOS"}],
     "status": "ok",
@@ -137,9 +137,9 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ### params
 
 - `{uint64_t} transfer_id` - (primary key) token transfer ID
-- `{uint64_t} user_id` - Pomelo user account ID
+- `{name} user_id` - Pomelo user account ID
 - `{uint64_t} round_id` - participating round ID
-- `{uint64_t} grant_id` - grant ID
+- `{name} grant_id` - grant ID
 - `{name} eos_account` - EOS account sending transfer
 - `{extended_asset} amount` - amount of tokens donated
 - `{double} value` - USD valuation at time of received
@@ -151,9 +151,9 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ```json
 {
     "transfer_id": 10001,
-    "user_id": 5,
+    "user_id": "user1.eosn",
     "round": 1,
-    "grant_id": 1001,
+    "grant_id": "grant1",
     "eos_account": "myaccount",
     "amount": {"contract": "eosio.token", "quantity": "15.0000 EOS"},
     "value": 100.0,
@@ -169,7 +169,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ### params
 
 - `{uint64_t} round_id` - (primary key) round ID
-- `{uint64_t} grant_id` - grant ID
+- `{name} grant_id` - grant ID
 - `{map<name, double>} user_value` - user value contributions
 - `{map<name, double>} user_multiplier` - user match multiplier
 - `{map<name, double>} user_match` - user match contributions
@@ -186,7 +186,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ```json
 {
     "round_id": 1,
-    "grant_id": 1001,
+    "grant_id": "grant1",
     "user_value": [{ "key": "myaccount", "value": 100.0 }, { "key": "toaccount", "value": 50.0 }],
     "user_multiplier": [{ "key": "myaccount", "value": 2.25 }, { "key": "toaccount", "value": 2.0 }],
     "user_match": [{ "key": "myaccount", "value": 225.0 }, { "key": "toaccount", "value": 100.0 }],
@@ -222,8 +222,8 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 ```json
 {
     "round": 1,
-    "grant_ids": [345],
-    "user_ids": [123],
+    "grant_ids": ["grant1"],
+    "user_ids": ["user1.eosn"],
     "accepted_tokens": [{"contract": "eosio.token", "quantity": "1.0000 EOS"}],
     "start_at": "2020-12-06T00:00:00",
     "end_at": "2020-12-12T00:00:00",

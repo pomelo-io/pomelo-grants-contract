@@ -61,27 +61,8 @@ void pomelo::fund_project(const T& table, const name project_id, const extended_
     check(project.accepted_tokens.count(ext_quantity.get_extended_symbol()), "pomelo: not accepted tokens for this project");
 
     if( project.type == "grant"_n){
-        const auto round_id = get_current_round( );
-        check(round_id > 0, "pomelo: no funding round ongoing");
-
-        pomelo::rounds_table rounds( get_self(), get_self().value );
-        const auto round_itr = rounds.find( round_id );
-        check(round_itr != rounds.end() && round_itr->grant_ids.count( project_id ), "pomelo: grant is not part of this funding round");
-
-        rounds.modify( round_itr, get_self(), [&]( auto & row ) {
-            bool added = false;
-            for(auto& quan: row.accepted_tokens){
-                if(quan.get_extended_symbol() == ext_quantity.get_extended_symbol()){
-                    quan += ext_quantity;
-                    added = true;
-                }
-            }
-            if(!added) row.accepted_tokens.push_back(ext_quantity);
-            row.user_ids.insert( get_user_id( user ));
-            row.updated_at = current_time_point();
-        });
-
-        //TODO: calculate matching here
+        const auto user_id = get_user_id( user );
+        fund_grant( project_id, ext_quantity, user_id );
     }
 
     const auto value = get_value( ext_quantity );
@@ -92,6 +73,64 @@ void pomelo::fund_project(const T& table, const name project_id, const extended_
 
     eosio::token::transfer_action transfer(ext_quantity.contract, { get_self(), "active"_n });
     transfer.send( get_self(), project.funding_account, ext_quantity.quantity, "Funded!");
+}
+
+void pomelo::fund_grant(const name grant_id, const extended_asset ext_quantity, const name user_id)
+{
+    const auto round_id = get_current_round( );
+    check(round_id > 0, "pomelo: no funding round ongoing");
+
+    // update round
+    pomelo::rounds_table rounds( get_self(), get_self().value );
+    const auto round_itr = rounds.find( round_id );
+    check(round_itr != rounds.end() && round_itr->grant_ids.count( grant_id ), "pomelo: grant is not part of this funding round");
+
+    rounds.modify( round_itr, get_self(), [&]( auto & row ) {
+        bool added = false;
+        for(auto& quan: row.accepted_tokens){
+            if(quan.get_extended_symbol() == ext_quantity.get_extended_symbol()){
+                quan += ext_quantity;
+                added = true;
+            }
+        }
+        if(!added) row.accepted_tokens.push_back(ext_quantity);
+        row.user_ids.insert( user_id );
+        row.updated_at = current_time_point();
+    });
+
+    // do matching
+    match_grant( grant_id, round_id, ext_quantity, user_id );
+}
+
+
+void pomelo::match_grant(const name grant_id, const uint64_t round_id, const extended_asset ext_quantity, const name user_id)
+{
+    // do matching
+    const auto value = get_value( ext_quantity );
+    const double multiplier = get_user_mutliplier( user_id );
+    const double matched = multiplier * value;   //for now - match 150%
+    const auto sqrt_value = sqrt(value);
+
+    pomelo::match_grant_table match( get_self(), grant_id.value );
+    const auto match_itr = match.find( round_id );
+
+    auto insert = [&]( auto & row ) {
+        row.round_id = round_id;
+        row.grant_id = grant_id;
+        row.user_value[user_id] += value;
+        row.user_multiplier[user_id] = multiplier;  //what if user's multiplier changed between donations - keep last?
+        row.user_match[user_id] += matched;
+        row.user_sqrt[user_id] += sqrt_value;
+        row.total_users = row.user_value.size();
+        row.sum_value += value;
+        row.sum_match += matched;
+        row.sum_sqrt += sqrt_value;
+        row.square = row.sum_sqrt * row.sum_sqrt;
+        row.updated_at = current_time_point();
+    };
+
+    if ( match_itr == match.end() ) match.emplace( get_self(), insert );
+    else match.modify( match_itr, get_self(), insert );
 }
 
 void pomelo::log_transfer(const name project_id, const name user, const extended_asset ext_quantity, const double value)

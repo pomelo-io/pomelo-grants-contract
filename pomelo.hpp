@@ -90,8 +90,8 @@ public:
         * {
         *   "id": "mygrant",
         *   "type": "grant",
-        *   "author_user_id": 123,
-        *   "authorized_user_ids": [123],
+        *   "author_user_id": "user1.eosn",
+        *   "authorized_user_ids": ["user1.eosn"],
         *   "funding_account": "myreceiver",
         *   "accepted_tokens": [{"contract": "eosio.token", "symbol": "4,EOS"}],
         *   "status": "ok",
@@ -138,9 +138,9 @@ public:
      * *scope*: `get_self()` (name)
      *
      * - `{uint64_t} transfer_id` - (primary key) token transfer ID
-     * - `{uint64_t} user_id` - Pomelo user account ID
+     * - `{name} user_id` - Pomelo user account ID
      * - `{uint64_t} round_id` - participating round ID
-     * - `{uint64_t} grant_id` - grant ID
+     * - `{name} grant_id` - grant ID
      * - `{name} eos_account` - EOS account sending transfer
      * - `{extended_asset} amount - amount of tokens donated
      * - `{double} value` - USD valuation at time of received
@@ -159,9 +159,9 @@ public:
      * ```json
         * {
         *   "transfer_id": 10001,
-        *   "user_id": 5,
+        *   "user_id": "user1.eosn",
         *   "round": 1,
-        *   "grant_id": 1001,
+        *   "grant_id": "grant1",
         *   "eos_account": "myaccount",
         *   "amount": {"contract": "eosio.token", "quantity": "15.0000 EOS"},
         *   "value": 100.0,
@@ -204,7 +204,7 @@ public:
      * *scope*: `grant_id`
      *
      * - `{uint64_t} round_id` - (primary key) round ID
-     * - `{uint64_t} grant_id` - grant ID
+     * - `{name} grant_id` - grant ID
      * - `{map<name, double>} user_value` - user value contributions
      * - `{map<name, double>} user_multiplier` - user match multiplier
      * - `{map<name, double>} user_match` - user match contributions
@@ -221,7 +221,7 @@ public:
      * ```json
      * {
      *   "round_id": 1,
-     *   "grant_id": 1001,
+     *   "grant_id": "grant_id",
      *   "user_value": [{ "key": "myaccount", "value": 100.0 }, { "key": "toaccount", "value": 50.0 }],
      *   "user_multiplier": [{ "key": "myaccount", "value": 2.25 }, { "key": "toaccount", "value": 2.0 }],
      *   "user_match": [{ "key": "myaccount", "value": 225.0 }, { "key": "toaccount", "value": 100.0 }],
@@ -238,7 +238,7 @@ public:
 
     struct [[eosio::table("match.grant")]] match_grant_row {
         uint64_t                round_id;
-        uint64_t                grant_id;
+        name                    grant_id;
         map<name, double>       user_value;
         map<name, double>       user_multiplier;
         map<name, double>       user_match;
@@ -274,8 +274,8 @@ public:
      * ```json
      * {
      *   "round": 1,
-     *   "grant_ids": [345],
-     *   "user_ids": [123],
+     *   "grant_ids": ["grant1"],
+     *   "user_ids": ["user1.eosn"],
      *   "accepted_tokens": [{"contract": "eosio.token", "quantity": "1.0000 EOS"}],
      *   "start_at": "2020-12-06T00:00:00",
      *   "end_at": "2020-12-12T00:00:00",
@@ -443,10 +443,16 @@ private:
 
     name get_user_id( const name user );
 
+    double get_user_mutliplier( const name user_id );
+
     uint64_t get_current_round();
 
     template <typename T>
     void fund_project(const T& table, const name project, const extended_asset ext_quantity, const name user);
+
+    void fund_grant(const name grant_id, const extended_asset ext_quantity, const name user_id);
+
+    void match_grant(const name grant_id, const uint64_t round_id, const extended_asset ext_quantity, const name user_id);
 
     template <typename T>
     void set_project(T& table, const name type, const name id, const name author_id, const set<name> authorized_ids, const name funding_account, const set<extended_symbol> accepted_tokens );
