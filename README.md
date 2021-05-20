@@ -69,7 +69,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 
 ### params
 
-- `{int64_t} round = -1` - current funding round ( -1 if no ongoing round)
+- `{uint64_t} round = 0` - current funding round ( 0 if no ongoing round)
 
 ### example
 
