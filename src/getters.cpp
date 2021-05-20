@@ -14,7 +14,7 @@ double pomelo::get_value( const extended_asset ext_quantity )
 name pomelo::get_user_id( const name user ){
 
     eosn::login::accounts_table accounts( config.get_or_default().login_contract, config.get_or_default().login_contract.value );
-    const auto account = accounts.get(user.value, "pomelo: user doesn't exist");
+    const auto account = accounts.get(user.value, "pomelo::get_user_id: user doesn't exist");
 
     return account.user_id;
 }
@@ -22,9 +22,9 @@ name pomelo::get_user_id( const name user ){
 double pomelo::get_user_mutliplier( const name user_id ){
 
     eosn::login::users_table users( config.get_or_default().login_contract, config.get_or_default().login_contract.value );
-    const auto user = users.get(user_id.value, "pomelo: user id doesn't exist");
+    const auto user = users.get(user_id.value, "pomelo::get_user_mutliplier: user id doesn't exist");
 
-    check(user.status != "deleted"_n, "pomelo: user is not allowed to donate");
+    check(user.status != "deleted"_n, get_self().to_string() + "::get_user_mutliplier: user is not allowed to donate");
 
     double multiplier = 1;
 
@@ -43,8 +43,8 @@ uint64_t pomelo::get_current_round(){
     pomelo::rounds_table rounds( get_self(), get_self().value );
 
     const auto now = current_time_point().sec_since_epoch();
-    const auto row = rounds.get( round, "pomelo: invalid state.round");
-    check(row.start_at.sec_since_epoch() <= now && now <= row.end_at.sec_since_epoch(), "pomelo: invalid state.round");
+    const auto row = rounds.get( round, "pomelo::get_current_round: invalid state.round");
+    check(row.start_at.sec_since_epoch() <= now && now <= row.end_at.sec_since_epoch(), get_self().to_string() + "::get_current_round: invalid state.round");
 
     return row.round;
 }

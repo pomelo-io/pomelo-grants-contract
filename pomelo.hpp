@@ -11,9 +11,6 @@ using namespace eosn;
 
 namespace eosn {
 
-static const string ERROR_INVALID_MEMO = "pomelo: invalid memo, use \"grant:mygrant\" or \"bounty:mybounty\"";
-
-
 class [[eosio::contract("pomelo")]] pomelo : public eosio::contract {
 public:
 

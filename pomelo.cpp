@@ -10,6 +10,8 @@
 
 namespace eosn {
 
+static const string ERROR_INVALID_MEMO = "invalid memo, use \"grant:mygrant\" or \"bounty:mybounty\"";
+
 /**
  * Notify contract when any token transfer notifiers relay contract
  */
@@ -20,19 +22,19 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
     require_auth( from );
 
     // config
-    check( config.exists(), "pomelo: config does not exist" );
+    check( config.exists(), get_self().to_string() + "::on_transfer: config does not exist" );
     const name status = config.get().status;
-    check( (status == "ok"_n || status == "testing"_n ), "pomelo: contract is under maintenance");
+    check( (status == "ok"_n || status == "testing"_n ), get_self().to_string() + ": contract is under maintenance");
 
     // ignore outgoing/RAM/self-funding transfers
     if ( to != get_self() || memo == get_self().to_string() || from == "eosio.ram"_n ) return;
 
     // parse memo
     const auto memo_parts = sx::utils::split(memo, ":");
-    check(memo_parts.size() == 2, ERROR_INVALID_MEMO);
+    check(memo_parts.size() == 2, get_self().to_string() + "::on_transfer: " + ERROR_INVALID_MEMO);
 
     const auto project = sx::utils::parse_name(memo_parts[1]);
-    check(project.value, "pomelo: invalid project name");
+    check(project.value, get_self().to_string() + "::on_transfer: invalid project name");
 
     if(memo_parts[0] == "grant"){
 
@@ -45,7 +47,7 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
         fund_project(bounties, project, extended_asset{ quantity, get_first_receiver() }, from);
     }
     else {
-        check(false, ERROR_INVALID_MEMO);
+        check(false, get_self().to_string() + "::on_transfer: " + ERROR_INVALID_MEMO);
     }
 
     //check(false, "done");
@@ -55,10 +57,10 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
 template <typename T>
 void pomelo::fund_project(const T& table, const name project_id, const extended_asset ext_quantity, const name user)
 {
-    const auto project = table.get(project_id.value, "pomelo: project not found");
+    const auto project = table.get(project_id.value, "pomelo::fund_project: project not found");
 
-    check(project.status == "ok"_n, "pomelo: project not available for funding");
-    check(project.accepted_tokens.count(ext_quantity.get_extended_symbol()), "pomelo: not accepted tokens for this project");
+    check(project.status == "ok"_n, get_self().to_string() + "::fund_project: project not available for funding");
+    check(project.accepted_tokens.count(ext_quantity.get_extended_symbol()), get_self().to_string() + "::fund_project: not accepted tokens for this project");
 
     if( project.type == "grant"_n){
         const auto user_id = get_user_id( user );
@@ -78,12 +80,12 @@ void pomelo::fund_project(const T& table, const name project_id, const extended_
 void pomelo::fund_grant(const name grant_id, const extended_asset ext_quantity, const name user_id)
 {
     const auto round_id = get_current_round( );
-    check(round_id > 0, "pomelo: no funding round ongoing");
+    check(round_id > 0, get_self().to_string() + "::fund_grant: no funding round ongoing");
 
     // update round
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto round_itr = rounds.find( round_id );
-    check(round_itr != rounds.end() && round_itr->grant_ids.count( grant_id ), "pomelo: grant is not part of this funding round");
+    check(round_itr != rounds.end() && round_itr->grant_ids.count( grant_id ), get_self().to_string() + "::fund_grant: grant is not part of this funding round");
 
     rounds.modify( round_itr, get_self(), [&]( auto & row ) {
         bool added = false;
@@ -180,10 +182,10 @@ void pomelo::set_project( T& projects, const name type, const name id, const nam
 {
     const auto itr = projects.find( id.value );
     if(itr != projects.end()){
-        check( type == itr->type, "pomelo: project type cannot be changed" );
-        check( author_id == itr->author_user_id, "pomelo: project author cannot be changed" );
+        check( type == itr->type, get_self().to_string() + "::set_project: project type cannot be changed" );
+        check( author_id == itr->author_user_id, get_self().to_string() + "::set_project: project author cannot be changed" );
     }
-    check( is_account(funding_account), "pomelo: funding account must exist on chain" );
+    check( is_account(funding_account), get_self().to_string() + "::set_project: funding account must exist on chain" );
 
     auto insert = [&]( auto & row ) {
         row.id = id;
@@ -205,7 +207,7 @@ void pomelo::set_project( T& projects, const name type, const name id, const nam
 void pomelo::setprjstatus( const name project_id, const name status )
 {
     require_auth( get_self() );
-    check( status == "ok"_n || status == "pending"_n || status == "disabled"_n, "pomelo: invalid status" );
+    check( status == "ok"_n || status == "pending"_n || status == "disabled"_n, get_self().to_string() + "::setprjstatus: invalid status" );
 
     auto modify = [&]( auto & row ) {
         row.status = status;
@@ -215,7 +217,7 @@ void pomelo::setprjstatus( const name project_id, const name status )
     pomelo::grants_table grants( get_self(), get_self().value );
     const auto itr1 = grants.find( project_id.value );
     if( itr1 != grants.end() ){
-        check( itr1->status != status, "pomelo: status must be different");
+        check( itr1->status != status, get_self().to_string() + "::setprjstatus: status must be different");
         grants.modify( itr1, get_self(), modify);
         return;
     }
@@ -223,12 +225,12 @@ void pomelo::setprjstatus( const name project_id, const name status )
     pomelo::bounties_table bounties( get_self(), get_self().value );
     const auto itr2 = bounties.find( project_id.value );
     if( itr2 != bounties.end() ){
-        check( itr2->status != status, "pomelo: status must be different");
+        check( itr2->status != status, get_self().to_string() + "::setprjstatus: status must be different");
         bounties.modify( itr2, get_self(), modify);
         return;
     }
 
-    check( false, "pomelo: project doesn't exist" );
+    check( false, get_self().to_string() + "::setprjstatus: project doesn't exist" );
 }
 
 [[eosio::action]]
@@ -256,12 +258,12 @@ void pomelo::addgrant( const name grant_id, const uint64_t round_id )
     require_auth( get_self() );
 
     pomelo::grants_table grants( get_self(), get_self().value );
-    const auto grant = grants.get( grant_id.value, "pomelo: grant doesn't exist" );
+    const auto grant = grants.get( grant_id.value, "pomelo::addgrant: grant doesn't exist" );
 
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto round_itr = rounds.find( round_id );
-    check( round_itr != rounds.end(),  "pomelo: round doesn't exist" );
-    check( round_itr->grant_ids.count( grant_id ) == 0, "pomelo: grant already exists in this round");
+    check( round_itr != rounds.end(),  get_self().to_string() + "::addgrant: round doesn't exist" );
+    check( round_itr->grant_ids.count( grant_id ) == 0, get_self().to_string() + "::addgrant: grant already exists in this round");
 
     rounds.modify( round_itr, get_self(), [&]( auto & row ) {
         row.grant_ids.insert(grant_id);
@@ -283,9 +285,9 @@ void pomelo::startround( const uint64_t round_id )
     //make sure round exist and is not over
     pomelo::rounds_table rounds( get_self(), get_self().value );
 
-    const auto round = rounds.get( round_id, "pomelo: round is not defined" );
+    const auto round = rounds.get( round_id, "pomelo::startround: round is not defined" );
     const auto now = current_time_point().sec_since_epoch();
-    check( round.end_at.sec_since_epoch() > now, "pomelo: round has already ended" );
+    check( round.end_at.sec_since_epoch() > now, get_self().to_string() + "::startround: round has already ended" );
 
 
 }
