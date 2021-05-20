@@ -116,6 +116,9 @@
   [ "$result" = "user2.eosn20.0000 B" ]
   grant_balance=$(cleos get currency balance tethertether prjgrant1 B)
   [ "$grant_balance" = "30.0000 B" ]
+
+  result=$(cleos get table pomelo grant1 match.grant | jq -r '.rows[0].square')
+  [ $result = "84.33300132670379412" ]
 }
 
 @test "start round #2 and fund grant" {
@@ -146,9 +149,6 @@
   [ "$result" = "user1.eosn5.0000 B" ]
   grant_balance=$(cleos get currency balance tethertether prjgrant1 B)
   [ "$grant_balance" = "85.0000 B" ]
-
-  result=$(cleos get table pomelo grant1 match.grant | jq -r '.rows[0].square')
-  [ $result = "84.33300132670379412" ]
 
   result=$(cleos get table pomelo grant1 match.grant | jq -r '.rows[1].square')
   [ $result = "96.25000000000002842" ]
