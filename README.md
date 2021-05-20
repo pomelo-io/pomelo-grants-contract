@@ -45,7 +45,7 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 - [ACTION `setprjstatus`](#action-setprjstatus)
 - [ACTION `setround`](#action-setround)
 - [ACTION `startround`](#action-startround)
-- [ACTION `addgrant`](#action-addgrant)
+- [ACTION `joinround`](#action-joinround)
 
 ## SINGLETON `config`
 
@@ -352,11 +352,11 @@ Start round by making sure round is defined and changing the state table
 $ cleos push action pomelo startround '[1]' -p pomelo
 ```
 
-## ACTION `addgrant`
+## ACTION `joinround`
 
 - **authority**: `get_self()`
 
-Adds project to round
+Adds grant to round
 
 ### params
 
@@ -366,5 +366,5 @@ Adds project to round
 ### Example
 
 ```bash
-$ cleos push action pomelo addgrant '["grant1", 1]' -p pomelo
+$ cleos push action pomelo joinround '["grant1", 1]' -p pomelo
 ```

@@ -389,7 +389,7 @@ public:
     void setround( const uint64_t round_id, const time_point_sec start_at, const time_point_sec end_at );
 
     /**
-     * ## ACTION `addgrant`
+     * ## ACTION `joinround`
      *
      * Add project to funding round
      *
@@ -400,7 +400,7 @@ public:
      */
 
     [[eosio::action]]
-    void addgrant( const name project_id, const uint64_t round_id );
+    void joinround( const name project_id, const uint64_t round_id );
 
     /**
      * ## ACTION `startround`

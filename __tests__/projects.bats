@@ -62,12 +62,12 @@
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[0].round')
   [ $result = "1" ]
 
-  run cleos push action pomelo addgrant '["grant1", 1]' -p pomelo
+  run cleos push action pomelo joinround '["grant1", 1]' -p pomelo
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[0].grant_ids[0]')
   [ $result = "grant1" ]
 
-  run cleos push action pomelo addgrant '["grant1", 1111]' -p pomelo
+  run cleos push action pomelo joinround '["grant1", 1111]' -p pomelo
   echo "Output: $output"
   [ $status -eq 1 ]
   [[ "$output" =~ "round doesn't exist" ]]
@@ -82,7 +82,7 @@
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[1].round')
   [ $result = "2" ]
 
-  run cleos push action pomelo addgrant '["grant1", 2]' -p pomelo
+  run cleos push action pomelo joinround '["grant1", 2]' -p pomelo
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[1].grant_ids[0]')
   [ $result = "grant1" ]
