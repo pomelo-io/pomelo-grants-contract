@@ -22,6 +22,7 @@ cleos push action login.eosn social '["user1.eosn", ["github", "twitter", "faceb
 # create funding round and start it
 cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00"]' -p pomelo
 cleos push action pomelo startround '[1]' -p pomelo
+cleos push action pomelo joinround '["grant1", 1]' -p pomelo
 
 # create grant, enable it and join round
 cleos push action pomelo setgrant '["grant1", "prjman1", ["prjman1"], "prjgrant1", [["4,USDT", "tethertether"]]]' -p pomelo
