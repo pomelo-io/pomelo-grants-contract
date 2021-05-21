@@ -11,7 +11,7 @@ using namespace eosn;
 
 namespace eosn {
 
-class [[eosio::contract("pomelo")]] pomelo : public eosio::contract {
+class [[eosio::contract]] pomelo : public eosio::contract {
 public:
 
     pomelo(name rec, name code, datastream<const char*> ds)
