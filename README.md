@@ -208,9 +208,9 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 - `{set<name>} grant_ids` - grants IDs participating
 - `{set<name>} user_ids` - user IDs participating
 - `{vector<extended_asset>} accepted_tokens` - accepted tokens
-
-** TO-DO ADD sums of `donate.grants`
-
+- `{double} sum_value` - total value donated this round
+- `{double} sum_boost` - total boost received this round
+- `{double} sum_square` - square of total sqrt sum
 - `{time_point_sec} start_at` - start at time
 - `{time_point_sec} end_at` - end at time
 - `{time_point_sec} created_at` - created at time
@@ -225,6 +225,9 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
     "grant_ids": ["grant1"],
     "user_ids": ["user1.eosn"],
     "accepted_tokens": [{"contract": "eosio.token", "quantity": "1.0000 EOS"}],
+    "sum_value": 12345,
+    "sum_boost": 3231,
+    "sum_square": 423451.1233,
     "start_at": "2020-12-06T00:00:00",
     "end_at": "2020-12-12T00:00:00",
     "created_at": "2020-12-06T00:00:00",

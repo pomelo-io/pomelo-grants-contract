@@ -57,7 +57,7 @@
 
 @test "create rounds, add grant to them" {
 
-  run cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00"]' -p pomelo
+  run cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-25T20:00:00"]' -p pomelo
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[0].round')
   [ $result = "1" ]
@@ -77,7 +77,7 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "no funding round ongoing" ]]
 
-  run cleos push action pomelo setround '[2, "2021-05-20T10:00:00", "2021-05-28T10:00:00"]' -p pomelo
+  run cleos push action pomelo setround '[2, "2021-05-20T10:00:00", "2021-08-28T10:00:00"]' -p pomelo
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[1].round')
   [ $result = "2" ]

@@ -260,6 +260,9 @@ public:
      * - `{set<name>} grant_ids` - grants IDs participating
      * - `{set<name>} user_ids` - user IDs participating
      * - `{vector<extended_asset>} accepted_tokens` - accepted tokens
+     * - `{double} sum_value` - total value donated this round
+     * - `{double} sum_boost` - total boost received this round
+     * - `{double} sum_square` - square of total sqrt sum
      * - `{time_point_sec} start_at` - start at time
      * - `{time_point_sec} end_at` - end at time
      * - `{time_point_sec} created_at` - created at time
@@ -287,6 +290,9 @@ public:
         set<name>               grant_ids;
         set<name>               user_ids;
         vector<extended_asset>  accepted_tokens;
+        double                  sum_value;
+        double                  sum_boost;
+        double                  sum_square;
         time_point_sec          start_at;
         time_point_sec          end_at;
         time_point_sec          created_at;
@@ -447,14 +453,12 @@ private:
     template <typename T>
     void fund_project(const T& table, const name project, const extended_asset ext_quantity, const name user);
 
-    void fund_grant(const name grant_id, const extended_asset ext_quantity, const name user_id);
-
-    void match_grant(const name grant_id, const uint64_t round_id, const extended_asset ext_quantity, const name user_id);
+    void fund_grant(const name grant_id, const extended_asset ext_quantity, const name user_id, const double value);
 
     template <typename T>
     void set_project(T& table, const name type, const name id, const name author_id, const set<name> authorized_ids, const name funding_account, const set<extended_symbol> accepted_tokens );
 
-    void log_transfer(const name project_id, const name user, const extended_asset ext_quantity);
+    void log_transfer(const name project_id, const name user, const extended_asset ext_quantity, const double value);
 
 };
 }
