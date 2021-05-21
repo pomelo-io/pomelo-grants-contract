@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-@test "create grant" {
+@test "create grant1" {
 
   run cleos push action pomelo setgrant '["grant1", "prjman1", ["prjman1"], "prjgrant1", [["4,B", "tethertether"]]]' -p pomelo
   [ $status -eq 0 ]
@@ -30,7 +30,7 @@
 }
 
 
-@test "create bounty and fund it" {
+@test "create bounty1 and fund it" {
 
   run cleos push action pomelo setbounty '["bounty1", "prjman1", ["prjman1"], "prjbounty1", [["4,A", "eosio.token"]]]' -p pomelo
   [ $status -eq 0 ]
@@ -55,7 +55,7 @@
 }
 
 
-@test "create rounds, add grant to them" {
+@test "create rounds, add grant1 to them" {
 
   run cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-25T20:00:00"]' -p pomelo
   [ $status -eq 0 ]
@@ -89,7 +89,7 @@
 
 }
 
-@test "start round #1 and fund grant" {
+@test "start round1 and fund grant1 with 2 donations by 2 users" {
 
   run cleos push action pomelo startround '[1]' -p pomelo
   [ $status -eq 0 ]
@@ -119,9 +119,13 @@
 
   result=$(cleos get table pomelo grant1 match.grant | jq -r '.rows[0].square')
   [ $result = "84.33300132670379412" ]
+
+  result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[0].sum_square')
+  [ $result = "84.33300132670379412" ]
+
 }
 
-@test "start round #2 and fund grant" {
+@test "start round2 and fund grant1 with 2 donations by 1 user" {
 
   run cleos push action pomelo startround '[2]' -p pomelo
   [ $status -eq 0 ]
@@ -155,7 +159,51 @@
 
 }
 
-@test "disable grant" {
+
+@test "create grant2 on round2 and fund with 8 microdonations" {
+
+  run cleos push action pomelo setgrant '["grant2", "prjman2", ["prjman2"], "prjgrant2", [["4,A", "eosio.token"]]]' -p pomelo
+  [ $status -eq 0 ]
+
+  run cleos push action pomelo setprjstatus '["grant2", "ok"]' -p pomelo
+  [ $status -eq 0 ]
+
+  run cleos push action pomelo joinround '["grant2", 2]' -p pomelo
+  [ $status -eq 0 ]
+
+  run cleos transfer user1 pomelo "1.0000 A" "grant:grant2"
+  [ $status -eq 0 ]
+
+  run cleos transfer user2 pomelo "1.0000 A" "grant:grant2"
+  [ $status -eq 0 ]
+
+  run cleos transfer user3 pomelo "1.0000 A" "grant:grant2"
+  [ $status -eq 0 ]
+
+  run cleos transfer user4 pomelo "1.0000 A" "grant:grant2"
+  [ $status -eq 0 ]
+
+  run cleos transfer user5 pomelo "1.0000 A" "grant:grant2"
+  [ $status -eq 0 ]
+
+  run cleos transfer user11 pomelo "1.0000 A" "grant:grant2"
+  [ $status -eq 0 ]
+
+  run cleos transfer user12 pomelo "1.0000 A" "grant:grant2"
+  [ $status -eq 0 ]
+
+  run cleos transfer user13 pomelo "1.0000 A" "grant:grant2"
+  [ $status -eq 0 ]
+
+  result=$(cleos get table pomelo grant2 match.grant | jq -r '.rows[0].square')
+  [ $result = "958.31938711928353314" ]
+
+  result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[1].sum_square')
+  [ $result = "1054.56938711928364683" ]
+}
+
+
+@test "disable/enable grant1" {
 
   run cleos push action pomelo setprjstatus '["grant1", "disabled"]' -p pomelo
   [ $status -eq 0 ]
