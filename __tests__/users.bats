@@ -10,15 +10,17 @@
   run cleos push action login.eosn create '["prjman2.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
   [ $status -eq 0 ]
 
+  run cleos push action login.eosn create '["prjman3.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
+  [ $status -eq 0 ]
+
+  run cleos push action login.eosn create '["prjman4.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
+  [ $status -eq 0 ]
+
   run cleos push action login.eosn create '["user1.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
   [ $status -eq 0 ]
-  result=$(cleos get table login.eosn login.eosn users | jq -r '.rows[2].user_id')
-  [ $result = "user1.eosn" ]
 
   run cleos push action login.eosn create '["user2.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
   [ $status -eq 0 ]
-  result=$(cleos get table login.eosn login.eosn users | jq -r '.rows[3].user_id')
-  [ $result = "user2.eosn" ]
 
   run cleos push action login.eosn create '["user3.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
   [ $status -eq 0 ]
@@ -46,10 +48,14 @@
   run cleos push action login.eosn link '["prjman2.eosn", ["prjman2"]]' -p login.eosn
   [ $status -eq 0 ]
 
+  run cleos push action login.eosn link '["prjman3.eosn", ["prjman3"]]' -p login.eosn
+  [ $status -eq 0 ]
+
+  run cleos push action login.eosn link '["prjman4.eosn", ["prjman4"]]' -p login.eosn
+  [ $status -eq 0 ]
+
   run cleos push action login.eosn link '["user1.eosn", ["user1"]]' -p login.eosn
   [ $status -eq 0 ]
-  result=$(cleos get table login.eosn login.eosn users | jq -r '.rows[2].accounts[0]')
-  [ $result = "user1" ]
 
   run cleos push action login.eosn link '["user2.eosn", ["user2"]]' -p login.eosn
   [ $status -eq 0 ]
@@ -72,22 +78,22 @@
   run cleos push action login.eosn link '["user13.eosn", ["user13"]]' -p login.eosn
   [ $status -eq 0 ]
 
-  run cleos push action login.eosn social '["user1.eosn", ["github", "twitter", "facebook"]]' -p login.eosn
+  run cleos push action login.eosn social '["user1.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn
   [ $status -eq 0 ]
 
-  run cleos push action login.eosn social '["user2.eosn", ["github"]]' -p login.eosn
+  run cleos push action login.eosn social '["user2.eosn", ["github", "twitter"]]' -p login.eosn
   [ $status -eq 0 ]
 
-  run cleos push action login.eosn social '["user3.eosn", ["github", "twitter"]]' -p login.eosn
+  run cleos push action login.eosn social '["user3.eosn", ["github", "twitter", "facebook"]]' -p login.eosn
   [ $status -eq 0 ]
 
-  run cleos push action login.eosn social '["user4.eosn", ["github", "twitter"]]' -p login.eosn
+  run cleos push action login.eosn social '["user4.eosn", ["github"]]' -p login.eosn
   [ $status -eq 0 ]
 
-  run cleos push action login.eosn social '["user5.eosn", ["github", "twitter"]]' -p login.eosn
+  run cleos push action login.eosn social '["user5.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn
   [ $status -eq 0 ]
 
-  run cleos push action login.eosn social '["user11.eosn", ["github", "twitter"]]' -p login.eosn
+  run cleos push action login.eosn social '["user11.eosn", ["github"]]' -p login.eosn
   [ $status -eq 0 ]
 
   run cleos push action login.eosn social '["user12.eosn", ["github", "twitter"]]' -p login.eosn
