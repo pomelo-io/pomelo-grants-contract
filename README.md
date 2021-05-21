@@ -11,28 +11,31 @@ $ cleos push action pomelo setstatus '["ok"]' -p pomelo
 cleos push action pomelo setvaluesym '[["4,USDT", "tethertether"]]' -p pomelo
 
 # create project manager and link to EOS account
-cleos push action login.eosn create '["prjman1.eosn", [""]]' -p login.eosn
-cleos push action login.eosn link '["prjman1.eosn", ["prjman1"]]' -p login.eosn
+cleos push action login.eosn create '["prjman.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
+cleos push action login.eosn link '["prjman.eosn", ["prjman"]]' -p login.eosn
 
 # create funder user, link to EOS account and set socials for funding boost
-cleos push action login.eosn create '["user1.eosn", [""]]' -p login.eosn
-cleos push action login.eosn link '["user1.eosn", ["user1"]]' -p login.eosn
-cleos push action login.eosn social '["user1.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn
+cleos push action login.eosn create '["user.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
+cleos push action login.eosn link '["user.eosn", ["user"]]' -p login.eosn
+cleos push action login.eosn social '["user.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn
 
 # create funding round and start it
 cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00"]' -p pomelo
 cleos push action pomelo startround '[1]' -p pomelo
 
 # create grant, enable it and join round
-cleos push action pomelo setgrant '["grant1", "prjman1", ["prjman1"], "prjgrant1", [["4,USDT", "tethertether"]]]' -p pomelo
+cleos push action pomelo setgrant '["grant1", "prjman.eosn", ["prjman.eosn"], "prjgrant", [["4,USDT", "tethertether"]]]' -p pomelo
 cleos push action pomelo setprjstatus '["grant1", "ok"]' -p pomelo
 cleos push action pomelo joinround '["grant1", 1]' -p pomelo
 
-# donate Pomelo grant
-$ cleos transfer user1 pomelo "10.0000 USDT" "grant:grant1" --contract tethertether
+# fund grant1
+$ cleos transfer user pomelo "10.0000 USDT" "grant:grant1" --contract tethertether
+
+# query transfer trx id
+cleos get table pomelo pomelo transfers | jq -r '.rows[0].trx_id'
 
 # query grant square of sums of all users contribution sqrts
-cleos get table pomelo grant1 match.grant -L 1 | jq -r '.rows[0].square'
+cleos get table pomelo 1 match.grant -L grant1 | jq -r '.rows[0].square'
 # => 22.5 ( == (sqrt(10 + 12.5))^2 )
 
 # query sum of grant squares for that round

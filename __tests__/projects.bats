@@ -2,7 +2,7 @@
 
 @test "create grant1" {
 
-  run cleos push action pomelo setgrant '["grant1", "prjman1", ["prjman1"], "prjgrant1", [["4,B", "tethertether"]]]' -p pomelo
+  run cleos push action pomelo setgrant '["grant1", "prjman1.eosn", ["prjman1.eosn"], "prjgrant1", [["4,B", "tethertether"]]]' -p pomelo
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo grants | jq -r '.rows[0].id')
   [ $result = "grant1" ]
@@ -162,7 +162,7 @@
 
 @test "round #2: create grant2 and fund with 8 microdonations" {
 
-  run cleos push action pomelo setgrant '["grant2", "prjman2", ["prjman2"], "prjgrant2", [["4,A", "eosio.token"], ["4,B", "tethertether"]]]' -p pomelo
+  run cleos push action pomelo setgrant '["grant2", "prjman2.eosn", ["prjman2.eosn"], "prjgrant2", [["4,A", "eosio.token"], ["4,B", "tethertether"]]]' -p pomelo
   [ $status -eq 0 ]
 
   run cleos push action pomelo setprjstatus '["grant2", "ok"]' -p pomelo
@@ -207,13 +207,13 @@
   run cleos push action pomelo setround '[3, "2021-05-20T20:00:00", "2021-09-25T20:00:00"]' -p pomelo
   [ $status -eq 0 ]
 
-  run cleos push action pomelo setgrant '["grant3", "prjman3", ["prjman3"], "prjgrant3", [["4,B", "tethertether"]]]' -p pomelo
+  run cleos push action pomelo setgrant '["grant3", "prjman3.eosn", ["prjman3.eosn"], "prjgrant3", [["4,B", "tethertether"]]]' -p pomelo
   [ $status -eq 0 ]
 
-  run cleos push action pomelo setgrant '["grant4", "prjman4", ["prjman4"], "prjgrant4", [["4,B", "tethertether"]]]' -p pomelo
+  run cleos push action pomelo setgrant '["grant4", "prjman4.eosn", ["prjman4.eosn"], "prjgrant4", [["4,B", "tethertether"]]]' -p pomelo
   [ $status -eq 0 ]
 
-  run cleos push action pomelo setgrant '["grant5", "prjman5", ["prjman5"], "prjgrant5", [["4,B", "tethertether"]]]' -p pomelo
+  run cleos push action pomelo setgrant '["grant5", "prjman5.eosn", ["prjman5.eosn"], "prjgrant5", [["4,B", "tethertether"]]]' -p pomelo
   [ $status -eq 0 ]
 
   run cleos push action pomelo setprjstatus '["grant3", "ok"]' -p pomelo
