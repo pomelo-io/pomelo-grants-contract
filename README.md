@@ -1,13 +1,63 @@
 # 🍈 Pomelo - EOSIO Smart Contract
 
-## Quickstart
+## Usage
 
 ```bash
-# donate Pomelo grant
-$ cleos transfer myaccount pomelo "1.0000 EOS" "grant:myproject"
 
-# fund Pomelo bounty
-$ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
+# set status ok
+$ cleos push action pomelo setstatus '["ok"]' -p pomelo
+
+# set value symbol
+cleos push action pomelo setvaluesym '[["4,USDT", "tethertether"]]' -p pomelo
+
+# create project manager and link to EOS account
+cleos push action login.eosn create '["prjman1.eosn", [""]]' -p login.eosn
+cleos push action login.eosn link '["prjman1.eosn", ["prjman1"]]' -p login.eosn
+
+# create funder user, link to EOS account and set socials for funding boost
+cleos push action login.eosn create '["user1.eosn", [""]]' -p login.eosn
+cleos push action login.eosn link '["user1.eosn", ["user1"]]' -p login.eosn
+cleos push action login.eosn social '["user1.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn
+
+# create funding round and start it
+cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00"]' -p pomelo
+cleos push action pomelo startround '[1]' -p pomelo
+
+# create grant, enable it and join round
+cleos push action pomelo setgrant '["grant1", "prjman1", ["prjman1"], "prjgrant1", [["4,USDT", "tethertether"]]]' -p pomelo
+cleos push action pomelo setprjstatus '["grant1", "ok"]' -p pomelo
+
+# donate Pomelo grant
+$ cleos transfer user1 pomelo "10.0000 USDT" "grant:grant1"
+
+# query grant square of sums of all users contribution sqrts
+cleos get table pomelo grant1 match.grant -L 1 | jq -r '.rows[0].square'
+# => 22.5 ( == (sqrt(10 + 12.5))^2 )
+
+# query sum of grant squares for that round
+cleos get table pomelo pomelo rounds -L 1 | jq -r '.rows[0].sum_square'
+# => 22.5 => grant1 receives 22.5/22.5 = 100% of matching funding
+
+```
+
+## Dependencies
+
+- [eosn-login-contract](https://github.com/pomelo/eosn-login-contract)
+- [sx.defibox](https://github.com/stableex/sx.defibox)
+- [sx.utils](https://github.com/stableex/sx.utils)
+- [eosio.token](https://github.com/EOSIO/eosio.contracts)
+
+## Testing
+
+```bash
+# restart node, deploy contracts, issue tokens
+$ ./scripts/build.sh
+
+# restart node, deploy contracts, issue tokens
+$ ./scripts/restart
+
+# run tests
+$ ./test.sh
 ```
 
 ## Definitions
