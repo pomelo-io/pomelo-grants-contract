@@ -215,12 +215,12 @@ $ ./test.sh
 
 ## TABLE `match.grant`
 
-- scope: `grant_id`
+- scope: `round_id`
 
 ### params
 
-- `{uint64_t} round_id` - (primary key) round ID
-- `{name} grant_id` - grant ID
+- `{name} grant_id` - (primary key) grant ID
+- `{uint64_t} round_id` - round ID
 - `{map<name, double>} user_value` - user value contributions
 - `{map<name, double>} user_multiplier` - user boost multiplier
 - `{map<name, double>} user_boost` - user contributions boost
@@ -236,8 +236,8 @@ $ ./test.sh
 
 ```json
 {
-    "round_id": 1,
     "grant_id": "grant1",
+    "round_id": 1,
     "user_value": [{ "key": "myaccount", "value": 100.0 }, { "key": "toaccount", "value": 50.0 }],
     "user_multiplier": [{ "key": "myaccount", "value": 2.25 }, { "key": "toaccount", "value": 2.0 }],
     "user_boost": [{ "key": "myaccount", "value": 225.0 }, { "key": "toaccount", "value": 100.0 }],

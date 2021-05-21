@@ -198,10 +198,10 @@ public:
     /**
      * ## TABLE `match.grant`
      *
-     * *scope*: `grant_id`
+     * *scope*: `round_id`
      *
-     * - `{uint64_t} round_id` - (primary key) round ID
-     * - `{name} grant_id` - grant ID
+     * - `{name} grant_id` - (primary key) grant ID
+     * - `{uint64_t} round_id` - round ID
      * - `{map<name, double>} user_value` - user value contributions
      * - `{map<name, double>} user_multiplier` - user boost multiplier
      * - `{map<name, double>} user_boost` - user contributions boosts
@@ -234,8 +234,8 @@ public:
      */
 
     struct [[eosio::table("match.grant")]] match_grant_row {
-        uint64_t                round_id;
         name                    grant_id;
+        uint64_t                round_id;
         map<name, double>       user_value;
         map<name, double>       user_multiplier;
         map<name, double>       user_boost;
@@ -247,7 +247,7 @@ public:
         double                  square;
         time_point_sec          updated_at;
 
-        uint64_t primary_key() const { return round_id; };
+        uint64_t primary_key() const { return grant_id.value; };
     };
     typedef eosio::multi_index< "match.grant"_n, match_grant_row > match_grant_table;
 

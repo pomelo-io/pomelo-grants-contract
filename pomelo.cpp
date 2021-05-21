@@ -91,15 +91,15 @@ void pomelo::fund_grant(const name grant_id, const extended_asset ext_quantity, 
     const auto multiplier = get_user_boost_mutliplier( user_id );
     const auto boost = multiplier * value;  // boost by 0-125% based on socials and other boosters
 
-    pomelo::match_grant_table match( get_self(), grant_id.value );
-    const auto match_itr = match.find( round_id );
+    pomelo::match_grant_table match( get_self(), round_id );
+    const auto match_itr = match.find( grant_id.value );
     const auto old_user_sqrt = match_itr->user_sqrt.count(user_id) ? match_itr->user_sqrt.at(user_id) : 0;
     const auto old_square = match_itr->square;
     double new_square = 0;
 
     auto insert = [&]( auto & row ) {
-        row.round_id = round_id;
         row.grant_id = grant_id;
+        row.round_id = round_id;
         row.user_multiplier[user_id] = multiplier;
         row.user_value[user_id] += value;
         row.user_boost[user_id] += boost;

@@ -117,7 +117,7 @@
   grant_balance=$(cleos get currency balance tethertether prjgrant1 B)
   [ "$grant_balance" = "30.0000 B" ]
 
-  result=$(cleos get table pomelo grant1 match.grant | jq -r '.rows[0].square')
+  result=$(cleos get table pomelo 1 match.grant | jq -r '.rows[0].square')
   [ $result = "104.46152422706630603" ]
 
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[0].sum_square')
@@ -154,7 +154,7 @@
   grant_balance=$(cleos get currency balance tethertether prjgrant1 B)
   [ "$grant_balance" = "85.0000 B" ]
 
-  result=$(cleos get table pomelo grant1 match.grant | jq -r '.rows[1].square')
+  result=$(cleos get table pomelo 2 match.grant | jq -r '.rows[0].square')
   [ $result = "123.75000000000000000" ]
 
 }
@@ -195,7 +195,7 @@
   run cleos transfer user13 pomelo "1.0000 A" "grant:grant2"
   [ $status -eq 0 ]
 
-  result=$(cleos get table pomelo grant2 match.grant | jq -r '.rows[0].square')
+  result=$(cleos get table pomelo 2 match.grant | jq -r '.rows[1].square')
   [ $result = "1047.17937039107528108" ]
 
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[1].sum_square')
@@ -270,16 +270,16 @@
   run cleos transfer user11 pomelo "1000.0000 B" "grant:grant4" --contract tethertether
   [ $status -eq 0 ]
 
-  result=$(cleos get table pomelo grant1 match.grant -L 3 | jq -r '.rows[0].square')
+  result=$(cleos get table pomelo 3 match.grant -L grant1 | jq -r '.rows[0].square')
   [ $result = "2474.63409191515165730" ]
 
-  result=$(cleos get table pomelo grant2 match.grant -L 3 | jq -r '.rows[0].square')
+  result=$(cleos get table pomelo 3 match.grant -L grant2 | jq -r '.rows[0].square')
   [ $result = "419.31676725154989072" ]
 
-  result=$(cleos get table pomelo grant3 match.grant -L 3 | jq -r '.rows[0].square')
+  result=$(cleos get table pomelo 3 match.grant -L grant3 | jq -r '.rows[0].square')
   [ $result = "3612.50000000000045475" ]
 
-  result=$(cleos get table pomelo grant4 match.grant -L 3 | jq -r '.rows[0].square')
+  result=$(cleos get table pomelo 3 match.grant -L grant4 | jq -r '.rows[0].square')
   [ $result = "1250.00000000000000000" ]
 
   result=$(cleos get table pomelo pomelo rounds -L 3 | jq -r '.rows[0].sum_square')
