@@ -41,6 +41,13 @@ name pomelo::get_user_id( const name user ){
     return account.user_id;
 }
 
+bool pomelo::is_user( const name user_id ){
+
+    eosn::login::users_table users( config.get_or_default().login_contract, config.get_or_default().login_contract.value );
+
+    return users.find(user_id.value) != users.end();
+}
+
 double pomelo::get_user_boost_mutliplier( const name user_id ){
 
     eosn::login::users_table users( config.get_or_default().login_contract, config.get_or_default().login_contract.value );

@@ -446,6 +446,8 @@ private:
 
     name get_user_id( const name user );
 
+    bool is_user( const name user_id );
+
     double get_user_boost_mutliplier( const name user_id );
 
     uint64_t get_current_round();

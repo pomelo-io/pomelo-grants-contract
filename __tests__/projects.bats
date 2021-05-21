@@ -27,12 +27,17 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "no funding round ongoing" ]]
 
+  run cleos push action pomelo setgrant '["grant2", "prjaaa.eosn", ["prjman1.eosn"], "prjgrant2", [["4,B", "tethertether"]]]' -p pomelo
+  echo "Output: $output"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "author doesn't exist" ]]
+
 }
 
 
 @test "create bounty1 and fund it" {
 
-  run cleos push action pomelo setbounty '["bounty1", "prjman1", ["prjman1"], "prjbounty1", [["4,A", "eosio.token"]]]' -p pomelo
+  run cleos push action pomelo setbounty '["bounty1", "prjman1.eosn", ["prjman1.eosn"], "prjbounty1", [["4,A", "eosio.token"]]]' -p pomelo
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo bounties | jq -r '.rows[0].id')
   [ $result = "bounty1" ]
@@ -213,16 +218,10 @@
   run cleos push action pomelo setgrant '["grant4", "prjman4.eosn", ["prjman4.eosn"], "prjgrant4", [["4,B", "tethertether"]]]' -p pomelo
   [ $status -eq 0 ]
 
-  run cleos push action pomelo setgrant '["grant5", "prjman5.eosn", ["prjman5.eosn"], "prjgrant5", [["4,B", "tethertether"]]]' -p pomelo
-  [ $status -eq 0 ]
-
   run cleos push action pomelo setprjstatus '["grant3", "ok"]' -p pomelo
   [ $status -eq 0 ]
 
   run cleos push action pomelo setprjstatus '["grant4", "ok"]' -p pomelo
-  [ $status -eq 0 ]
-
-  run cleos push action pomelo setprjstatus '["grant5", "ok"]' -p pomelo
   [ $status -eq 0 ]
 
   run cleos push action pomelo joinround '["grant1", 3]' -p pomelo
@@ -235,9 +234,6 @@
   [ $status -eq 0 ]
 
   run cleos push action pomelo joinround '["grant4", 3]' -p pomelo
-  [ $status -eq 0 ]
-
-  run cleos push action pomelo joinround '["grant5", 3]' -p pomelo
   [ $status -eq 0 ]
 
   run cleos push action pomelo startround '[3]' -p pomelo

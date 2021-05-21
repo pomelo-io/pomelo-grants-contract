@@ -178,12 +178,19 @@ void pomelo::setbounty( const name id, const name author_id, const set<name> aut
 template <typename T>
 void pomelo::set_project( T& projects, const name type, const name id, const name author_id, const set<name> authorized_ids, const name funding_account, const set<extended_symbol> accepted_tokens )
 {
+    check( is_account(funding_account), get_self().to_string() + "::set_project: funding account must exist on chain" );
+
+    // make sure Pomelo users exist
+    check( is_user( author_id ), get_self().to_string() + "::set_project: author doesn't exist" );
+    for(const auto user_id: authorized_ids)
+        check( is_user( user_id ), get_self().to_string() + "::set_project: authorized_id doesn't exist" );
+
+    // create/update project
     const auto itr = projects.find( id.value );
     if(itr != projects.end()){
         check( type == itr->type, get_self().to_string() + "::set_project: project type cannot be changed" );
         check( author_id == itr->author_user_id, get_self().to_string() + "::set_project: project author cannot be changed" );
     }
-    check( is_account(funding_account), get_self().to_string() + "::set_project: funding account must exist on chain" );
 
     auto insert = [&]( auto & row ) {
         row.id = id;
