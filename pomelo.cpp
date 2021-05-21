@@ -297,4 +297,49 @@ void pomelo::startround( const uint64_t round_id )
 
 }
 
+
+[[eosio::on_notify("*::social")]]
+void pomelo::on_social( const name user_id, const set<name> socials )
+{
+    const auto round_id = get_current_round( );
+    if(round_id == 0 || get_first_receiver() != config.get_or_default().login_contract) return;
+
+    pomelo::rounds_table rounds( get_self(), get_self().value );
+    const auto round_itr = rounds.find( round_id );
+    if(round_itr == rounds.end() || round_itr->user_ids.count( user_id ) == 0) return;
+
+    const auto multiplier = get_user_boost_mutliplier( user_id );
+
+    pomelo::match_grant_table match( get_self(), round_id );
+    for(const auto grant_id: round_itr->grant_ids){
+        const auto match_itr = match.find( grant_id.value );
+        if(match_itr->user_multiplier.count( user_id ) == 0 || match_itr->user_multiplier.at(user_id) == multiplier) continue;
+
+        const auto old_boost = match_itr->user_boost.at(user_id);
+        const auto old_square = match_itr->square;
+        const auto boost = match_itr->user_value.at(user_id) * multiplier;
+        const auto user_sqrt = sqrt( match_itr->user_value.at(user_id) + boost );
+        const auto sum_boost = match_itr->sum_boost - old_boost + boost;
+        const auto sum_sqrt = match_itr->sum_sqrt - match_itr->user_sqrt.at(user_id) + user_sqrt;
+
+        match.modify( match_itr, get_self(), [&]( auto & row ) {
+            row.user_multiplier[user_id] = multiplier;
+            row.user_boost[user_id] = boost;
+            row.user_sqrt[user_id] = user_sqrt;
+            row.sum_boost = sum_boost;
+            row.sum_sqrt = sum_sqrt;
+            row.square = sum_sqrt * sum_sqrt;
+            row.updated_at = current_time_point();
+        });
+
+        rounds.modify( round_itr, get_self(), [&]( auto & row ) {
+            row.sum_boost += boost - old_boost;
+            row.sum_square += match_itr->square - old_square;
+            row.updated_at = current_time_point();
+        });
+
+    }
+
+}
+
 }

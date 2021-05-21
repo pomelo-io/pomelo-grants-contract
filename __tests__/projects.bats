@@ -282,6 +282,33 @@
   [ $result = "7756.45085916670177539" ]
 }
 
+@test "change socials triggering matching update for grants in current round" {
+
+  run cleos push action login.eosn social '["user11.eosn", ["github","sms"]]' -p login.eosn
+  [ $status -eq 0 ]
+
+  result=$(cleos get table pomelo 3 match.grant -L grant3 | jq -r '.rows[0].square')
+  [ $result = "4029.52895126808152781" ]
+
+  result=$(cleos get table pomelo 3 match.grant -L grant4 | jq -r '.rows[0].square')
+  [ $result = "1500.00000000000000000" ]
+
+  result=$(cleos get table pomelo pomelo rounds -L 3 | jq -r '.rows[0].sum_square')
+  [ $result = "8423.47981043478284846" ]
+
+  run cleos push action login.eosn social '["user11.eosn", []]' -p login.eosn
+  [ $status -eq 0 ]
+
+  result=$(cleos get table pomelo pomelo rounds -L 3 | jq -r '.rows[0].sum_square')
+  [ $result = "7071.69844341655516473" ]
+
+  result=$(cleos get table pomelo 3 match.grant -L grant4 | jq -r '.rows[0].square')
+  [ $result = "1000.00000000000000000" ]
+
+  result=$(cleos get table pomelo 3 match.grant -L grant3 | jq -r '.rows[0].square')
+  [ $result = "3177.74758424985338934" ]
+}
+
 @test "disable/enable grant1" {
 
   run cleos push action pomelo setprjstatus '["grant1", "disabled"]' -p pomelo

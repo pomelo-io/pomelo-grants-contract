@@ -437,6 +437,19 @@ public:
     [[eosio::on_notify("*::transfer")]]
     void on_transfer( const name from, const name to, const asset quantity, const string memo );
 
+    /**
+     * ## SOCIAL NOTIFY HANDLER `on_social`
+     *
+     * Update boosts and matching for user when their socials change
+     *
+     * ### params
+     *
+     * - `{name} user_id` - Pomelo user_id
+     * - `{set<name>} socials` - socials for that user
+     *
+     */
+    [[eosio::on_notify("*::social")]]
+    void on_social( const name user_id, const set<name> socials );
 
 private:
 
