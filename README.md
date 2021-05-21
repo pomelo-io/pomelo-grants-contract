@@ -10,11 +10,11 @@ $ cleos push action pomelo setstatus '["ok"]' -p pomelo
 # set value symbol
 cleos push action pomelo setvaluesym '[["4,USDT", "tethertether"]]' -p pomelo
 
-# create project manager and link to EOS account
+# create Pomelo user for grant manager and link it to EOS account
 cleos push action login.eosn create '["prjman.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
 cleos push action login.eosn link '["prjman.eosn", ["prjman"]]' -p login.eosn
 
-# create funder user, link to EOS account and set socials for funding boost
+# create funding user, link to EOS account and set socials for funding boost
 cleos push action login.eosn create '["user.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
 cleos push action login.eosn link '["user.eosn", ["user"]]' -p login.eosn
 cleos push action login.eosn social '["user.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn
@@ -36,7 +36,7 @@ cleos get table pomelo pomelo transfers | jq -r '.rows[0].trx_id'
 
 # query grant square of sums of all users contribution sqrts
 cleos get table pomelo 1 match.grant -L grant1 | jq -r '.rows[0].square'
-# => 22.5 ( == (sqrt(10 + 12.5))^2 )
+# => 22.5 ( == (sqrt(10 + 5*0.25))^2 )
 
 # query sum of grant squares for that round
 cleos get table pomelo pomelo rounds -L 1 | jq -r '.rows[0].sum_square'
@@ -54,7 +54,7 @@ cleos get table pomelo pomelo rounds -L 1 | jq -r '.rows[0].sum_square'
 ## Testing
 
 ```bash
-# restart node, deploy contracts, issue tokens
+# build contract
 $ ./scripts/build.sh
 
 # restart node, create EOSIO users, deploy contracts, issue tokens
