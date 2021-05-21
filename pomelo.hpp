@@ -142,6 +142,7 @@ public:
      * - `{extended_asset} amount - amount of tokens donated
      * - `{double} value` - USD valuation at time of received
      * - `{checksum256} trx_id` - transaction ID
+     * - `{string} memo` - transfer memo
      * - `{time_point_sec} created_at` - created at time
      *
      * *Multi-indexes*
@@ -163,6 +164,7 @@ public:
         *   "amount": {"contract": "eosio.token", "quantity": "15.0000 EOS"},
         *   "value": 100.0,
         *   "trx_id": "3bf31f6c32a8663bf3fdb0993a2bf3784d181dc879545603dca2046f05e0c9e1",
+        *   "memo": "grant:grant1",
         *   "created_at": "2020-12-06T00:00:00"
         * }
      * ```
@@ -177,6 +179,7 @@ public:
         extended_asset          amount;
         double                  value;
         checksum256             trx_id;
+        string                  memo;
         time_point_sec          created_at;
 
         uint64_t primary_key() const { return transfer_id; }
@@ -466,14 +469,14 @@ private:
     uint64_t get_current_round();
 
     template <typename T>
-    void fund_project(const T& table, const name project, const extended_asset ext_quantity, const name user);
+    void fund_project(const T& table, const name project, const extended_asset ext_quantity, const name user, const string& memo);
 
     void fund_grant(const name grant_id, const extended_asset ext_quantity, const name user_id, const double value);
 
     template <typename T>
     void set_project(T& table, const name type, const name id, const name author_id, const set<name> authorized_ids, const name funding_account, const set<extended_symbol> accepted_tokens );
 
-    void log_transfer(const name project_id, const name user, const extended_asset ext_quantity, const double value);
+    void log_transfer(const name project_id, const name user, const extended_asset ext_quantity, const double value, const string& memo);
 
 };
 }

@@ -39,12 +39,12 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
     if(memo_parts[0] == "grant"){
 
         pomelo::grants_table grants( get_self(), get_self().value );
-        fund_project(grants, project, extended_asset{ quantity, get_first_receiver() }, from);
+        fund_project(grants, project, extended_asset{ quantity, get_first_receiver() }, from, memo);
     }
     else if(memo_parts[0] == "bounty"){
 
         pomelo::bounties_table bounties( get_self(), get_self().value );
-        fund_project(bounties, project, extended_asset{ quantity, get_first_receiver() }, from);
+        fund_project(bounties, project, extended_asset{ quantity, get_first_receiver() }, from, memo);
     }
     else {
         check(false, get_self().to_string() + "::on_transfer: " + ERROR_INVALID_MEMO);
@@ -55,7 +55,7 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
 }
 
 template <typename T>
-void pomelo::fund_project(const T& table, const name project_id, const extended_asset ext_quantity, const name user)
+void pomelo::fund_project(const T& table, const name project_id, const extended_asset ext_quantity, const name user, const string& memo)
 {
     const auto project = table.get(project_id.value, "pomelo::fund_project: project not found");
 
@@ -71,7 +71,7 @@ void pomelo::fund_project(const T& table, const name project_id, const extended_
         fund_grant( project_id, ext_quantity, user_id, value );
     }
 
-    log_transfer( project.id, user, ext_quantity, value );
+    log_transfer( project.id, user, ext_quantity, value, memo );
 
     eosio::token::transfer_action transfer(ext_quantity.contract, { get_self(), "active"_n });
     transfer.send( get_self(), project.funding_account, ext_quantity.quantity, "Funded through Pomelo!");
@@ -135,7 +135,7 @@ void pomelo::fund_grant(const name grant_id, const extended_asset ext_quantity, 
 }
 
 
-void pomelo::log_transfer(const name project_id, const name user, const extended_asset ext_quantity, const double value)
+void pomelo::log_transfer(const name project_id, const name user, const extended_asset ext_quantity, const double value, const string& memo)
 {
     const auto user_id = get_user_id( user );
     const auto round_id = get_current_round( );
@@ -150,6 +150,7 @@ void pomelo::log_transfer(const name project_id, const name user, const extended
         row.value = value;
         row.eos_account = user;
         row.trx_id = get_trx_id();
+        row.memo = memo;
         row.created_at = current_time_point();
     });
 }

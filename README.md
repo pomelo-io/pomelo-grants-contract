@@ -198,6 +198,7 @@ $ ./test.sh
 - `{extended_asset} amount` - amount of tokens donated
 - `{double} value` - USD valuation at time of received
 - `{checksum256} trx_id` - transaction ID
+- `{string} memo` - transfer memo
 - `{time_point_sec} created_at` - created at time
 
 ### example
@@ -212,6 +213,7 @@ $ ./test.sh
     "amount": {"contract": "eosio.token", "quantity": "15.0000 EOS"},
     "value": 100.0,
     "trx_id": "3bf31f6c32a8663bf3fdb0993a2bf3784d181dc879545603dca2046f05e0c9e1",
+    "memo": "grant:grant1",
     "created_at": "2020-12-06T00:00:00"
 }
 ```
