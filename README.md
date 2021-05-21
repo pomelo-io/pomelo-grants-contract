@@ -171,12 +171,12 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
 - `{uint64_t} round_id` - (primary key) round ID
 - `{name} grant_id` - grant ID
 - `{map<name, double>} user_value` - user value contributions
-- `{map<name, double>} user_multiplier` - user match multiplier
-- `{map<name, double>} user_match` - user match contributions
+- `{map<name, double>} user_multiplier` - user boost multiplier
+- `{map<name, double>} user_boost` - user contributions boost
 - `{map<name, double>} user_sqrt` - user sqrt contributions (quadratic funding metric)
 - `{uint64_t} total_users` - total number of users
 - `{double} sum_value` - sum of all user value contributions
-- `{double} sum_match` - sum of all user match contributions
+- `{double} sum_boost` - sum of all user contributions boosts
 - `{double} sum_sqrt` - sum of square root of contributions (quadratic funding metric)
 - `{double} square` - total square of the square roots (quadratic funding metric)
 - `{time_point_sec} updated_at` - updated at time
@@ -189,11 +189,11 @@ $ cleos transfer myaccount pomelo "1.0000 EOS" "bounty:mywork"
     "grant_id": "grant1",
     "user_value": [{ "key": "myaccount", "value": 100.0 }, { "key": "toaccount", "value": 50.0 }],
     "user_multiplier": [{ "key": "myaccount", "value": 2.25 }, { "key": "toaccount", "value": 2.0 }],
-    "user_match": [{ "key": "myaccount", "value": 225.0 }, { "key": "toaccount", "value": 100.0 }],
+    "user_boost": [{ "key": "myaccount", "value": 225.0 }, { "key": "toaccount", "value": 100.0 }],
     "user_sqrt":  [{ "key": "myaccount", "value": 15.0 }, { "key": "toaccount", "value": 10.0 }],
     "total_users": 2,
     "sum_value": 150.0,
-    "sum_match": 325.0,
+    "sum_boost": 325.0,
     "sum_sqrt": 25.0,
     "square": 625.0,
     "updated_at": "2020-12-06T00:00:00"

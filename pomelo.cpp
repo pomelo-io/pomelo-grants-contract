@@ -105,7 +105,7 @@ void pomelo::match_grant(const name grant_id, const uint64_t round_id, const ext
 {
     // do matching
     const auto value = get_value( ext_quantity );
-    const double multiplier = get_user_match_mutliplier( user_id );
+    const double multiplier = get_user_boost_mutliplier( user_id );
     const double boost = multiplier * value;  // boost by 0-125% based on socials and other boosters
 
     pomelo::match_grant_table match( get_self(), grant_id.value );
@@ -117,11 +117,11 @@ void pomelo::match_grant(const name grant_id, const uint64_t round_id, const ext
         row.grant_id = grant_id;
         row.user_multiplier[user_id] = multiplier;  //what if user's multiplier changed between donations - keep last?
         row.user_value[user_id] += value;
-        row.user_match[user_id] += boost;           //match - is it (Funding + Boost) or just Boost?
+        row.user_boost[user_id] += boost;           //match - is it (Funding + Boost) or just Boost?
         row.user_sqrt[user_id] = sqrt( user_sqrt * user_sqrt + value + boost );
         row.total_users = row.user_value.size();
         row.sum_value += value;
-        row.sum_match += boost;
+        row.sum_boost += boost;
         row.sum_sqrt = row.sum_sqrt - user_sqrt + row.user_sqrt[user_id];
         row.square = row.sum_sqrt * row.sum_sqrt;
         row.updated_at = current_time_point();

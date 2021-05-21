@@ -41,12 +41,12 @@ name pomelo::get_user_id( const name user ){
     return account.user_id;
 }
 
-double pomelo::get_user_match_mutliplier( const name user_id ){
+double pomelo::get_user_boost_mutliplier( const name user_id ){
 
     eosn::login::users_table users( config.get_or_default().login_contract, config.get_or_default().login_contract.value );
-    const auto user = users.get(user_id.value, "pomelo::get_user_mutliplier: user id doesn't exist");
+    const auto user = users.get(user_id.value, "pomelo::get_user_boost_mutliplier: user id doesn't exist");
 
-    check(user.status != "deleted"_n, get_self().to_string() + "::get_user_mutliplier: user is not allowed to donate");
+    check(user.status != "deleted"_n, get_self().to_string() + "::get_user_boost_mutliplier: user is not allowed to donate");
 
     double multiplier = 0;
 
