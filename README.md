@@ -29,7 +29,7 @@ cleos push action pomelo setprjstatus '["grant1", "ok"]' -p pomelo
 cleos push action pomelo joinround '["grant1", 1]' -p pomelo
 
 # donate Pomelo grant
-$ cleos transfer user1 pomelo "10.0000 USDT" "grant:grant1"
+$ cleos transfer user1 pomelo "10.0000 USDT" "grant:grant1" --contract tethertether
 
 # query grant square of sums of all users contribution sqrts
 cleos get table pomelo grant1 match.grant -L 1 | jq -r '.rows[0].square'
@@ -43,7 +43,7 @@ cleos get table pomelo pomelo rounds -L 1 | jq -r '.rows[0].sum_square'
 
 ## Dependencies
 
-- [eosn-login-contract](https://github.com/pomelo/eosn-login-contract)
+- [eosn-login-contract](https://github.com/pomelo-io/eosn-login-contract)
 - [sx.defibox](https://github.com/stableex/sx.defibox)
 - [sx.utils](https://github.com/stableex/sx.utils)
 - [eosio.token](https://github.com/EOSIO/eosio.contracts)
@@ -54,7 +54,7 @@ cleos get table pomelo pomelo rounds -L 1 | jq -r '.rows[0].sum_square'
 # restart node, deploy contracts, issue tokens
 $ ./scripts/build.sh
 
-# restart node, deploy contracts, issue tokens
+# restart node, create EOSIO users, deploy contracts, issue tokens
 $ ./scripts/restart
 
 # run tests
