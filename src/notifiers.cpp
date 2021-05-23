@@ -1,28 +1,22 @@
 
-
-
-static const string ERROR_INVALID_MEMO = "invalid memo, use \"grant:mygrant\" or \"bounty:mybounty\"";
-
-/**
- * Notify contract when any token transfer notifiers relay contract
- */
 [[eosio::on_notify("*::transfer")]]
 void pomelo::on_transfer( const name from, const name to, const asset quantity, const string memo )
 {
     // authenticate incoming `from` account
     require_auth( from );
 
+    // ignore outgoing/RAM/self-funding transfers
+    if ( to != get_self() || memo == get_self().to_string() || from == "eosio.ram"_n ) return;
+
     // config
     check( config.exists(), get_self().to_string() + "::on_transfer: config does not exist" );
     const name status = config.get().status;
     check( (status == "ok"_n || status == "testing"_n ), get_self().to_string() + ": contract is under maintenance");
 
-    // ignore outgoing/RAM/self-funding transfers
-    if ( to != get_self() || memo == get_self().to_string() || from == "eosio.ram"_n ) return;
-
     // parse memo
     const auto memo_parts = sx::utils::split(memo, ":");
-    check(memo_parts.size() == 2, get_self().to_string() + "::on_transfer: " + ERROR_INVALID_MEMO);
+    check( memo_parts.size() == 2 && (memo_parts[0] == "grant" || memo_parts[0] == "bounty"),
+        get_self().to_string() + "::on_transfer: invalid memo, use \"grant:mygrant\" or \"bounty:mybounty\"" );
 
     const auto project = sx::utils::parse_name(memo_parts[1]);
     check(project.value, get_self().to_string() + "::on_transfer: invalid project name");
@@ -32,17 +26,12 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
         pomelo::grants_table grants( get_self(), get_self().value );
         fund_project(grants, project, extended_asset{ quantity, get_first_receiver() }, from, memo);
     }
-    else if(memo_parts[0] == "bounty"){
+    if(memo_parts[0] == "bounty"){
 
         pomelo::bounties_table bounties( get_self(), get_self().value );
         fund_project(bounties, project, extended_asset{ quantity, get_first_receiver() }, from, memo);
     }
-    else {
-        check(false, get_self().to_string() + "::on_transfer: " + ERROR_INVALID_MEMO);
-    }
-
 }
-
 
 [[eosio::on_notify("*::social")]]
 void pomelo::on_social( const name user_id, const set<name> socials )
