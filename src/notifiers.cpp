@@ -8,28 +8,29 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
     // ignore outgoing/RAM/self-funding transfers
     if ( to != get_self() || memo == get_self().to_string() || from == "eosio.ram"_n ) return;
 
-    // config
-    check( config.exists(), get_self().to_string() + "::on_transfer: config does not exist" );
-    const name status = config.get().status;
-    check( (status == "ok"_n || status == "testing"_n ), get_self().to_string() + ": contract is under maintenance");
+    // tables
+    pomelo::grants_table _grants( get_self(), get_self().value );
+    pomelo::bounties_table _bounties( get_self(), get_self().value );
+    pomelo::state_table _state( get_self(), get_self().value );
+
+    // state
+    const name status = get_status();
+    check( (status == "ok"_n || status == "testing"_n ), "pomelo::on_transfer: contract is under maintenance");
 
     // parse memo
     const auto memo_parts = sx::utils::split(memo, ":");
-    check( memo_parts.size() == 2 && (memo_parts[0] == "grant" || memo_parts[0] == "bounty"),
-        get_self().to_string() + "::on_transfer: invalid memo, use \"grant:mygrant\" or \"bounty:mybounty\"" );
+    check( memo_parts.size() == 2, ERROR_INVALID_MEMO);
+    const name project_type = sx::utils::parse_name(memo_parts[0]);
+    const name project_id = sx::utils::parse_name(memo_parts[1]);
 
-    const auto project = sx::utils::parse_name(memo_parts[1]);
-    check(project.value, get_self().to_string() + "::on_transfer: invalid project name");
+    if (project_type == "grant"_n) {
+        fund_project(_grants, project_id, from, to, extended_asset{ quantity, get_first_receiver() }, memo );
 
-    if(memo_parts[0] == "grant"){
+    } else if (project_type == "bounty"_n) {
+        fund_project(_bounties, project_id, from, to, extended_asset{ quantity, get_first_receiver() }, memo );
 
-        pomelo::grants_table grants( get_self(), get_self().value );
-        fund_project(grants, project, extended_asset{ quantity, get_first_receiver() }, from, memo);
-    }
-    if(memo_parts[0] == "bounty"){
-
-        pomelo::bounties_table bounties( get_self(), get_self().value );
-        fund_project(bounties, project, extended_asset{ quantity, get_first_receiver() }, from, memo);
+    } else {
+        check( false, ERROR_INVALID_MEMO);
     }
 }
 
@@ -37,7 +38,7 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
 void pomelo::on_social( const name user_id, const set<name> socials )
 {
     const auto round_id = get_current_round( );
-    if(round_id == 0 || get_first_receiver() != config.get_or_default().login_contract) return;
+    if ( round_id == 0 || get_first_receiver() != LOGIN_CONTRACT ) return;
 
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto round_itr = rounds.find( round_id );

@@ -3,12 +3,8 @@
 ## Usage
 
 ```bash
-
 # set status ok
 $ cleos push action pomelo setstatus '["ok"]' -p pomelo
-
-# set value symbol
-cleos push action pomelo setvaluesym '[["4,USDT", "tethertether"]]' -p pomelo
 
 # create Pomelo user for grant manager and link it to EOS account
 cleos push action login.eosn create '["prjman.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
@@ -25,8 +21,8 @@ cleos push action pomelo startround '[1]' -p pomelo
 
 # create grant, enable it and join round
 cleos push action pomelo setgrant '["grant1", "prjman.eosn", ["prjman.eosn"], "prjgrant", [["4,USDT", "tethertether"]]]' -p pomelo
-cleos push action pomelo setprjstatus '["grant1", "ok"]' -p pomelo
-cleos push action pomelo joinround '["grant1", 1]' -p pomelo
+cleos push action pomelo enable '["grant", "grant1", "ok"]' -p pomelo
+cleos push action pomelo joinround '["grant", "grant1", 1]' -p pomelo
 
 # fund grant1
 $ cleos transfer user pomelo "10.0000 USDT" "grant:grant1" --contract tethertether
@@ -175,30 +171,34 @@ $ ./test.sh
 }
 ```
 
-## TABLE `transfers`
-(❗️**IMMUTABLE**)
+## TABLE `transfer`
+
+- **scope**: `get_self() {name}`
 
 ### multi-indexes
 
 | `param`        | `index_position` | `key_type` |
 |--------------- |------------------|------------|
-| `byuser`       | 2                | i64        |
-| `byround`      | 3                | i64        |
-| `bygrant`      | 4                | i64        |
-| `byvalue`      | 5                | i64        |
-| `bycreated`    | 6                | i64        |
+| `byfrom`       | 2                | i64        |
+| `byuser`       | 3                | i64        |
+| `byround`      | 4                | i64        |
+| `bygrant`      | 5                | i64        |
+| `byvalue`      | 6                | i64        |
+| `bycreated`    | 7                | i64        |
 
 ### params
 
 - `{uint64_t} transfer_id` - (primary key) token transfer ID
+- `{name} from` - EOS account sender
+- `{name} to` - EOS account receiver
+- `{extended_asset} ext_quantity - amount of tokens transfered
+- `{string} memo` - transfer memo
 - `{name} user_id` - Pomelo user account ID
 - `{uint64_t} round_id` - participating round ID
-- `{name} grant_id` - grant ID
-- `{name} eos_account` - EOS account sending transfer
-- `{extended_asset} amount` - amount of tokens donated
-- `{double} value` - USD valuation at time of received
+- `{name} project_type` - project type ("grant" / "bounty")
+- `{name} project_id` - project ID
+- `{double} value` - valuation at time of received
 - `{checksum256} trx_id` - transaction ID
-- `{string} memo` - transfer memo
 - `{time_point_sec} created_at` - created at time
 
 ### example
@@ -206,21 +206,23 @@ $ ./test.sh
 ```json
 {
     "transfer_id": 10001,
+    "from": "myaccount",
+    "to": "pomelo",
+    "ext_quantity": {"contract": "eosio.token", "quantity": "15.0000 EOS"},
+    "memo": "grant:grant1",
     "user_id": "user1.eosn",
     "round": 1,
-    "grant_id": "grant1",
-    "eos_account": "myaccount",
-    "amount": {"contract": "eosio.token", "quantity": "15.0000 EOS"},
+    "project_type": "grant",
+    "project_id": "grant1",
     "value": 100.0,
     "trx_id": "3bf31f6c32a8663bf3fdb0993a2bf3784d181dc879545603dca2046f05e0c9e1",
-    "memo": "grant:grant1",
     "created_at": "2020-12-06T00:00:00"
 }
 ```
 
 ## TABLE `match.grant`
 
-- scope: `round_id`
+- **scope**: `round_id {uint64_t}`
 
 ### params
 
