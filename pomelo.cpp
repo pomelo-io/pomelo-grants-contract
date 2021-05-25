@@ -1,4 +1,4 @@
-#include <eosn-login-contract/login.eosn.hpp>
+#include <eosn.login/login.eosn.hpp>
 #include <eosio.token/eosio.token.hpp>
 #include <sx.utils/utils.hpp>
 #include "pomelo.hpp"

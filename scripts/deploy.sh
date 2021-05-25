@@ -33,7 +33,7 @@ cleos create account eosio user13 EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET
 cleos set contract eosio.token ./include/eosio.token eosio.token.wasm eosio.token.abi
 cleos set contract tethertether ./include/eosio.token eosio.token.wasm eosio.token.abi
 cleos set contract fake.token ./include/eosio.token eosio.token.wasm eosio.token.abi
-cleos set contract login.eosn ./include/eosn-login-contract login.eosn.wasm login.eosn.abi
+cleos set contract login.eosn ./include/eosn.login login.eosn.wasm login.eosn.abi
 cleos set contract pomelo . pomelo.wasm pomelo.abi
 
 # @eosio.code permission
