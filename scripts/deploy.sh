@@ -6,6 +6,7 @@ cleos wallet unlock --password $(cat ~/eosio-wallet/.pass)
 # create account
 cleos create account eosio pomelo EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio login.eosn EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+cleos create account eosio swap.defi EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio eosio.token EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio tethertether EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio fake.token EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
@@ -34,6 +35,7 @@ cleos set contract eosio.token ./include/eosio.token eosio.token.wasm eosio.toke
 cleos set contract tethertether ./include/eosio.token eosio.token.wasm eosio.token.abi
 cleos set contract fake.token ./include/eosio.token eosio.token.wasm eosio.token.abi
 cleos set contract login.eosn ./include/eosn.login login.eosn.wasm login.eosn.abi
+cleos set contract swap.defi ./include/swap.defi swap.defi.wasm swap.defi.abi
 cleos set contract pomelo . pomelo.wasm pomelo.abi
 
 # @eosio.code permission
@@ -68,3 +70,6 @@ cleos transfer eosio user12 "1000000.0000 EOS" ""
 cleos transfer eosio user12 "1000000.0000 USDT" "" --contract tethertether
 cleos transfer eosio user13 "1000000.0000 EOS" ""
 cleos transfer eosio user13 "1000000.0000 USDT" "" --contract tethertether
+
+# set price in defibox contract
+cleos push action swap.defi setprice '[["4,EOS", "eosio.token"], ["4,USDT", "tethertether"], 10]' -p swap.defi

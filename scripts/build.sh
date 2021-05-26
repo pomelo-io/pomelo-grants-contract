@@ -16,3 +16,7 @@ fi
 if [ ! -f "./include/eosn.login/login.eosn.wasm" ]; then
     eosio-cpp ./include/eosn.login/login.eosn.cpp -I include -o include/eosn.login/login.eosn.wasm
 fi
+
+if [ ! -f "./include/swap.defi/swap.defi.wasm" ]; then
+    eosio-cpp ./include/swap.defi/swap.defi.cpp -I include -o include/swap.defi/swap.defi.wasm
+fi
