@@ -17,6 +17,8 @@ class [[eosio::contract("login.eosn")]] login : public eosio::contract {
 public:
     using contract::contract;
 
+    static constexpr name LOGIN_CONTRACT = "login.eosn"_n;
+
     /**
      * ## TABLE `users`
      *
@@ -36,7 +38,6 @@ public:
      * - `{name} [status="pending"]` - user status (ex: `created/ok/deleted`)
      * - `{time_point_sec} created_at` - created at time
      * - `{time_point_sec} updated_at` - updated at time
-     * - `{time_point_sec} authorize_at` - authorize at time
      * - `{time_point_sec} deleted_at` - deleted at time
      *
      * ### example
@@ -50,7 +51,6 @@ public:
      *     "status": "ok",
      *     "created_at": "2020-12-06T00:00:00",
      *     "updated_at": "2020-12-06T00:00:00",
-     *     "authorize_at": "2020-12-06T00:00:00",
      *     "deleted_at": "1970-01-01T00:00:00"
      * }
      * ```
@@ -63,7 +63,6 @@ public:
         name                status;
         time_point_sec      created_at;
         time_point_sec      updated_at;
-        time_point_sec      authorize_at;
         time_point_sec      deleted_at;
 
         uint64_t primary_key() const { return user_id.value; }
@@ -110,7 +109,7 @@ public:
     > accounts_table;
 
     /**
-     * ## TABLE `global`
+     * ## TABLE `globals`
      *
      * ### params
      *
@@ -126,13 +125,13 @@ public:
      * }
      * ```
      */
-    struct [[eosio::table("global")]] global_row {
+    struct [[eosio::table("globals")]] globals_row {
         name                key;
         uint64_t            value;
 
         uint64_t primary_key() const { return key.value; }
     };
-    typedef eosio::multi_index< "global"_n, global_row> global_table;
+    typedef eosio::multi_index< "globals"_n, globals_row> globals_table;
 
     /**
      * ## ACTION `create`
@@ -156,7 +155,7 @@ public:
     /**
      * ## ACTION `status`
      *
-     * - **authority**: `get_self()` or `signature`
+     * - **authority**: `get_self()` and (`user_id` or `accounts`)
      *
      * ### params
      *
@@ -175,7 +174,7 @@ public:
     /**
      * ## ACTION `deluser`
      *
-     * - **authority**: `get_self()` or `signature`
+     * - **authority**: `get_self()` and (`user_id` or `accounts`)
      *
      * ### params
      *
@@ -193,7 +192,7 @@ public:
     /**
      * ## ACTION `link`
      *
-     * - **authority**: `get_self()` or `signature`
+     * - **authority**: `get_self()` and (`user_id` or `accounts`)
      *
      * ### params
      *
@@ -212,7 +211,7 @@ public:
     /**
      * ## ACTION `unlink`
      *
-     * - **authority**: `get_self()` or `signature`
+     * - **authority**: `get_self()` and (`user_id` or `accounts`)
      *
      * ### params
      *
@@ -230,7 +229,7 @@ public:
     /**
      * ## ACTION `social`
      *
-     * - **authority**: `get_self()` or `signature`
+     * - **authority**: `get_self()` and (`user_id` or `accounts`)
      *
      * ### params
      *
@@ -246,8 +245,82 @@ public:
     [[eosio::action]]
     void social( const name user_id, const set<name> socials );
 
+    /**
+     * ## ACTION `authorize`
+     *
+     * - **authority**: `user_id` or `accounts`
+     *
+     * ### params
+     *
+     * - `{name} user_id` - user ID
+     *
+     * ### Example
+     *
+     * ```bash
+     * $ cleos push action login.eosn authorize '["123.eosn"]' -p 123.eosn
+     * ```
+     */
     [[eosio::action]]
     void authorize( const name user_id );
+
+    /**
+     * ## STATIC `is_auth`
+     *
+     * Returns true/false if user ID is authorized
+     *
+     * ### params
+     *
+     * - `{name} user_id` - user ID
+     *
+     * ### returns
+     *
+     * - `{bool}` - [true/false] if user is authorized
+     *
+     * ### example
+     *
+     * ```c++
+     * const name user_id = "123.eosn"_n;
+     * const bool is_auth  = eosn::login::is_auth( user_id );
+     * //=> true
+     * ```
+     */
+    static bool is_auth( const name user_id )
+    {
+        login::users_table _users( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
+        auto users = _users.get( user_id.value, "login::is_auth: [user_id] does not exist");
+
+        if ( has_auth( user_id ) ) return true;
+
+        for ( const name account : users.accounts ) {
+            if ( has_auth(account) ) return true;
+        }
+        return false;
+    }
+
+    /**
+     * ## STATIC `require_auth_user_id`
+     *
+     * Asserts error if user ID is authorized or not
+     *
+     * ### params
+     *
+     * - `{name} user_id` - user ID
+     *
+     * ### returns
+     *
+     * - `{void}` - throw error if user ID is authorized or not
+     *
+     * ### example
+     *
+     * ```c++
+     * const name user_id = "123.eosn"_n;
+     * eosn::login::require_auth_user_id( user_id );
+     * ```
+     */
+    static void require_auth_user_id( const name user_id )
+    {
+        check( is_auth( user_id ), "login::require_auth_user_id: [user_id] is not authorized" );
+    }
 
     using create_action = eosio::action_wrapper<"create"_n, &eosn::login::create>;
     using status_action = eosio::action_wrapper<"status"_n, &eosn::login::status>;
@@ -259,9 +332,6 @@ public:
 
 private:
     void unlink_user( const name user_id );
-    bool is_auth( const name user_id );
-    void require_auth_user_id( const name user_id );
-    // void increase_authorize_nonce( const uint64_t nonce );
 };
 
 } // namespace eosn

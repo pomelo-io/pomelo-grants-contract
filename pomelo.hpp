@@ -306,14 +306,12 @@ public:
     /**
      * ## ACTION `init`
      *
-     * Initialize contract
-     *
-     * Start round by making sure round is defined and changing the state table.
+     * Set contract status / start round
      *
      * ### params
      *
      * - `{uint64_t} round_id` - round ID (0=not active)
-     * - `{uint64_t} status` - status (0=testing, 1=ok, 2=maintenance)
+     * - `{uint64_t} status` - contract status (0=testing, 1=ok, 2=maintenance)
      */
     [[eosio::action]]
     void init( const uint64_t round_id, const uint64_t status );

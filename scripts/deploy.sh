@@ -38,6 +38,7 @@ cleos set contract pomelo . pomelo.wasm pomelo.abi
 
 # @eosio.code permission
 cleos set account permission pomelo active --add-code
+cleos set account permission login.eosn active --add-code
 
 # create tokens
 cleos push action eosio.token create '["eosio", "100000000.0000 A"]' -p eosio.token

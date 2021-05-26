@@ -14,7 +14,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     const auto project = table.get(project_id.value, "pomelo::donate_project: project not found");
 
     check(project.status == "ok"_n, "pomelo::donate_project: project not available for donation");
-    check(project.accepted_tokens.count(ext_quantity.get_extended_symbol()), "pomelo::donate_project: not accepted tokens for this project");
+    check(project.accepted_tokens.count(ext_quantity.get_extended_symbol()), "pomelo::donate_project: not acceptable tokens for this project");
 
     const auto value = calculate_value( ext_quantity );
 
@@ -117,7 +117,7 @@ void pomelo::set_project( T& projects, const name type, const name id, const nam
     // make sure Pomelo users exist
     check( is_user( author_id ), "pomelo::set_project: author does not exist" );
     for (const auto user_id: authorized_user_ids) {
-        check( is_user( user_id ), "pomelo::set_project: `authorized_user_id` does not exist" );
+        check( is_user( user_id ), "pomelo::set_project: [authorized_user_id] does not exist" );
     }
 
     // create/update project

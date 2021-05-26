@@ -5,30 +5,30 @@
 ```bash
 # create Pomelo user for grant manager and link it to EOS account
 cleos push action login.eosn create '["prjman.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
-cleos push action login.eosn link '["prjman.eosn", ["prjman"]]' -p login.eosn
+cleos push action login.eosn link '["prjman.eosn", ["prjman"]]' -p login.eosn -p prjman.eosn
 
 # create matching user, link to EOS account and set socials for matching boost
 cleos push action login.eosn create '["user.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
-cleos push action login.eosn link '["user.eosn", ["user"]]' -p login.eosn
-cleos push action login.eosn social '["user.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn
+cleos push action login.eosn link '["user.eosn", ["user"]]' -p login.eosn -p user.eosn
+cleos push action login.eosn social '["user.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn -p user.eosn
 
 # create matching round and start it
 cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00"]' -p pomelo
 cleos push action pomelo init '[1, 1]' -p pomelo
 
 # create grant, enable it and join round
-cleos push action pomelo setgrant '["grant1", "prjman.eosn", ["prjman.eosn"], "prjgrant", [["4,USDT", "tethertether"]]]' -p pomelo
+cleos push action pomelo setgrant '["grant1", "prjman.eosn", ["prjman.eosn"], "prjgrant", [["4,EOS", "eosio.token"]]]' -p pomelo
 cleos push action pomelo enable '["grant", "grant1", "ok"]' -p pomelo
-cleos push action pomelo joinround '["grant", "grant1", 1]' -p pomelo
+cleos push action pomelo joinround '["grant1", 1]' -p pomelo
 
 # fund grant1
-$ cleos transfer user pomelo "10.0000 USDT" "grant:grant1" --contract tethertether
+$ cleos transfer user pomelo "10.0000 EOS" "grant:grant1"
 
 # query transfer trx id
 cleos get table pomelo pomelo transfers | jq -r '.rows[0].trx_id'
 
 # query grant square of sums of all users contribution sqrts
-cleos get table pomelo 1 match.grant -L grant1 | jq -r '.rows[0].square'
+cleos get table pomelo 1 match -L grant1 | jq -r '.rows[0].square'
 # => 22.5 ( == (sqrt(10 + 5*0.25))^2 )
 
 # query sum of grant squares for that round
@@ -84,13 +84,11 @@ $ ./test.sh
 - [TABLE `transfers`](#table-transfers)
 - [TABLE `match`](#table-match)
 - [TABLE `rounds`](#table-rounds)
-- [ACTION `setstatus`](#action-setstatus)
-- [ACTION `setvaluesym`](#action-setvaluesym)
+- [ACTION `init`](#action-init)
 - [ACTION `setgrant`](#action-setgrant)
 - [ACTION `setbounty`](#action-setbounty)
-- [ACTION `setprjstatus`](#action-setprjstatus)
+- [ACTION `enable`](#action-enable)
 - [ACTION `setround`](#action-setround)
-- [ACTION `startround`](#action-startround)
 - [ACTION `joinround`](#action-joinround)
 
 ## TABLE `globals`
@@ -169,7 +167,7 @@ $ ./test.sh
 - `{uint64_t} transfer_id` - (primary key) token transfer ID
 - `{name} from` - EOS account sender
 - `{name} to` - EOS account receiver
-- `{extended_asset} ext_quantity - amount of tokens transfered
+- `{extended_asset} ext_quantity` - amount of tokens transfered
 - `{string} memo` - transfer memo
 - `{name} user_id` - Pomelo user account ID
 - `{uint64_t} round_id` - participating round ID
@@ -272,39 +270,29 @@ $ ./test.sh
 }
 ```
 
-## ACTION `setstatus`
+## ACTION `init`
 
 - **authority**: `get_self()`
 
+Set contract status and/or start/end round
+
 ### params
 
-- `{name} status` - contract status
+- `{uint64_t} round_id` - round ID (0=not active)
+- `{uint64_t} status` - contract status (0=testing, 1=ok, 2=maintenance)
 
 ### Example
 
 ```bash
-$ cleos push action pomelo setstatus '["maintenance"]' -p pomelo
-```
-
-## ACTION `setvaluesym`
-
-- **authority**: `get_self()`
-
-### params
-
-- `{extended_symbol} value_symbol` - value symbol used for matching calculations
-
-### Example
-
-```bash
-$ cleos push action pomelo setvaluesym '[["4,USDT", "tethertether"]]' -p pomelo
+$ cleos push action pomelo init '[1, 1]' -p pomelo
+$ cleos push action pomelo init '[0, 2]' -p pomelo
 ```
 
 ## ACTION `setgrant`
 
 - **authority**: `get_self()`
 
-Creates/updates grant project with specified parameters. Project is created in "pending" state.
+Create/update grant project with specified parameters. Project is created in "pending" state.
 
 ### params
 
@@ -324,7 +312,7 @@ $ cleos push action pomelo setgrant '["mygrant", "123.eosn", ["123.eosn"], "proj
 
 - **authority**: `get_self()`
 
-Creates/updates bounty project with specified parameters. Project is created in "pending" state.
+Create/update bounty project with specified parameters. Project is created in "pending" state.
 
 ### params
 
@@ -340,21 +328,22 @@ Creates/updates bounty project with specified parameters. Project is created in 
 $ cleos push action pomelo setbounty '["mygrant", "123.eosn", ["123.eosn"], "project2fund", [["4,USDT", "tethertether"]]]' -p pomelo
 ```
 
-## ACTION `setprjstatus`
+## ACTION `enable`
 
 - **authority**: `get_self()`
 
-Creates/updates bounty project with specified parameters. Project is created in "pending" state.
+Enable/disable grant or bounty
 
 ### params
 
-- `{name} id` - project id
-- `{name} status` - new status `pending/ok/disabled`
+- `{name} project_type` - project type `grant/bounty`
+- `{name} project_id` - project ID
+- `{name} status` - project status (0=prnding, 1=ok, 2=disabled)
 
 ### Example
 
 ```bash
-$ cleos push action pomelo setprjstatus '["mygrant", "ok"]' -p pomelo
+$ cleos push action pomelo enable '["grant", "grant1", 1]' -p pomelo
 ```
 
 ## ACTION `setround`
@@ -375,22 +364,6 @@ Creates/updates match round with specified parameters.
 $ cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00"]' -p pomelo
 ```
 
-## ACTION `startround`
-
-- **authority**: `get_self()`
-
-Start round by making sure round is defined and changing the state table
-
-### params
-
-- `{uint64_t} round_id` - round_id
-
-### Example
-
-```bash
-$ cleos push action pomelo startround '[1]' -p pomelo
-```
-
 ## ACTION `joinround`
 
 - **authority**: `get_self()`
@@ -399,7 +372,7 @@ Adds grant to round
 
 ### params
 
-- `{name} project_id` - project_id
+- `{name} grant_id` - grant_id
 - `{uint64_t} round_id` - round_id
 
 ### Example
