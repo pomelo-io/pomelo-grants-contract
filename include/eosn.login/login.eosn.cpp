@@ -14,7 +14,7 @@ void login::create( const name user_id, const set<public_key> public_key )
     auto itr = _users.find( user_id.value );
     check( itr == _users.end(), "login::create: [user_id] already exists" );
     check( !is_account( user_id ), "login::create: [user_id] account already exists" );
-    check( public_key.size(), get_self().to_string() + "::create: [public_key] is empty" );
+    check( public_key.size(), "login::create: [public_key] is empty" );
 
     // create user row
     _users.emplace( get_self(), [&]( auto & row ) {
@@ -145,6 +145,9 @@ void login::social( const name user_id, const set<name> socials )
     require_auth_user_id( user_id );
 
     login::users_table _users( get_self(), get_self().value );
+
+    // notify contracts
+    if ( is_account("pomelo"_n) ) require_recipient("pomelo"_n);
 
     // validate user ID
     auto itr = _users.find( user_id.value );

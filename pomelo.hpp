@@ -351,13 +351,13 @@ public:
     /**
      * ## ACTION `enable`
      *
-     * Enable grant or bounty
+     * Enable/disable grant or bounty
      *
      * ### params
      *
      * - `{name} project_type` - project type
      * - `{name} project_id` - project ID
-     * - `{name} status` - project status
+     * - `{name} status` - project status `pending/ok/disabled'
      */
 
     [[eosio::action]]

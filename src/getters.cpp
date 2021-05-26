@@ -9,9 +9,9 @@ double pomelo::calculate_value( const extended_asset ext_quantity )
     if (ext_quantity.get_extended_symbol() == VALUE_SYM)
         return  value;
 
-    //if local node - just multiply by 10, i.e. 10 EOS => USDT = 100.0 value
+    //if local node - just divide by 10, i.e. 10 USDT => EOS = 1.0 value
     if (!is_account(defibox::code)) {
-        return 10 * value;
+        return value / 10;
     }
 
     // loop through all defibox pairs and find the one that works (alternatively: hardcode pairs)

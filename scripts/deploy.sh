@@ -41,28 +41,30 @@ cleos set account permission pomelo active --add-code
 cleos set account permission login.eosn active --add-code
 
 # create tokens
-cleos push action eosio.token create '["eosio", "100000000.0000 A"]' -p eosio.token
-cleos push action eosio.token issue '["eosio", "10000000.0000 A", "init"]' -p eosio
-cleos push action tethertether create '["eosio", "100000000.0000 B"]' -p tethertether
-cleos push action tethertether issue '["eosio", "10000000.0000 B", "init"]' -p eosio
+cleos push action eosio.token create '["eosio", "100000000.0000 EOS"]' -p eosio.token
+cleos push action eosio.token issue '["eosio", "10000000.0000 EOS", "init"]' -p eosio
+cleos push action tethertether create '["eosio", "100000000.0000 USDT"]' -p tethertether
+cleos push action tethertether issue '["eosio", "10000000.0000 USDT", "init"]' -p eosio
 
 # create fake tokens
-cleos push action fake.token create '["eosio", "100000000.0000 A"]' -p fake.token
-cleos push action fake.token issue '["eosio", "5000000.0000 A", "init"]' -p eosio
+cleos push action fake.token create '["eosio", "100000000.0000 EOS"]' -p fake.token
+cleos push action fake.token issue '["eosio", "5000000.0000 EOS", "init"]' -p eosio
 
 # transfer tokens
-cleos transfer eosio user1 "1000000.0000 A" ""
-cleos transfer eosio user1 "1000000.0000 B" "" --contract tethertether
-cleos transfer eosio user1 "1000000.0000 A" "" --contract fake.token
-cleos transfer eosio user2 "1000000.0000 A" ""
-cleos transfer eosio user2 "1000000.0000 B" "" --contract tethertether
-cleos transfer eosio user3 "1000000.0000 A" ""
-cleos transfer eosio user3 "1000000.0000 B" "" --contract tethertether
-cleos transfer eosio user4 "1000000.0000 A" ""
-cleos transfer eosio user4 "1000000.0000 B" "" --contract tethertether
-cleos transfer eosio user5 "1000000.0000 A" ""
-cleos transfer eosio user5 "1000000.0000 B" "" --contract tethertether
-cleos transfer eosio user11 "1000000.0000 A" ""
-cleos transfer eosio user11 "1000000.0000 B" "" --contract tethertether
-cleos transfer eosio user12 "1000000.0000 A" ""
-cleos transfer eosio user13 "1000000.0000 A" ""
+cleos transfer eosio user1 "1000000.0000 EOS" ""
+cleos transfer eosio user1 "1000000.0000 USDT" "" --contract tethertether
+cleos transfer eosio user1 "1000000.0000 EOS" "" --contract fake.token
+cleos transfer eosio user2 "1000000.0000 EOS" ""
+cleos transfer eosio user2 "1000000.0000 USDT" "" --contract tethertether
+cleos transfer eosio user3 "1000000.0000 EOS" ""
+cleos transfer eosio user3 "1000000.0000 USDT" "" --contract tethertether
+cleos transfer eosio user4 "1000000.0000 EOS" ""
+cleos transfer eosio user4 "1000000.0000 USDT" "" --contract tethertether
+cleos transfer eosio user5 "1000000.0000 EOS" ""
+cleos transfer eosio user5 "1000000.0000 USDT" "" --contract tethertether
+cleos transfer eosio user11 "1000000.0000 EOS" ""
+cleos transfer eosio user11 "1000000.0000 USDT" "" --contract tethertether
+cleos transfer eosio user12 "1000000.0000 EOS" ""
+cleos transfer eosio user12 "1000000.0000 USDT" "" --contract tethertether
+cleos transfer eosio user13 "1000000.0000 EOS" ""
+cleos transfer eosio user13 "1000000.0000 USDT" "" --contract tethertether
