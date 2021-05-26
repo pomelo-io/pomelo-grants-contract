@@ -72,4 +72,4 @@ cleos transfer eosio user13 "1000000.0000 EOS" ""
 cleos transfer eosio user13 "1000000.0000 USDT" "" --contract tethertether
 
 # set price in defibox contract
-cleos push action swap.defi setprice '[["4,EOS", "eosio.token"], ["4,USDT", "tethertether"], 10]' -p swap.defi
+cleos push action swap.defi setprice '[12, ["4,EOS", "eosio.token"], ["4,USDT", "tethertether"], 10]' -p swap.defi

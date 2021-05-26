@@ -23,7 +23,7 @@ public:
         uint64_t                liquidity_token;
         double                  price0_last;
         double                  price1_last;
-        double                  rice0_cumulative_last;
+        double                  price0_cumulative_last;
         double                  price1_cumulative_last;
         eosio::time_point_sec   block_time_last;
 
@@ -32,12 +32,13 @@ public:
     typedef eosio::multi_index< "pairs"_n, pairs_row > pairs;
 
     [[eosio::action]]
-    void setprice( const eosio::extended_symbol ext_sym0, const eosio::extended_symbol ext_sym1, double price ){
+    void setprice( uint64_t pair_id, eosio::extended_symbol ext_sym0, eosio::extended_symbol ext_sym1, double price ){
         pairs _pairs( get_self(), get_self().value );
+        eosio::check( _pairs.find(pair_id) == _pairs.end(), "swap.defi: pair already exists" );
 
         // create user row
         _pairs.emplace( get_self(), [&]( auto & row ) {
-            row.id = _pairs.available_primary_key();
+            row.id = pair_id;
             row.token0.contract = ext_sym0.get_contract();
             row.token0.symbol = ext_sym0.get_symbol();
             row.token1.contract = ext_sym1.get_contract();
