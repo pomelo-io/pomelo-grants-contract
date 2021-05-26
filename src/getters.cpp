@@ -2,7 +2,7 @@
 
 using namespace sx;
 
-double pomelo::get_value( const extended_asset ext_quantity )
+double pomelo::calculate_value( const extended_asset ext_quantity )
 {
     const double value = ext_quantity.quantity.amount / pow( 10, ext_quantity.quantity.symbol.precision());
 
@@ -27,8 +27,7 @@ double pomelo::get_value( const extended_asset ext_quantity )
             return value * row.price1_last;
         }
     }
-
-    check(false, "pomelo::get_value: can't convert amount to base symbol");
+    check(false, "pomelo::calculate_value: can't convert amount to base symbol");
     return value;
 }
 
@@ -62,24 +61,45 @@ double pomelo::get_user_boost_mutliplier( const name user_id )
     return multiplier;
 }
 
-uint64_t pomelo::get_current_round()
+void pomelo::validate_round( const uint64_t round_id )
 {
-    state_table state(get_self(), get_self().value);
-    auto round = state.get_or_default().round_id;
-    if(round == 0) return 0;    //return 0 if no active rounds - still allowed for bounties
+    pomelo::rounds_table _rounds( get_self(), get_self().value );
 
-    pomelo::rounds_table rounds( get_self(), get_self().value );
+    check(round_id != 0, "pomelo::validate_round: [round_id] is not active");
 
     const auto now = current_time_point().sec_since_epoch();
-    const auto row = rounds.get( round, "pomelo::get_current_round: invalid state.round");
-    check(row.start_at.sec_since_epoch() <= now && now <= row.end_at.sec_since_epoch(), "pomelo::get_current_round: invalid state.round");
-
-    return row.round;
+    const auto rounds = _rounds.get( round_id, "pomelo::validate_round: [round_id] not found");
+    check(rounds.start_at.sec_since_epoch() <= now, "pomelo::validate_round: [round_id] has not started");
+    check(now <= rounds.end_at.sec_since_epoch(), "pomelo::validate_round: [round_id] has expired");
 }
 
-name pomelo::get_status()
+void pomelo::set_key_value( const name key, const uint64_t value )
 {
-    state_table _state(get_self(), get_self().value);
-    check( _state.exists(), "pomelo::get_status: contract is not initialized" );
-    return _state.get().status;
+    globals_table _globals(get_self(), get_self().value);
+    auto insert = [&]( auto & row ) {
+        row.key = key;
+        row.value = value;
+    };
+    auto itr = _globals.find( key.value );
+    if ( itr == _globals.end() ) _globals.emplace( get_self(), insert );
+    else _globals.modify( itr, get_self(), insert );
+}
+
+uint64_t pomelo::get_key_value( const name key )
+{
+    globals_table _globals(get_self(), get_self().value);
+    auto itr = _globals.find( key.value );
+    check( itr != _globals.end() ,"pomelo::get_key_value: [" + key.to_string() + "] key does not exists");
+    return itr->value;
+}
+
+bool pomelo::del_key( const name key )
+{
+    globals_table _globals(get_self(), get_self().value);
+    auto itr = _globals.find( key.value );
+    if ( itr != _globals.end() ) {
+        _globals.erase( itr );
+        return true;
+    }
+    return false;
 }

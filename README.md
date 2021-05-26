@@ -3,21 +3,18 @@
 ## Usage
 
 ```bash
-# set status ok
-$ cleos push action pomelo setstatus '["ok"]' -p pomelo
-
 # create Pomelo user for grant manager and link it to EOS account
 cleos push action login.eosn create '["prjman.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
 cleos push action login.eosn link '["prjman.eosn", ["prjman"]]' -p login.eosn
 
-# create funding user, link to EOS account and set socials for funding boost
+# create matching user, link to EOS account and set socials for matching boost
 cleos push action login.eosn create '["user.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
 cleos push action login.eosn link '["user.eosn", ["user"]]' -p login.eosn
 cleos push action login.eosn social '["user.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn
 
-# create funding round and start it
+# create matching round and start it
 cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00"]' -p pomelo
-cleos push action pomelo startround '[1]' -p pomelo
+cleos push action pomelo init '[1, 1]' -p pomelo
 
 # create grant, enable it and join round
 cleos push action pomelo setgrant '["grant1", "prjman.eosn", ["prjman.eosn"], "prjgrant", [["4,USDT", "tethertether"]]]' -p pomelo
@@ -42,7 +39,7 @@ cleos get table pomelo pomelo rounds -L 1 | jq -r '.rows[0].sum_square'
 
 ## Dependencies
 
-- [eosn-login-contract](https://github.com/pomelo-io/eosn-login-contract)
+- [eosn.login](https://github.com/pomelo-io/eosn.login)
 - [sx.defibox](https://github.com/stableex/sx.defibox)
 - [sx.utils](https://github.com/stableex/sx.utils)
 - [eosio.token](https://github.com/EOSIO/eosio.contracts)
@@ -82,11 +79,10 @@ $ ./test.sh
 
 ## Table of Content
 
-- [SINGLETON `config`](#singleton-config)
-- [SINGLETON `state`](#singleton-state)
+- [TABLE `globals`](#table-globals)
 - [TABLES `grants` & `bounties`](#tables-grants-and-bounties)
 - [TABLE `transfers`](#table-transfers)
-- [TABLE `match.grant`](#table-match.grant)
+- [TABLE `match`](#table-match)
 - [TABLE `rounds`](#table-rounds)
 - [ACTION `setstatus`](#action-setstatus)
 - [ACTION `setvaluesym`](#action-setvaluesym)
@@ -97,38 +93,20 @@ $ ./test.sh
 - [ACTION `startround`](#action-startround)
 - [ACTION `joinround`](#action-joinround)
 
-## SINGLETON `config`
+## TABLE `globals`
 
 ### params
 
-- `{name} status = "testing"` - contract status `testing/ok/maintenance`
-- `{extended_symbol} value_symbol = [4,USDT@tethertether]` - value symbol
-- `{name} login_contract = "login.eosn"` - login contract with user data
+- `{name} key` - (primary key) key
+- `{uint64_t} value` - value
 
 ### example
 
 ```json
-{
-    "status": "testing",
-    "value_symbol": "4,USDT@tethertether",
-    "login_contract": "login.eosn"
-}
-```
-
-## SINGLETON `state`
-
-### params
-
-- `{uint64_t} round = 0` - current funding round ( 0 if no ongoing round)
-
-### example
-
-```json
-{
-    "status": "testing",
-    "value_symbol": "4,USDT@tethertether",
-    "login_contract": "login.eosn"
-}
+[
+    { "key": "round.id", "value": 1 },
+    { "key": "status", "value": 1 }
+]
 ```
 
 ## TABLES `grants` and `bounties`
@@ -220,7 +198,7 @@ $ ./test.sh
 }
 ```
 
-## TABLE `match.grant`
+## TABLE `match`
 
 - **scope**: `round_id {uint64_t}`
 
@@ -383,7 +361,7 @@ $ cleos push action pomelo setprjstatus '["mygrant", "ok"]' -p pomelo
 
 - **authority**: `get_self()`
 
-Creates/updates funding round with specified parameters.
+Creates/updates match round with specified parameters.
 
 ### params
 

@@ -83,24 +83,19 @@ void pomelo::joinround( const name grant_id, const uint64_t round_id )
 }
 
 [[eosio::action]]
-void pomelo::init( const uint64_t round_id, const name status )
+void pomelo::init( const uint64_t round_id, const uint64_t status )
 {
     require_auth( get_self() );
 
-    // tables
-    pomelo::rounds_table _rounds( get_self(), get_self().value );
-    pomelo::state_table _state( get_self(), get_self().value );
+    set_key_value("round.id"_n, round_id );
+    set_key_value("status"_n, status );
 
-    auto state = _state.get_or_default();
-    state.round_id = round_id;
-    state.status = status;
-    _state.set( state, get_self() );
+    // // skip round validation
+    // if ( round_id == 0 ) return;
 
-    // skip round validation
-    if ( round_id == 0 ) return;
-
-    // make sure round exist and is not over
-    const auto round = _rounds.get( round_id, "pomelo::init: `round_id` is not found" );
-    const auto now = current_time_point().sec_since_epoch();
-    check( round.end_at.sec_since_epoch() > now, "pomelo::init: round has already ended" );
+    // // make sure round exist and is not over
+    // pomelo::rounds_table _rounds( get_self(), get_self().value );
+    // const auto round = _rounds.get( round_id, "pomelo::init: [round_id] is not found" );
+    // const auto now = current_time_point().sec_since_epoch();
+    // check( round.end_at.sec_since_epoch() > now, "pomelo::init: [round_id] has already ended" );
 }

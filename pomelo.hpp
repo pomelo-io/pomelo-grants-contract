@@ -21,25 +21,29 @@ public:
     using contract::contract;
 
     /**
-     * ## TABLE `state`
+     * ## TABLE `globals`
      *
-     * - `{uint64_t} round_id` - current matching round
-     * - `{name} status` - contract status ("ok", "testing", "maintenance")
+     * ### params
+     *
+     * - `{name} key` - (primary key) key
+     * - `{uint64_t} value` - value
      *
      * ### example
      *
      * ```json
-     * {
-     *   "round": 1,
-     *   "status": "testing"
-     * }
+     * [
+     *   { "key": "round.id", "value": 1 },
+     *   { "key": "status", "value": 1 }
+     * ]
      * ```
      */
-    struct [[eosio::table("state")]] state_row {
-        uint64_t         round_id = 0;
-        name             status = "testing"_n;
+    struct [[eosio::table("globals")]] globals_row {
+        name                key;
+        uint64_t            value;
+
+        uint64_t primary_key() const { return key.value; }
     };
-    typedef eosio::singleton< "state"_n, state_row > state_table;
+    typedef eosio::multi_index< "globals"_n, globals_row> globals_table;
 
     /**
      * ## TABLE `grants` & `bounties`
@@ -193,7 +197,7 @@ public:
     > transfers_table;
 
     /**
-     * ## TABLE `match.grant`
+     * ## TABLE `match`
      *
      * *scope*: `round_id`
      *
@@ -229,7 +233,7 @@ public:
      *   }
      * ```
      */
-    struct [[eosio::table("match.grant")]] match_grant_row {
+    struct [[eosio::table("match")]] match_row {
         name                    grant_id;
         uint64_t                round_id;
         map<name, double>       user_value;
@@ -245,7 +249,7 @@ public:
 
         uint64_t primary_key() const { return grant_id.value; };
     };
-    typedef eosio::multi_index< "match.grant"_n, match_grant_row > match_grant_table;
+    typedef eosio::multi_index< "match"_n, match_row > match_table;
 
     /**
      * ## TABLE `rounds`
@@ -308,11 +312,11 @@ public:
      *
      * ### params
      *
-     * - `{name} status` - status `testing/ok/maintenance`
-     * - `{uint64_t} round_id` - round id, 0 if no round is ongoing
+     * - `{uint64_t} round_id` - round ID (0=not active)
+     * - `{uint64_t} status` - status (0=testing, 1=ok, 2=maintenance)
      */
     [[eosio::action]]
-    void init( const uint64_t round_id, const name status );
+    void init( const uint64_t round_id, const uint64_t status );
 
     /**
      * ## ACTION `setgrant`
@@ -422,21 +426,24 @@ private:
     // state_table _state;
 
     // getters
-    double get_value(const extended_asset ext_quantity);
+    double calculate_value(const extended_asset ext_quantity);
     name get_user_id( const name user );
     bool is_user( const name user_id );
     double get_user_boost_mutliplier( const name user_id );
-    uint64_t get_current_round();
-    name get_status();
+    void validate_round( const uint64_t round_id );
 
-    // setters
+    // globals key/value
+    void set_key_value( const name key, const uint64_t value );
+    uint64_t get_key_value( const name key );
+    bool del_key( const name key );
+
     template <typename T>
     void enable_project( T& table, const name id, const name status );
 
     template <typename T>
-    void fund_project(const T& table, const name project_id, const name from, const name to, const extended_asset ext_quantity, const string memo );
+    void donate_project(const T& table, const name project_id, const name from, const name to, const extended_asset ext_quantity, const string memo );
 
-    void fund_grant(const name grant_id, const extended_asset ext_quantity, const name user_id, const double value);
+    void donate_grant(const name grant_id, const extended_asset ext_quantity, const name user_id, const double value);
 
     template <typename T>
     void set_project(T& table, const name type, const name id, const name author_id, const set<name> authorized_user_ids, const name funding_account, const set<extended_symbol> accepted_tokens );
