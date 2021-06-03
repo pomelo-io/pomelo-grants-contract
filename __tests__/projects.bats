@@ -327,3 +327,13 @@
   run cleos push action pomelo enable '["grant", "grant1", "ok"]' -p pomelo
   [ $status -eq 0 ]
 }
+
+@test "fund grant by a user without EOSN login" {
+  run cleos transfer user.noeosn pomelo "30.0000 EOS" "grant:grant4"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "account is not linked" ]]
+
+  run cleos transfer user.noeosn pomelo "30.0000 EOS" "bounty:bounty1"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "account is not linked" ]]
+}

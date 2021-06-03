@@ -29,6 +29,7 @@ cleos create account eosio user5 EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5
 cleos create account eosio user11 EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio user12 EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio user13 EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+cleos create account eosio user.noeosn EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 
 # contract
 cleos set contract eosio.token ./include/eosio.token eosio.token.wasm eosio.token.abi
@@ -70,6 +71,7 @@ cleos transfer eosio user12 "1000000.0000 EOS" ""
 cleos transfer eosio user12 "1000000.0000 USDT" "" --contract tethertether
 cleos transfer eosio user13 "1000000.0000 EOS" ""
 cleos transfer eosio user13 "1000000.0000 USDT" "" --contract tethertether
+cleos transfer eosio user.noeosn "1000000.0000 EOS" ""
 
 # set price in defibox contract
 cleos push action swap.defi setprice '[12, ["4,EOS", "eosio.token"], ["4,USDT", "tethertether"], 10]' -p swap.defi
