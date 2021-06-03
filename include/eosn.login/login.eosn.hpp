@@ -32,7 +32,7 @@ public:
      * ### params
      *
      * - `{name} user_id` - (primary key) user ID
-     * - `{set<public_key>} public_key` - public key for account creation permission
+     * - `{set<public_key>} public_keys` - public key for account creation permission
      * - `{set<name>} [accounts=[]]` - EOS account names
      * - `{set<name>} [socials=[]]` - social accounts enabled
      * - `{name} [status="pending"]` - user status (ex: `created/ok/deleted`)
@@ -45,7 +45,7 @@ public:
      * ```json
      * {
      *     "user_id": "123.eosn",
-     *     "public_key": ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"],
+     *     "public_keys": ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"],
      *     "accounts": ["myaccount"],
      *     "socials": ["github"],
      *     "status": "ok",
@@ -57,7 +57,7 @@ public:
      */
     struct [[eosio::table("users")]] users_row {
         name                user_id;
-        set<public_key>     public_key;
+        set<public_key>     public_keys;
         set<name>           accounts;
         set<name>           socials;
         name                status;
@@ -108,30 +108,30 @@ public:
         indexed_by< "byuser"_n, const_mem_fun<accounts_row, uint64_t, &accounts_row::byuser> >
     > accounts_table;
 
-    /**
-     * ## TABLE `globals`
-     *
-     * ### params
-     *
-     * - `{name} key` - (primary key) key
-     * - `{uint64_t} value` - value
-     *
-     * ### example
-     *
-     * ```json
-     * {
-     *     "key": "nonce",
-     *     "value": 1
-     * }
-     * ```
-     */
-    struct [[eosio::table("globals")]] globals_row {
-        name                key;
-        uint64_t            value;
+    // /**
+    //  * ## TABLE `globals`
+    //  *
+    //  * ### params
+    //  *
+    //  * - `{name} key` - (primary key) key
+    //  * - `{uint64_t} value` - value
+    //  *
+    //  * ### example
+    //  *
+    //  * ```json
+    //  * {
+    //  *     "key": "nonce",
+    //  *     "value": 1
+    //  * }
+    //  * ```
+    //  */
+    // struct [[eosio::table("globals")]] globals_row {
+    //     name                key;
+    //     uint64_t            value;
 
-        uint64_t primary_key() const { return key.value; }
-    };
-    typedef eosio::multi_index< "globals"_n, globals_row> globals_table;
+    //     uint64_t primary_key() const { return key.value; }
+    // };
+    // typedef eosio::multi_index< "globals"_n, globals_row> globals_table;
 
     /**
      * ## ACTION `create`
@@ -141,7 +141,7 @@ public:
      * ### params
      *
      * - `{name} user_id` - user ID
-     * - `{set<public_key>} public_key` - public key for account creation permission
+     * - `{set<public_key>} public_keys` - public keys for account creation permission
      *
      * ### Example
      *
@@ -150,7 +150,7 @@ public:
      * ```
      */
     [[eosio::action]]
-    void create( const name user_id, const set<public_key> public_key );
+    void create( const name user_id, const set<public_key> public_keys );
 
     /**
      * ## ACTION `status`

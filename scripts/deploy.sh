@@ -5,6 +5,7 @@ cleos wallet unlock --password $(cat ~/eosio-wallet/.pass)
 
 # create account
 cleos create account eosio pomelo EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+cleos create account eosio eosn EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio login.eosn EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio swap.defi EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio eosio.token EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
@@ -42,6 +43,7 @@ cleos set contract pomelo . pomelo.wasm pomelo.abi
 # @eosio.code permission
 cleos set account permission pomelo active --add-code
 cleos set account permission login.eosn active --add-code
+cleos set account permission eosn active login.eosn --add-code
 
 # create tokens
 cleos push action eosio.token create '["eosio", "100000000.0000 EOS"]' -p eosio.token

@@ -1,35 +1,56 @@
 #include <eosio/native.hpp>
+#include <eosio.system/eosio.system.hpp>
+#include <eosio.token/eosio.token.hpp>
+
 #include "login.eosn.hpp"
 
 namespace eosn {
 
 [[eosio::action]]
-void login::create( const name user_id, const set<public_key> public_key )
+void login::create( const name user_id, const set<public_key> public_keys )
 {
     require_auth( get_self() );
 
     login::users_table _users( get_self(), get_self().value );
 
     // validate user ID
+    const name suffix = user_id.suffix();
     auto itr = _users.find( user_id.value );
     check( itr == _users.end(), "login::create: [user_id] already exists" );
     check( !is_account( user_id ), "login::create: [user_id] account already exists" );
-    check( public_key.size(), "login::create: [public_key] is empty" );
+    check( public_keys.size(), "login::create: [public_keys] is empty" );
+    check( suffix.value, "login::create: [user_id] does not include a suffix" );
+    check( suffix == "eosn"_n, "login::create: [user_id] suffix must be *.eosn" );
 
     // create user row
     _users.emplace( get_self(), [&]( auto & row ) {
         row.user_id = user_id;
-        row.public_key = public_key;
+        row.public_keys = public_keys;
         row.status = "created"_n;
         row.created_at = current_time_point();
         row.updated_at = current_time_point();
     });
 
-    const auto authority = eosiosystem::authority{ 1, { { *public_key.begin(), 1 } }, { }, { } };
+    // setup account permission
+    vector<eosiosystem::key_weight> keys;
+    for ( const public_key key : public_keys ) {
+        keys.push_back({ key, 1 });
+    }
+    const vector<eosiosystem::permission_level_weight> accounts = {{ { get_self(), "eosio.code"_n }, 1 }};
+    const eosiosystem::authority owner = { 1, {}, accounts, {} };
+    const eosiosystem::authority active = { 1, keys, {}, {} };
 
-    eosiosystem::native::newaccount_action newaccount( "eosio"_n, { get_self(), "active"_n} );
-    newaccount.send( get_self(), user_id, authority, authority );
+    // create new account
+    eosiosystem::native::newaccount_action newaccount( "eosio"_n, { suffix, "active"_n} );
+    newaccount.send( suffix, user_id, owner, active );
 
+    // purchase 1,735 bytes worth of RAM (no excess RAM)
+    eosiosystem::system_contract::buyrambytes_action buyrambytes( "eosio"_n, { get_self(), "active"_n });
+    buyrambytes.send( get_self(), user_id, 1735 );
+
+    // open EOS token balance
+    eosio::token::open_action open( "eosio.token"_n, { get_self(), "active"_n });
+    open.send( get_self(), symbol{"EOS", 4}, get_self() );
 }
 
 [[eosio::action]]
