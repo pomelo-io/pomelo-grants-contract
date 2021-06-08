@@ -108,31 +108,6 @@ public:
         indexed_by< "byuser"_n, const_mem_fun<accounts_row, uint64_t, &accounts_row::byuser> >
     > accounts_table;
 
-    // /**
-    //  * ## TABLE `globals`
-    //  *
-    //  * ### params
-    //  *
-    //  * - `{name} key` - (primary key) key
-    //  * - `{uint64_t} value` - value
-    //  *
-    //  * ### example
-    //  *
-    //  * ```json
-    //  * {
-    //  *     "key": "nonce",
-    //  *     "value": 1
-    //  * }
-    //  * ```
-    //  */
-    // struct [[eosio::table("globals")]] globals_row {
-    //     name                key;
-    //     uint64_t            value;
-
-    //     uint64_t primary_key() const { return key.value; }
-    // };
-    // typedef eosio::multi_index< "globals"_n, globals_row> globals_table;
-
     /**
      * ## ACTION `create`
      *

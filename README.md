@@ -3,26 +3,26 @@
 ## Usage
 
 ```bash
-# create Pomelo user for grant manager and link it to EOS account
-cleos push action login.eosn create '["prjman.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
-cleos push action login.eosn link '["prjman.eosn", ["prjman"]]' -p login.eosn -p prjman.eosn
-
-# create matching user, link to EOS account and set socials for matching boost
-cleos push action login.eosn create '["user.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
-cleos push action login.eosn link '["user.eosn", ["user"]]' -p login.eosn -p user.eosn
-cleos push action login.eosn social '["user.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn -p user.eosn
-
 # create matching round and start it
 cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00"]' -p pomelo
 cleos push action pomelo init '[1, 1]' -p pomelo
 
+# create Pomelo user for grant manager and link it to EOS account
+cleos push action login.eosn create '["author.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
+cleos push action login.eosn create '["fund.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
+
+# create matching user, link to EOS account and set socials for matching boost
+cleos push action login.eosn create '["user.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
+cleos push action login.eosn social '["user.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn -p user.eosn
+cleos push action login.eosn link '["user.eosn", ["user.eosn"]]' -p login.eosn -p user.eosn
+
 # create grant, enable it and join round
-cleos push action pomelo setgrant '["grant1", "prjman.eosn", ["prjman.eosn"], "prjgrant", [["4,EOS", "eosio.token"]]]' -p pomelo
-cleos push action pomelo enable '["grant", "grant1", "ok"]' -p pomelo
-cleos push action pomelo joinround '["grant1", 1]' -p pomelo
+cleos push action pomelo setproject '["author.eosn", "grant", "grant1", "fund.eosn", [["4,EOS", "eosio.token"]]]' -p pomelo -p author.eosn
+cleos push action pomelo enable '["grant", "grant1", "ok"]' -p pomelo -p author.eosn
+cleos push action pomelo joinround '["grant1", 1]' -p pomelo -p author.eosn
 
 # fund grant1
-$ cleos transfer user pomelo "10.0000 EOS" "grant:grant1"
+cleos transfer user.eosn pomelo "10.0000 EOS" "grant:grant1"
 
 # query transfer trx id
 cleos get table pomelo pomelo transfers | jq -r '.rows[0].trx_id'
@@ -34,7 +34,6 @@ cleos get table pomelo 1 match -L grant1 | jq -r '.rows[0].square'
 # query sum of grant squares for that round
 cleos get table pomelo pomelo rounds -L 1 | jq -r '.rows[0].sum_square'
 # => 22.5 => grant1 receives 22.5/22.5 = 100% of matching funding
-
 ```
 
 ## Dependencies
@@ -122,7 +121,6 @@ $ ./test.sh
 - `{name} id` - (primary key) project name ID (used in memo to receive funds, must be unique)
 - `{name} type` - (❗️**IMMUTABLE**) project type (ex: `grant/bounty`)
 - `{name} author_user_id` - (❗️**IMMUTABLE**) author (Pomelo User Id)
-- `{set<name>} [authorized_user_ids=[]]` - authorized admins (Pomelo User Id)
 - `{name} [funding_account=""]` - funding account (EOS account)
 - `{set<extended_symbol>} [accepted_tokens=["4,EOS@eosio.token"]]` - accepted tokens (ex: `EOS/USDT`)
 - `{name} [status="pending"]` - status (`pending/ok/disabled`)
@@ -137,7 +135,6 @@ $ ./test.sh
     "id": "mygrant",
     "type": "grant",
     "author_user_id": "user1.eosn",
-    "authorized_user_ids": ["user1.eosn"],
     "funding_account": "myreceiver",
     "accepted_tokens": [{"contract": "eosio.token", "symbol": "4,EOS"}],
     "status": "ok",
@@ -281,51 +278,29 @@ Set contract status and/or start/end round
 - `{uint64_t} round_id` - round ID (0=not active)
 - `{uint64_t} status` - contract status (0=testing, 1=ok, 2=maintenance)
 
-### Example
+### example
 
 ```bash
 $ cleos push action pomelo init '[1, 1]' -p pomelo
 $ cleos push action pomelo init '[0, 2]' -p pomelo
 ```
 
-## ACTION `setgrant`
+## ACTION `setproject`
 
-- **authority**: `get_self()`
-
-Create/update grant project with specified parameters. Project is created in "pending" state.
+Create/update grant/bounty project without modifying project status
 
 ### params
 
-- `{name} id` - grant project id
 - `{name} author_id` - author user id
-- `{set<name>}` - user ids authorized to modify project
+- `{name} project_type` - project type (grant/bounty)
+- `{name} project_id` - project ID
 - `{name} funding_account` - account to forward donations to
-- `{set<extended_symbol>} accepted_tokens` - tokens accepted by the project
+- `{set<extended_symbol>} accepted_tokens` - accepted tokens
 
-### Example
+### example
 
 ```bash
-$ cleos push action pomelo setgrant '["mygrant", "123.eosn", ["123.eosn"], "project2fund", [["4,USDT", "tethertether"]]]' -p pomelo
-```
-
-## ACTION `setbounty`
-
-- **authority**: `get_self()`
-
-Create/update bounty project with specified parameters. Project is created in "pending" state.
-
-### params
-
-- `{name} id` - bounty project id
-- `{name} author_id` - author user id
-- `{set<name>}` - user ids authorized to modify project
-- `{name} funding_account` - account to forward donations to
-- `{set<extended_symbol>} accepted_tokens` - tokens accepted by the project
-
-### Example
-
-```bash
-$ cleos push action pomelo setbounty '["mygrant", "123.eosn", ["123.eosn"], "project2fund", [["4,USDT", "tethertether"]]]' -p pomelo
+$ cleos push action pomelo setproject '["123.eosn", "grant", "mygrant", "project2fund", [["4,USDT", "tethertether"]]]' -p pomelo -p 123.eosn
 ```
 
 ## ACTION `enable`
@@ -338,9 +313,9 @@ Enable/disable grant or bounty
 
 - `{name} project_type` - project type `grant/bounty`
 - `{name} project_id` - project ID
-- `{name} status` - project status (0=prnding, 1=ok, 2=disabled)
+- `{name} status` - project status (0=pending, 1=ok, 2=disabled)
 
-### Example
+### example
 
 ```bash
 $ cleos push action pomelo enable '["grant", "grant1", 1]' -p pomelo
@@ -358,7 +333,7 @@ Creates/updates match round with specified parameters.
 - `{time_point_sec} start_at` - round start time
 - `{time_point_sec} end_at` - round end time
 
-### Example
+### example
 
 ```bash
 $ cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00"]' -p pomelo
@@ -375,8 +350,8 @@ Adds grant to round
 - `{name} grant_id` - grant_id
 - `{uint64_t} round_id` - round_id
 
-### Example
+### example
 
 ```bash
-$ cleos push action pomelo joinround '["grant1", 1]' -p pomelo
+$ cleos push action pomelo joinround '["grant1", 1]' -p pomelo -p 123.eosn
 ```

@@ -53,7 +53,6 @@ public:
      * - `{name} id` - (primary key) project name ID (used in memo to receive funds, must be unique)
      * - `{name} type` - (❗️IMMUTABLE) project type (ex: `grant/bounty`)
      * - `{name} author_user_id - (❗️IMMUTABLE) author (Pomelo User Id)
-     * - `{set<name>} authorized_user_ids = {}` - authorized admins (Pomelo User Id)
      * - `{name} funding_account - ""` - funding account (EOS account)
      * - `{set<extended_symbol>} accepted_tokens = ["4,EOS@eosio.token"]]` - accepted tokens (ex: `EOS/USDT`)
      * - `{name} status = "pending" - status (`pending/ok/disabled`)
@@ -74,7 +73,6 @@ public:
      *   "id": "mygrant",
      *   "type": "grant",
      *   "author_user_id": "123.eosn",
-     *   "authorized_user_ids": ["123.eosn"],
      *   "funding_account": "myreceiver",
      *   "accepted_tokens": [{"contract": "eosio.token", "symbol": "4,EOS"}],
      *   "status": "ok",
@@ -88,7 +86,6 @@ public:
         name                    id;
         name                    type;
         name                    author_user_id;
-        set<name>               authorized_user_ids;
         name                    funding_account;
         set<extended_symbol>    accepted_tokens = { extended_symbol {symbol{"EOS", 4}, "eosio.token"_n}};
         name                    status = "pending"_n;
@@ -312,41 +309,38 @@ public:
      *
      * - `{uint64_t} round_id` - round ID (0=not active)
      * - `{uint64_t} status` - contract status (0=testing, 1=ok, 2=maintenance)
+     *
+     * ### example
+     *
+     * ```bash
+     * $ cleos push action pomelo init '[1, 1]' -p pomelo
+     * $ cleos push action pomelo init '[0, 2]' -p pomelo
+     * ```
      */
     [[eosio::action]]
     void init( const uint64_t round_id, const uint64_t status );
 
     /**
-     * ## ACTION `setgrant`
+     * ## ACTION `setproject`
      *
-     * Create/update grant project without modifying project status
-     *
-     * ### params
-     *
-     * - `{name} id` - project id
-     * - `{name} author_id` - author user id
-     * - `{set<name>} authorized_user_ids` - authorized user ids
-     * - `{name} funding_account` - account to forward donations to
-     * - `{set<extended_symbol>} accepted_tokens` - accepted tokens
-     */
-    [[eosio::action]]
-    void setgrant( const name id, const name author_id, const set<name> authorized_user_ids, const name funding_account, const set<extended_symbol> accepted_tokens );
-
-    /**
-     * ## ACTION `setbounty`
-     *
-     * Create/update bounty project without modifying project status
+     * Create/update grant/bounty project without modifying project status
      *
      * ### params
      *
-     * - `{name} id` - project id
      * - `{name} author_id` - author user id
-     * - `{set<name>} authorized_user_ids` - authorized user ids
+     * - `{name} project_type` - project type (grant/bounty)
+     * - `{name} project_id` - project ID
      * - `{name} funding_account` - account to forward donations to
      * - `{set<extended_symbol>} accepted_tokens` - accepted tokens
+     *
+     * ### Example
+     *
+     * ```bash
+     * $ cleos push action pomelo setproject '["123.eosn", "grant", "mygrant", "project2fund", [["4,USDT", "tethertether"]]]' -p pomelo -p 123.eosn
+     * ```
      */
     [[eosio::action]]
-    void setbounty( const name id, const name author_id, const set<name> authorized_user_ids, const name funding_account, const set<extended_symbol> accepted_tokens );
+    void setproject( const name author_id, const name project_type, const name project_id, const name funding_account, const set<extended_symbol> accepted_tokens );
 
     /**
      * ## ACTION `enable`
@@ -355,11 +349,16 @@ public:
      *
      * ### params
      *
-     * - `{name} project_type` - project type
+     * - `{name} project_type` - project type (grant/bounty)
      * - `{name} project_id` - project ID
-     * - `{name} status` - project status `pending/ok/disabled'
+     * - `{name} status` - status `pending/ok/disabled'
+     *
+     * ### example
+     *
+     * ```bash
+     * $ cleos push action pomelo enable '["grant", "grant1", 1]' -p pomelo
+     * ```
      */
-
     [[eosio::action]]
     void enable( const name project_type, const name project_id, const name status );
 
@@ -373,6 +372,12 @@ public:
      * - `{uint64_t} round_id` - round id
      * - `{time_point_sec} start_at` - round start time
      * - `{time_point_sec} end_at` - round end time
+     *
+     * ### example
+     *
+     * ```bash
+     * $ cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00"]' -p pomelo
+     * ```
      */
     [[eosio::action]]
     void setround( const uint64_t round_id, const time_point_sec start_at, const time_point_sec end_at );
@@ -386,6 +391,12 @@ public:
      *
      * - `{name} grant_id` - grant ID
      * - `{uint64_t} round_id` - round ID
+     *
+     * ### example
+     *
+     * ```bash
+     * $ cleos push action pomelo joinround '["grant1", 1]' -p pomelo -p 123.eosn
+     * ```
      */
     [[eosio::action]]
     void joinround( const name grant_id, const uint64_t round_id );
@@ -436,7 +447,7 @@ private:
     bool del_key( const name key );
 
     template <typename T>
-    void enable_project( T& table, const name id, const name status );
+    void enable_project( T& table, const name project_id, const name status );
 
     template <typename T>
     void donate_project(const T& table, const name project_id, const name from, const name to, const extended_asset ext_quantity, const string memo );
@@ -444,7 +455,7 @@ private:
     void donate_grant(const name grant_id, const extended_asset ext_quantity, const name user_id, const double value);
 
     template <typename T>
-    void set_project(T& table, const name type, const name id, const name author_id, const set<name> authorized_user_ids, const name funding_account, const set<extended_symbol> accepted_tokens );
+    void set_project(T& table, const name project_type, const name project_id, const name author_id, const name funding_account, const set<extended_symbol> accepted_tokens );
 
     void save_transfer( const name from, const name to, const extended_asset ext_quantity, const string& memo, const name project_type, const name project_id, const double value );
 

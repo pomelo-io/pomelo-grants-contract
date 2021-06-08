@@ -110,31 +110,22 @@ void pomelo::save_transfer( const name from, const name to, const extended_asset
 }
 
 template <typename T>
-void pomelo::set_project( T& projects, const name type, const name id, const name author_id, const set<name> authorized_user_ids, const name funding_account, const set<extended_symbol> accepted_tokens )
+void pomelo::set_project( T& projects, const name project_type, const name project_id, const name author_id, const name funding_account, const set<extended_symbol> accepted_tokens )
 {
-    check( is_account(funding_account), "pomelo::set_project: [funding_account] does not exists" );
-
-    // make sure Pomelo users exist
-    check( is_user( author_id ), "pomelo::set_project: author does not exist" );
-    for (const auto user_id: authorized_user_ids) {
-        check( is_user( user_id ), "pomelo::set_project: [authorized_user_id] does not exist" );
-    }
-
     // create/update project
-    const auto itr = projects.find( id.value );
+    const auto itr = projects.find( project_id.value );
     if (itr != projects.end()) {
-        check( type == itr->type, "pomelo::set_project: project [type] cannot be modified" );
+        check( project_type == itr->type, "pomelo::set_project: project [type] cannot be modified" );
         check( author_id == itr->author_user_id, "pomelo::set_project: project [author_id] cannot be modifed" );
     }
 
     auto insert = [&]( auto & row ) {
-        row.id = id;
-        row.type = type;
+        row.id = project_id;
+        row.type = project_type;
         row.author_user_id = author_id;
-        row.authorized_user_ids = authorized_user_ids;
         row.funding_account = funding_account;
-        if( accepted_tokens.size() ) row.accepted_tokens = accepted_tokens;
-        if( itr == projects.end() ) row.created_at = current_time_point();
+        if ( accepted_tokens.size() ) row.accepted_tokens = accepted_tokens;
+        if ( itr == projects.end() ) row.created_at = current_time_point();
         row.updated_at = current_time_point();
     };
 

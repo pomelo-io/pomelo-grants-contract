@@ -2,7 +2,7 @@
 
 @test "create grant1" {
 
-  run cleos push action pomelo setgrant '["grant1", "prjman1.eosn", ["prjman1.eosn"], "prjgrant1", [["4,EOS", "eosio.token"]]]' -p pomelo
+  run cleos push action pomelo setproject '["prjman1.eosn", "grant", "grant1", "prjgrant1", [["4,EOS", "eosio.token"]]]' -p pomelo -p prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo grants | jq -r '.rows[0].id')
   [ $result = "grant1" ]
@@ -12,7 +12,7 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "project not available for funding" ]]
 
-  run cleos push action pomelo enable '["grant", "grant1", "ok"]' -p pomelo
+  run cleos push action pomelo enable '["grant", "grant1", "ok"]' -p pomelo -p prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo grants | jq -r '.rows[0].status')
   [ $result = "ok" ]
@@ -27,17 +27,17 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "[round_id] is not active" ]]
 
-  run cleos push action pomelo setgrant '["grant2", "prjaaa.eosn", ["prjman1.eosn"], "prjgrant2", [["4,USDT", "tethertether"]]]' -p pomelo
+  run cleos push action pomelo setproject '["prjaaa.eosn", "grant", "grant2", "prjgrant2", [["4,USDT", "tethertether"]]]' -p pomelo
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "author does not exist" ]]
+  [[ "$output" =~ "[user_id] does not exist" ]]
 
 }
 
 
 @test "create bounty1 and fund it" {
 
-  run cleos push action pomelo setbounty '["bounty1", "prjman1.eosn", ["prjman1.eosn"], "prjbounty1", [["4,EOS", "eosio.token"]]]' -p pomelo
+  run cleos push action pomelo setproject '["prjman1.eosn", "bounty", "bounty1", "prjbounty1", [["4,EOS", "eosio.token"]]]' -p pomelo -p prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo bounties | jq -r '.rows[0].id')
   [ $result = "bounty1" ]
@@ -47,7 +47,7 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "project not available for donation" ]]
 
-  run cleos push action pomelo enable '["bounty", "bounty1", "ok"]' -p pomelo
+  run cleos push action pomelo enable '["bounty", "bounty1", "ok"]' -p pomelo prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo bounties | jq -r '.rows[0].status')
   [ $result = "ok" ]
@@ -73,12 +73,12 @@
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[0].round')
   [ $result = "1" ]
 
-  run cleos push action pomelo joinround '["grant1", 1]' -p pomelo
+  run cleos push action pomelo joinround '["grant1", 1]' -p pomelo -p prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[0].grant_ids[0]')
   [ $result = "grant1" ]
 
-  run cleos push action pomelo joinround '["grant1", 1111]' -p pomelo
+  run cleos push action pomelo joinround '["grant1", 1111]' -p pomelo -p prjman1.eosn
   echo "Output: $output"
   [ $status -eq 1 ]
   [[ "$output" =~ "[round_id] does not exist" ]]
@@ -93,7 +93,7 @@
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[1].round')
   [ $result = "2" ]
 
-  run cleos push action pomelo joinround '["grant1", 2]' -p pomelo
+  run cleos push action pomelo joinround '["grant1", 2]' -p pomelo -p prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[1].grant_ids[0]')
   [ $result = "grant1" ]
@@ -173,13 +173,13 @@
 
 @test "round #2: create grant2 and fund with 8 microdonations" {
 
-  run cleos push action pomelo setgrant '["grant2", "prjman2.eosn", ["prjman2.eosn"], "prjgrant2", [["4,EOS", "eosio.token"], ["4,USDT", "tethertether"]]]' -p pomelo
+  run cleos push action pomelo setproject '["prjman2.eosn", "grant", "grant2", "prjgrant2", [["4,EOS", "eosio.token"], ["4,USDT", "tethertether"]]]' -p pomelo -p prjman2.eosn
   [ $status -eq 0 ]
 
-  run cleos push action pomelo enable '["grant", "grant2", "ok"]' -p pomelo
+  run cleos push action pomelo enable '["grant", "grant2", "ok"]' -p pomelo -p prjman2.eosn
   [ $status -eq 0 ]
 
-  run cleos push action pomelo joinround '["grant2", 2]' -p pomelo
+  run cleos push action pomelo joinround '["grant2", 2]' -p pomelo -p prjman2.eosn
   [ $status -eq 0 ]
 
   run cleos transfer user1 pomelo "1.0000 USDT" "grant:grant2" --contract tethertether
@@ -218,28 +218,28 @@
   run cleos push action pomelo setround '[3, "2021-05-20T20:00:00", "2021-09-25T20:00:00"]' -p pomelo
   [ $status -eq 0 ]
 
-  run cleos push action pomelo setgrant '["grant3", "prjman3.eosn", ["prjman3.eosn"], "prjgrant3", [["4,EOS", "eosio.token"]]]' -p pomelo
+  run cleos push action pomelo setproject '["prjman3.eosn", "grant", "grant3", "prjgrant3", [["4,EOS", "eosio.token"]]]' -p pomelo -p prjman3.eosn
   [ $status -eq 0 ]
 
-  run cleos push action pomelo setgrant '["grant4", "prjman4.eosn", ["prjman4.eosn"], "prjgrant4", [["4,EOS", "eosio.token"]]]' -p pomelo
+  run cleos push action pomelo setproject '["prjman4.eosn", "grant", "grant4", "prjgrant4", [["4,EOS", "eosio.token"]]]' -p pomelo -p prjman4.eosn
   [ $status -eq 0 ]
 
-  run cleos push action pomelo enable '["grant", "grant3", "ok"]' -p pomelo
+  run cleos push action pomelo enable '["grant", "grant3", "ok"]' -p pomelo -p prjman3.eosn
   [ $status -eq 0 ]
 
-  run cleos push action pomelo enable '["grant", "grant4", "ok"]' -p pomelo
+  run cleos push action pomelo enable '["grant", "grant4", "ok"]' -p pomelo -p prjman4.eosn
   [ $status -eq 0 ]
 
-  run cleos push action pomelo joinround '["grant1", 3]' -p pomelo
+  run cleos push action pomelo joinround '["grant1", 3]' -p pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 
-  run cleos push action pomelo joinround '["grant2", 3]' -p pomelo
+  run cleos push action pomelo joinround '["grant2", 3]' -p pomelo -p prjman2.eosn
   [ $status -eq 0 ]
 
-  run cleos push action pomelo joinround '["grant3", 3]' -p pomelo
+  run cleos push action pomelo joinround '["grant3", 3]' -p pomelo -p prjman3.eosn
   [ $status -eq 0 ]
 
-  run cleos push action pomelo joinround '["grant4", 3]' -p pomelo
+  run cleos push action pomelo joinround '["grant4", 3]' -p pomelo -p prjman4.eosn
   [ $status -eq 0 ]
 
   run cleos push action pomelo init '[3, 1]' -p pomelo
@@ -317,14 +317,14 @@
 
 @test "disable/enable grant1" {
 
-  run cleos push action pomelo enable '["grant", "grant1", "disabled"]' -p pomelo
+  run cleos push action pomelo enable '["grant", "grant1", "disabled"]' -p pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 
   run cleos transfer user2 pomelo "3000.0000 USDT" "grant:grant1" --contract tethertether
   [ $status -eq 1 ]
   [[ "$output" =~ "project not available for funding" ]]
 
-  run cleos push action pomelo enable '["grant", "grant1", "ok"]' -p pomelo
+  run cleos push action pomelo enable '["grant", "grant1", "ok"]' -p pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 }
 
