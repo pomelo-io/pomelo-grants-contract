@@ -315,21 +315,27 @@
   [ $result = "3177.74758424985338934" ]
 }
 
-@test "disable/enable grant1" {
+@test "disable/enable grant5" {
 
-  run cleos push action pomelo enable '["grant", "grant1", "disabled"]' -p pomelo -p prjman1.eosn
+  run cleos push action pomelo setproject '["prjman1.eosn", "grant", "grant5", "prjgrant1", [["4,EOS", "eosio.token"]]]' -p pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 
-  run cleos transfer user2 pomelo "3000.0000 USDT" "grant:grant1" --contract tethertether
+  run cleos push action pomelo joinround '["grant5", 3]' -p pomelo -p prjman1.eosn
+  [ $status -eq 0 ]
+
+  run cleos push action pomelo enable '["grant", "grant5", "disabled"]' -p pomelo -p prjman1.eosn
+  [ $status -eq 0 ]
+
+  run cleos transfer user2 pomelo "3000.0000 USDT" "grant:grant5" --contract tethertether
   [ $status -eq 1 ]
   [[ "$output" =~ "project not available for funding" ]]
 
-  run cleos push action pomelo enable '["grant", "grant1", "ok"]' -p pomelo -p prjman1.eosn
+  run cleos push action pomelo enable '["grant", "grant5", "ok"]' -p pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 }
 
 @test "fund grant by a user without EOSN login" {
-  run cleos transfer user.noeosn pomelo "30.0000 EOS" "grant:grant4"
+  run cleos transfer user.noeosn pomelo "30.0000 EOS" "grant:grant5"
   [ $status -eq 1 ]
   [[ "$output" =~ "account is not linked" ]]
 

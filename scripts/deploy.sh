@@ -46,8 +46,8 @@ cleos set account permission login.eosn active --add-code
 cleos set account permission eosn active login.eosn --add-code
 
 # create tokens
-cleos push action eosio.token create '["eosio", "100000000.0000 EOS"]' -p eosio.token
-cleos push action eosio.token issue '["eosio", "10000000.0000 EOS", "init"]' -p eosio
+cleos push action eosio.token create '["eosio", "10000000000.0000 EOS"]' -p eosio.token
+cleos push action eosio.token issue '["eosio", "1000000000.0000 EOS", "init"]' -p eosio
 cleos push action tethertether create '["eosio", "100000000.0000 USDT"]' -p tethertether
 cleos push action tethertether issue '["eosio", "10000000.0000 USDT", "init"]' -p eosio
 

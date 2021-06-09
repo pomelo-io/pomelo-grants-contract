@@ -14,7 +14,7 @@ nodeos -p eosio -e \
   --http-server-address=0.0.0.0:8888 \
   --access-control-allow-origin=* \
   --http-validate-host=false \
-  --max-transaction-time=1000 \
+  --max-transaction-time=50000 \
   --replay-blockchain \
   --hard-replay-blockchain \
   --verbose-http-errors \
