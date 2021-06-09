@@ -56,8 +56,6 @@ cleos push action fake.token create '["eosio", "100000000.0000 EOS"]' -p fake.to
 cleos push action fake.token issue '["eosio", "5000000.0000 EOS", "init"]' -p eosio
 
 # transfer tokens
-cleos transfer eosio user.eosn "1000000.0000 EOS" ""
-cleos transfer eosio user.eosn "1000000.0000 USDT" "" --contract tethertether
 cleos transfer eosio user1 "1000000.0000 EOS" ""
 cleos transfer eosio user1 "1000000.0000 USDT" "" --contract tethertether
 cleos transfer eosio user1 "1000000.0000 EOS" "" --contract fake.token
