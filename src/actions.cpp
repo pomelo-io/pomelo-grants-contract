@@ -34,10 +34,10 @@ void pomelo::joinround( const name grant_id, const uint64_t round_id )
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto round_itr = rounds.find( round_id );
     check( round_itr != rounds.end(),  "pomelo::joinround: [round_id] does not exist" );
-    check( round_itr->grant_ids.count( grant_id ) == 0, "pomelo::joinround: grant already exists in this round");
+    check( get_index(round_itr->grant_ids, grant_id ) == -1, "pomelo::joinround: grant already exists in this round");
 
     rounds.modify( round_itr, get_self(), [&]( auto & row ) {
-        row.grant_ids.insert(grant_id);
+        row.grant_ids.push_back(grant_id);
         row.updated_at = current_time_point();
     });
 }

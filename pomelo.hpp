@@ -233,10 +233,6 @@ public:
     struct [[eosio::table("match")]] match_row {
         name                    grant_id;
         uint64_t                round_id;
-        map<name, double>       user_value;
-        map<name, double>       user_multiplier;
-        map<name, double>       user_boost;
-        map<name, double>       user_sqrt;
         uint64_t                total_users;
         double                  sum_value;
         double                  sum_boost;
@@ -247,6 +243,38 @@ public:
         uint64_t primary_key() const { return grant_id.value; };
     };
     typedef eosio::multi_index< "match"_n, match_row > match_table;
+
+
+    /**
+     * ## TABLE `users`
+     *
+     * *scope*: `round_id` (name)
+     *
+     * - `{name} user_id` - (primary key) user_id
+     * - `{double} multiplier` - user multiplier this round
+     * - `{map<name, double>} contributions` - user contributions to projects this round
+     * - `{time_point_sec} updated_at` - updated at time
+     *
+     * ### example
+     *
+     * ```json
+     * {
+     *   "user_id": 1,
+     *   "multiplier": "0.25",
+     *   "contributions": [{ "key": "grant1", "value": 225.0 }, { "key": "grant2", "value": 100.0 }],
+     *   "updated_at": "2020-12-06T00:00:00",
+     * }
+     * ```
+     */
+    struct [[eosio::table("users")]] users_row {
+        name                    user_id;
+        double                  multiplier;
+        map<name, double>       contributions;
+        time_point_sec          updated_at;
+
+        uint64_t primary_key() const { return user_id.value; };
+    };
+    typedef eosio::multi_index< "users"_n, users_row > users_table;
 
     /**
      * ## TABLE `rounds`
@@ -284,8 +312,8 @@ public:
      */
     struct [[eosio::table("rounds")]] rounds_row {
         uint64_t                round;
-        set<name>               grant_ids;
-        set<name>               user_ids;
+        vector<name>            grant_ids;
+        vector<name>            user_ids;
         vector<extended_asset>  accepted_tokens;
         double                  sum_value;
         double                  sum_boost;
@@ -459,4 +487,5 @@ private:
 
     void save_transfer( const name from, const name to, const extended_asset ext_quantity, const string& memo, const name project_type, const name project_id, const double value );
 
+    int get_index(const vector<name>& vec, name value);
 };
