@@ -200,10 +200,6 @@ public:
      *
      * - `{name} grant_id` - (primary key) grant ID
      * - `{uint64_t} round_id` - round ID
-     * - `{map<name, double>} user_value` - user value contributions
-     * - `{map<name, double>} user_multiplier` - user boost multiplier
-     * - `{map<name, double>} user_boost` - user contributions boosts
-     * - `{map<name, double>} user_sqrt` - user sqrt contributions (quadratic matching metric)
      * - `{uint64_t} total_users` - total number of users
      * - `{double} sum_value` - sum of all user value contributions
      * - `{double} sum_boost` - sum of all user contribution boosts
@@ -217,10 +213,6 @@ public:
      * {
      *   "round_id": 1,
      *   "grant_id": "grant_id",
-     *   "user_value": [{ "key": "myaccount", "value": 100.0 }, { "key": "toaccount", "value": 50.0 }],
-     *   "user_multiplier": [{ "key": "myaccount", "value": 2.25 }, { "key": "toaccount", "value": 2.0 }],
-     *   "user_boost": [{ "key": "myaccount", "value": 225.0 }, { "key": "toaccount", "value": 100.0 }],
-     *   "user_sqrt":  [{ "key": "myaccount", "value": 15.0 }, { "key": "toaccount", "value": 10.0 }],
      *   "total_users": 2,
      *   "sum_value": 150.0,
      *   "sum_boost": 325.0,
@@ -252,7 +244,7 @@ public:
      *
      * - `{name} user_id` - (primary key) user_id
      * - `{double} multiplier` - user multiplier this round
-     * - `{map<name, double>} contributions` - user contributions to projects this round
+     * - `{vector<contribution_t>} contributions` - user contributions to projects this round
      * - `{time_point_sec} updated_at` - updated at time
      *
      * ### example
@@ -261,15 +253,20 @@ public:
      * {
      *   "user_id": 1,
      *   "multiplier": "0.25",
-     *   "contributions": [{ "key": "grant1", "value": 225.0 }, { "key": "grant2", "value": 100.0 }],
+     *   "contributions": [{ "id": "grant1", "value": 225.0 }, { "id": "grant2", "value": 100.0 }],
      *   "updated_at": "2020-12-06T00:00:00",
      * }
      * ```
      */
+    struct contribution_t {
+        name    id;
+        double  value;
+    };
+
     struct [[eosio::table("users")]] users_row {
         name                    user_id;
         double                  multiplier;
-        map<name, double>       contributions;
+        vector<contribution_t>  contributions;
         time_point_sec          updated_at;
 
         uint64_t primary_key() const { return user_id.value; };
@@ -282,8 +279,8 @@ public:
      * *scope*: `get_self()` (name)
      *
      * - `{uint64_t} round` - (primary key) matching round
-     * - `{set<name>} grant_ids` - grants IDs participating
-     * - `{set<name>} user_ids` - user IDs participating
+     * - `{vector<name>} grant_ids` - grants IDs participating
+     * - `{vector<name>} user_ids` - user IDs participating
      * - `{vector<extended_asset>} accepted_tokens` - accepted tokens
      * - `{double} sum_value` - total value donated this round
      * - `{double} sum_boost` - total boost received this round
@@ -488,4 +485,5 @@ private:
     void save_transfer( const name from, const name to, const extended_asset ext_quantity, const string& memo, const name project_type, const name project_id, const double value );
 
     int get_index(const vector<name>& vec, name value);
+    int get_index(const vector<contribution_t>& vec, name id);
 };

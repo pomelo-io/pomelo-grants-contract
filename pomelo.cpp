@@ -57,9 +57,11 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
     auto insert_user = [&]( auto & row ) {
         row.user_id = user_id;
         row.multiplier = multiplier;
-        old_contribution = row.contributions[grant_id];
+        const auto index = get_index(row.contributions, grant_id);
+        old_contribution = index == -1 ? 0 : row.contributions[index].value;
         contribution = old_contribution + value + boost;
-        row.contributions[grant_id] = contribution;
+        if(index == -1) row.contributions.push_back({ grant_id, contribution });
+        else row.contributions[index].value = contribution;
         row.updated_at = current_time_point();
     };
 
@@ -149,6 +151,15 @@ int pomelo::get_index(const vector<name>& vec, name value)
 {
     for(int i = 0; i < vec.size(); i++){
         if(vec[i] == value ) return i;
+    }
+    return -1;
+}
+
+
+int pomelo::get_index(const vector<contribution_t>& vec, name id)
+{
+    for(int i = 0; i < vec.size(); i++){
+        if(vec[i].id == id ) return i;
     }
     return -1;
 }
