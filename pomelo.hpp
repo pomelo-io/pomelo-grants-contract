@@ -266,6 +266,8 @@ public:
     struct [[eosio::table("users")]] users_row {
         name                    user_id;
         double                  multiplier;
+        double                  value;
+        double                  boost;
         vector<contribution_t>  contributions;
         time_point_sec          updated_at;
 

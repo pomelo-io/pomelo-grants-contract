@@ -60,6 +60,8 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
         const auto index = get_index(row.contributions, grant_id);
         old_contribution = index == -1 ? 0 : row.contributions[index].value;
         contribution = old_contribution + value + boost;
+        row.value += value;
+        row.boost += boost;
         if(index == -1) row.contributions.push_back({ grant_id, contribution });
         else row.contributions[index].value = contribution;
         row.updated_at = current_time_point();

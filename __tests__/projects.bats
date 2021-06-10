@@ -296,6 +296,9 @@
 
 @test "change socials triggering matching update for grants in current round" {
 
+  result=$(cleos get table pomelo 3 users -L user11.eosn | jq -r '.rows[0].boost')
+  [ $result = "500.00000000000000000" ]
+
   run cleos push action login.eosn social '["user11.eosn", ["github","sms"]]' -p login.eosn -p user11.eosn
   [ $status -eq 0 ]
 
@@ -314,6 +317,9 @@
   result=$(cleos get table pomelo 3 users -L user11.eosn | jq -r '.rows[0].contributions[1] | .id + .value')
   [ $result = "grant41500.00000000000000000" ]
 
+  result=$(cleos get table pomelo 3 users -L user11.eosn | jq -r '.rows[0].boost')
+  [ $result = "1000.00000000000000000" ]
+
   run cleos push action login.eosn social '["user11.eosn", []]' -p login.eosn -p user11.eosn
   [ $status -eq 0 ]
 
@@ -331,6 +337,9 @@
 
   result=$(cleos get table pomelo 3 users -L user11.eosn | jq -r '.rows[0].contributions[1] | .id + .value')
   [ $result = "grant41000.00000000000000000" ]
+
+  result=$(cleos get table pomelo 3 users -L user11.eosn | jq -r '.rows[0].boost')
+  [ $result = "0.00000000000000000" ]
 }
 
 @test "disable/enable grant5" {

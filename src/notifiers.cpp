@@ -78,6 +78,7 @@ void pomelo::on_social( const name user_id, const set<name> socials )
 
         _users.modify( user_itr, get_self(), [&]( auto & row ) {
             row.multiplier = new_multiplier;
+            row.boost = row.value * new_multiplier;
             row.contributions[i].value = new_value;
             row.updated_at = current_time_point();
         });
