@@ -272,8 +272,13 @@ public:
         time_point_sec          updated_at;
 
         uint64_t primary_key() const { return user_id.value; };
+        uint64_t bydonated() const { return static_cast<uint64_t> (value * 100); };
+        uint64_t byboosted() const { return static_cast<uint64_t> ((value + boost) * 100); };
     };
-    typedef eosio::multi_index< "users"_n, users_row > users_table;
+    typedef eosio::multi_index< "users"_n, users_row,
+        indexed_by< "bydonated"_n, const_mem_fun<users_row, uint64_t, &users_row::bydonated> >,
+        indexed_by< "byboosted"_n, const_mem_fun<users_row, uint64_t, &users_row::byboosted> >
+    > users_table;
 
     /**
      * ## TABLE `rounds`
