@@ -89,6 +89,8 @@ $ ./test.sh
 - [ACTION `enable`](#action-enable)
 - [ACTION `setround`](#action-setround)
 - [ACTION `joinround`](#action-joinround)
+- [ACTION `unjoinround`](#action-unjoinround)
+- [ACTION `cleartable`](#action-cleartable)
 
 ## TABLE `globals`
 
@@ -328,7 +330,7 @@ $ cleos push action pomelo setproject '["123.eosn", "grant", "mygrant", "project
 
 ## ACTION `enable`
 
-- **authority**: `get_self()`
+- **authority**: `get_self()` + `author_id`
 
 Enable/disable grant or bounty
 
@@ -346,7 +348,7 @@ $ cleos push action pomelo enable '["grant", "grant1", 1]' -p pomelo
 
 ## ACTION `setround`
 
-- **authority**: `get_self()`
+- **authority**: `get_self()` + `author_id`
 
 Creates/updates match round with specified parameters.
 
@@ -364,7 +366,7 @@ $ cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:0
 
 ## ACTION `joinround`
 
-- **authority**: `get_self()`
+- **authority**: `get_self()` + `author_id`
 
 Adds grant to round
 
@@ -377,6 +379,23 @@ Adds grant to round
 
 ```bash
 $ cleos push action pomelo joinround '["grant1", 1]' -p pomelo -p 123.eosn
+```
+
+## ACTION `unjoinround`
+
+- **authority**: `get_self()`
+
+Remove grant from round and update all matchings
+
+### params
+
+- `{name} grant_id` - grant_id
+- `{uint64_t} round_id` - round_id
+
+### example
+
+```bash
+$ cleos push action pomelo unjoinround '["grant1", 1]' -p pomelo
 ```
 
 ## ACTION `cleartable`

@@ -443,6 +443,25 @@ public:
     void joinround( const name grant_id, const uint64_t round_id );
 
     /**
+     * ## ACTION `unjoinround`
+     *
+     * Add grant to matching round
+     *
+     * ### params
+     *
+     * - `{name} grant_id` - grant ID
+     * - `{uint64_t} round_id` - round ID
+     *
+     * ### example
+     *
+     * ```bash
+     * $ cleos push action pomelo unjoinround '["grant1", 1]' -p pomelo -p 123.eosn
+     * ```
+     */
+    [[eosio::action]]
+    void unjoinround( const name grant_id, const uint64_t round_id );
+
+    /**
      * ## TRANSFER NOTIFY HANDLER `on_transfer`
      *
      * Process incoming transfer

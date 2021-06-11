@@ -371,6 +371,42 @@
   [[ "$output" =~ "account is not linked" ]]
 }
 
+
+@test "unjoin grant1 from round 3" {
+  result=$(cleos get table pomelo 3 match -l 1 | jq -r '.rows[0].grant_id')
+  [ $result = "grant1" ]
+
+  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0].grant_ids[0]')
+  [ $result = "grant1" ]
+
+  result=$(cleos get table pomelo 3 users -l 1 | jq -r '.rows[0].contributions[0].id')
+  [ $result = "grant1" ]
+
+  result=$(cleos get table pomelo 3 users -l 1 | jq -r '.rows[0].value')
+  [ $result = "180.00000000000000000" ]
+
+  result=$(cleos get table pomelo 3 users -L user3.eosn -l 1 | jq -r '.rows[0].user_id')
+  [ $result = "user3.eosn" ]
+
+  run cleos push action pomelo unjoinround '["grant1", 3]' -p pomelo
+  [ $status -eq 0 ]
+
+  result=$(cleos get table pomelo 3 match -l 1 | jq -r '.rows[0].grant_id')
+  [ $result = "grant2" ]
+
+  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0].grant_ids[0]')
+  [ $result = "grant2" ]
+
+  result=$(cleos get table pomelo 3 users -l 1 | jq -r '.rows[0].contributions[0].id')
+  [ $result = "grant2" ]
+
+  result=$(cleos get table pomelo 3 users -l 1 | jq -r '.rows[0].value')
+  [ $result = "100.00000000000000000" ]
+
+  result=$(cleos get table pomelo 3 users -L user3.eosn -l 1 | jq -r '.rows[0].user_id')
+  [ $result = "user4.eosn" ]
+}
+
 @test "clear transfers table" {
   result=$(cleos get table pomelo pomelo transfers -l 1 | jq -r '.rows[0].user_id')
   [ $result = "user1.eosn" ]
