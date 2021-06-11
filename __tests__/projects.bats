@@ -370,3 +370,14 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "account is not linked" ]]
 }
+
+@test "clear transfers table" {
+  result=$(cleos get table pomelo pomelo transfers -l 1 | jq -r '.rows[0].user_id')
+  [ $result = "user1.eosn" ]
+
+  run cleos push action pomelo cleartable '["transfers"]' -p pomelo
+  [ $status -eq 0 ]
+
+  result=$(cleos get table pomelo pomelo transfers -l 1 | jq -r '.rows')
+  [ $result = "[]" ]
+}

@@ -378,3 +378,19 @@ Adds grant to round
 ```bash
 $ cleos push action pomelo joinround '["grant1", 1]' -p pomelo -p 123.eosn
 ```
+
+## ACTION `cleartable`
+
+- **authority**: `get_self()`
+
+Clear table
+
+### params
+
+- `{name} table_name` - table to clear
+
+### example
+
+```bash
+$ cleos push action pomelo cleartable '["transfers"]' -p pomelo
+```

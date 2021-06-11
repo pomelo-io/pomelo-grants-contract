@@ -103,3 +103,19 @@ void pomelo::init( const uint64_t round_id, const uint64_t status )
     set_key_value("round.id"_n, round_id );
     set_key_value("status"_n, status );
 }
+
+
+// @admin
+[[eosio::action]]
+void pomelo::cleartable( const name table_name )
+{
+    require_auth( get_self() );
+
+    if(table_name == "transfers"_n){
+        pomelo::transfers_table table( get_self(), get_self().value );
+        clear_table( table );
+    }
+    else {
+        check(false, "pomelo::cleartable: [table_name] clearing not allowed" );
+    }
+}

@@ -472,6 +472,24 @@ public:
     [[eosio::on_notify("*::social")]]
     void on_social( const name user_id, const set<name> socials );
 
+    /**
+     * ## ACTION `cleartable`
+     *
+     * Clear table
+     *
+     * ### params
+     *
+     * - `{name} table_name` - table name, i.e. "transfers"
+     *
+     * ### example
+     *
+     * ```bash
+     * $ cleos push action pomelo cleartable '["transfers"]' -p pomelo
+     * ```
+     */
+    [[eosio::action]]
+    void cleartable( const name table_name );
+
 private:
     // state_table _state;
 
@@ -502,4 +520,7 @@ private:
 
     int get_index(const vector<name>& vec, name value);
     int get_index(const vector<contribution_t>& vec, name id);
+
+    template <typename T>
+    void clear_table( T& table );
 };

@@ -165,3 +165,12 @@ int pomelo::get_index(const vector<contribution_t>& vec, name id)
     }
     return -1;
 }
+
+template <typename T>
+void pomelo::clear_table( T& table )
+{
+    auto itr = table.begin();
+    while ( itr != table.end() ) {
+        itr = table.erase( itr );
+    }
+}
