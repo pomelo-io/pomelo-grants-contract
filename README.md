@@ -227,10 +227,19 @@ $ ./test.sh
 
 - **scope**: `round_id {uint64_t}`
 
+### multi-indexes
+
+| `param`        | `index_position` | `key_type` |
+|--------------- |------------------|------------|
+| `bydonated`    | 2                | i64        |
+| `byboosted`    | 3                | i64        |
+
 ### params
 
 - `{name} user_id` - (primary key) grant ID
 - `{double} multiplier` - current user multiplier
+- `{double} value` - total amount contributed by user in this round
+- `{double} boost` - total boost amount for user in this round
 - `{vector<contribution_t>} contributions` - vector of user's contributions (donated + boost) to each project
 - `{time_point_sec} updated_at` - updated at time
 
