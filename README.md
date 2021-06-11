@@ -201,10 +201,6 @@ $ ./test.sh
 
 - `{name} grant_id` - (primary key) grant ID
 - `{uint64_t} round_id` - round ID
-- `{map<name, double>} user_value` - user value contributions
-- `{map<name, double>} user_multiplier` - user boost multiplier
-- `{map<name, double>} user_boost` - user contributions boost
-- `{map<name, double>} user_sqrt` - user sqrt contributions (quadratic funding metric)
 - `{uint64_t} total_users` - total number of users
 - `{double} sum_value` - sum of all user value contributions
 - `{double} sum_boost` - sum of all user contributions boosts
@@ -218,15 +214,33 @@ $ ./test.sh
 {
     "grant_id": "grant1",
     "round_id": 1,
-    "user_value": [{ "key": "myaccount", "value": 100.0 }, { "key": "toaccount", "value": 50.0 }],
-    "user_multiplier": [{ "key": "myaccount", "value": 2.25 }, { "key": "toaccount", "value": 2.0 }],
-    "user_boost": [{ "key": "myaccount", "value": 225.0 }, { "key": "toaccount", "value": 100.0 }],
-    "user_sqrt":  [{ "key": "myaccount", "value": 15.0 }, { "key": "toaccount", "value": 10.0 }],
     "total_users": 2,
     "sum_value": 150.0,
     "sum_boost": 325.0,
     "sum_sqrt": 25.0,
     "square": 625.0,
+    "updated_at": "2020-12-06T00:00:00"
+}
+```
+
+## TABLE `users`
+
+- **scope**: `round_id {uint64_t}`
+
+### params
+
+- `{name} user_id` - (primary key) grant ID
+- `{double} multiplier` - current user multiplier
+- `{vector<contribution_t>} contributions` - vector of user's contributions (donated + boost) to each project
+- `{time_point_sec} updated_at` - updated at time
+
+### example
+
+```json
+{
+    "user_id": "user1",
+    "multiplier": 1.25,
+    "contributions": [{"id": "grant1", "value": 24.0}, {"id": "grant2", "value": 10.0}],
     "updated_at": "2020-12-06T00:00:00"
 }
 ```

@@ -200,10 +200,6 @@ public:
      *
      * - `{name} grant_id` - (primary key) grant ID
      * - `{uint64_t} round_id` - round ID
-     * - `{map<name, double>} user_value` - user value contributions
-     * - `{map<name, double>} user_multiplier` - user boost multiplier
-     * - `{map<name, double>} user_boost` - user contributions boosts
-     * - `{map<name, double>} user_sqrt` - user sqrt contributions (quadratic matching metric)
      * - `{uint64_t} total_users` - total number of users
      * - `{double} sum_value` - sum of all user value contributions
      * - `{double} sum_boost` - sum of all user contribution boosts
@@ -217,10 +213,6 @@ public:
      * {
      *   "round_id": 1,
      *   "grant_id": "grant_id",
-     *   "user_value": [{ "key": "myaccount", "value": 100.0 }, { "key": "toaccount", "value": 50.0 }],
-     *   "user_multiplier": [{ "key": "myaccount", "value": 2.25 }, { "key": "toaccount", "value": 2.0 }],
-     *   "user_boost": [{ "key": "myaccount", "value": 225.0 }, { "key": "toaccount", "value": 100.0 }],
-     *   "user_sqrt":  [{ "key": "myaccount", "value": 15.0 }, { "key": "toaccount", "value": 10.0 }],
      *   "total_users": 2,
      *   "sum_value": 150.0,
      *   "sum_boost": 325.0,
@@ -233,10 +225,6 @@ public:
     struct [[eosio::table("match")]] match_row {
         name                    grant_id;
         uint64_t                round_id;
-        map<name, double>       user_value;
-        map<name, double>       user_multiplier;
-        map<name, double>       user_boost;
-        map<name, double>       user_sqrt;
         uint64_t                total_users;
         double                  sum_value;
         double                  sum_boost;
@@ -248,14 +236,58 @@ public:
     };
     typedef eosio::multi_index< "match"_n, match_row > match_table;
 
+
+    /**
+     * ## TABLE `users`
+     *
+     * *scope*: `round_id` (name)
+     *
+     * - `{name} user_id` - (primary key) user_id
+     * - `{double} multiplier` - user multiplier this round
+     * - `{vector<contribution_t>} contributions` - user contributions to projects this round
+     * - `{time_point_sec} updated_at` - updated at time
+     *
+     * ### example
+     *
+     * ```json
+     * {
+     *   "user_id": 1,
+     *   "multiplier": "0.25",
+     *   "contributions": [{ "id": "grant1", "value": 225.0 }, { "id": "grant2", "value": 100.0 }],
+     *   "updated_at": "2020-12-06T00:00:00",
+     * }
+     * ```
+     */
+    struct contribution_t {
+        name    id;
+        double  value;
+    };
+
+    struct [[eosio::table("users")]] users_row {
+        name                    user_id;
+        double                  multiplier;
+        double                  value;
+        double                  boost;
+        vector<contribution_t>  contributions;
+        time_point_sec          updated_at;
+
+        uint64_t primary_key() const { return user_id.value; };
+        uint64_t bydonated() const { return static_cast<uint64_t> (value * 100); };
+        uint64_t byboosted() const { return static_cast<uint64_t> ((value + boost) * 100); };
+    };
+    typedef eosio::multi_index< "users"_n, users_row,
+        indexed_by< "bydonated"_n, const_mem_fun<users_row, uint64_t, &users_row::bydonated> >,
+        indexed_by< "byboosted"_n, const_mem_fun<users_row, uint64_t, &users_row::byboosted> >
+    > users_table;
+
     /**
      * ## TABLE `rounds`
      *
      * *scope*: `get_self()` (name)
      *
      * - `{uint64_t} round` - (primary key) matching round
-     * - `{set<name>} grant_ids` - grants IDs participating
-     * - `{set<name>} user_ids` - user IDs participating
+     * - `{vector<name>} grant_ids` - grants IDs participating
+     * - `{vector<name>} user_ids` - user IDs participating
      * - `{vector<extended_asset>} accepted_tokens` - accepted tokens
      * - `{double} sum_value` - total value donated this round
      * - `{double} sum_boost` - total boost received this round
@@ -284,8 +316,8 @@ public:
      */
     struct [[eosio::table("rounds")]] rounds_row {
         uint64_t                round;
-        set<name>               grant_ids;
-        set<name>               user_ids;
+        vector<name>            grant_ids;
+        vector<name>            user_ids;
         vector<extended_asset>  accepted_tokens;
         double                  sum_value;
         double                  sum_boost;
@@ -459,4 +491,6 @@ private:
 
     void save_transfer( const name from, const name to, const extended_asset ext_quantity, const string& memo, const name project_type, const name project_id, const double value );
 
+    int get_index(const vector<name>& vec, name value);
+    int get_index(const vector<contribution_t>& vec, name id);
 };

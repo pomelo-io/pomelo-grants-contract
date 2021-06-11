@@ -10,19 +10,19 @@
   run cleos transfer user1 pomelo "100.0000 EOS" "grant:grant1"
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "project not available for funding" ]]
+  [[ "$output" =~ "project not available for" ]]
 
   run cleos push action pomelo enable '["grant", "grant1", "ok"]' -p pomelo -p prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table pomelo pomelo grants | jq -r '.rows[0].status')
   [ $result = "ok" ]
 
-  run cleos transfer user1 pomelo "200.0000 EOS" "grant:grant1"
+  run cleos transfer user1 pomelo "200.0000 USDT" "grant:grant1" --contract tethertether
   echo "Output: $output"
   [ $status -eq 1 ]
   [[ "$output" =~ "not acceptable tokens for this project" ]]
 
-  run cleos transfer user1 pomelo "300.0000 USDT" "grant:grant1" --contract tethertether
+  run cleos transfer user1 pomelo "300.0000 EOS" "grant:grant1"
   echo "Output: $output"
   [ $status -eq 1 ]
   [[ "$output" =~ "[round_id] is not active" ]]
@@ -83,7 +83,7 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "[round_id] does not exist" ]]
 
-  run cleos transfer user1 pomelo "600.0000 USDT" "grant:grant1" --contract tethertether
+  run cleos transfer user1 pomelo "600.0000 EOS" "grant:grant1"
   echo "Output: $output"
   [ $status -eq 1 ]
   [[ "$output" =~ "[round_id] is not active" ]]
@@ -211,6 +211,9 @@
 
   result=$(cleos get table pomelo pomelo rounds | jq -r '.rows[1].sum_square')
   [ $result = "134.22179370391074826" ]
+
+  result=$(cleos get table pomelo 2 users | jq -r '.rows[1].contributions[0] | .id + .value')
+  [ $result = "grant20.12500000000000000" ]
 }
 
 @test "round #3: 4 projects, 6 users: spreadsheet simulation" {
@@ -286,9 +289,15 @@
 
   result=$(cleos get table pomelo pomelo rounds -L 3 | jq -r '.rows[0].sum_square')
   [ $result = "7756.45085916670177539" ]
+
+  result=$(cleos get table pomelo 3 users -L user5.eosn | jq -r '.rows[0].contributions[0] | .id + .value')
+  [ $result = "grant3450.00000000000000000" ]
 }
 
 @test "change socials triggering matching update for grants in current round" {
+
+  result=$(cleos get table pomelo 3 users -L user11.eosn | jq -r '.rows[0].boost')
+  [ $result = "500.00000000000000000" ]
 
   run cleos push action login.eosn social '["user11.eosn", ["github","sms"]]' -p login.eosn -p user11.eosn
   [ $status -eq 0 ]
@@ -302,6 +311,15 @@
   result=$(cleos get table pomelo pomelo rounds -L 3 | jq -r '.rows[0].sum_square')
   [ $result = "8423.47981043478284846" ]
 
+  result=$(cleos get table pomelo 3 users -L user11.eosn | jq -r '.rows[0].contributions[0] | .id + .value')
+  [ $result = "grant31500.00000000000000000" ]
+
+  result=$(cleos get table pomelo 3 users -L user11.eosn | jq -r '.rows[0].contributions[1] | .id + .value')
+  [ $result = "grant41500.00000000000000000" ]
+
+  result=$(cleos get table pomelo 3 users -L user11.eosn | jq -r '.rows[0].boost')
+  [ $result = "1000.00000000000000000" ]
+
   run cleos push action login.eosn social '["user11.eosn", []]' -p login.eosn -p user11.eosn
   [ $status -eq 0 ]
 
@@ -313,6 +331,15 @@
 
   result=$(cleos get table pomelo 3 match -L grant3 | jq -r '.rows[0].square')
   [ $result = "3177.74758424985338934" ]
+
+  result=$(cleos get table pomelo 3 users -L user11.eosn | jq -r '.rows[0].contributions[0] | .id + .value')
+  [ $result = "grant31000.00000000000000000" ]
+
+  result=$(cleos get table pomelo 3 users -L user11.eosn | jq -r '.rows[0].contributions[1] | .id + .value')
+  [ $result = "grant41000.00000000000000000" ]
+
+  result=$(cleos get table pomelo 3 users -L user11.eosn | jq -r '.rows[0].boost')
+  [ $result = "0.00000000000000000" ]
 }
 
 @test "disable/enable grant5" {
@@ -328,7 +355,7 @@
 
   run cleos transfer user2 pomelo "3000.0000 USDT" "grant:grant5" --contract tethertether
   [ $status -eq 1 ]
-  [[ "$output" =~ "project not available for funding" ]]
+  [[ "$output" =~ "project not available for" ]]
 
   run cleos push action pomelo enable '["grant", "grant5", "ok"]' -p pomelo -p prjman1.eosn
   [ $status -eq 0 ]

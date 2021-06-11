@@ -39,35 +39,50 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
     // get round
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto round_itr = rounds.find( round_id );
-    check( round_itr->grant_ids.count( grant_id ), "pomelo::donate_grant: [grant_id] has not joined current matching round");
+    check( get_index(round_itr->grant_ids, grant_id) != -1, "pomelo::donate_grant: [grant_id] has not joined current matching round");
 
     // update project matching records
     const auto multiplier = get_user_boost_mutliplier( user_id );
     const auto boost = multiplier * value;  // boost by 0-125% based on socials and other boosters
 
+    pomelo::users_table _users( get_self(), round_id );
+    const auto users_itr = _users.find( user_id.value );
+
     pomelo::match_table _match( get_self(), round_id );
     const auto match_itr = _match.find( grant_id.value );
-    const auto old_user_sqrt = match_itr->user_sqrt.count(user_id) ? match_itr->user_sqrt.at(user_id) : 0;
     const auto old_square = match_itr->square;
     double new_square = 0;
+    double contribution = 0, old_contribution = 0;
 
-    auto insert = [&]( auto & row ) {
+    auto insert_user = [&]( auto & row ) {
+        row.user_id = user_id;
+        row.multiplier = multiplier;
+        const auto index = get_index(row.contributions, grant_id);
+        old_contribution = index == -1 ? 0 : row.contributions[index].value;
+        contribution = old_contribution + value + boost;
+        row.value += value;
+        row.boost += boost;
+        if(index == -1) row.contributions.push_back({ grant_id, contribution });
+        else row.contributions[index].value = contribution;
+        row.updated_at = current_time_point();
+    };
+
+    if ( users_itr == _users.end() ) _users.emplace( get_self(), insert_user );
+    else _users.modify( users_itr, get_self(), insert_user );
+
+    auto insert_match = [&]( auto & row ) {
         row.grant_id = grant_id;
         row.round_id = round_id;
-        row.user_multiplier[user_id] = multiplier;
-        row.user_value[user_id] += value;
-        row.user_boost[user_id] += boost;
-        row.user_sqrt[user_id] = sqrt( old_user_sqrt * old_user_sqrt + value + boost );
-        row.total_users = row.user_value.size();
+        row.total_users += old_contribution == 0 ? 1 : 0;
         row.sum_value += value;
         row.sum_boost += boost;
-        row.sum_sqrt += row.user_sqrt[user_id] - old_user_sqrt;
+        row.sum_sqrt += sqrt(contribution) - sqrt(old_contribution);
         row.square = new_square = row.sum_sqrt * row.sum_sqrt;
         row.updated_at = current_time_point();
     };
 
-    if ( match_itr == _match.end() ) _match.emplace( get_self(), insert );
-    else _match.modify( match_itr, get_self(), insert );
+    if ( match_itr == _match.end() ) _match.emplace( get_self(), insert_match );
+    else _match.modify( match_itr, get_self(), insert_match );
 
     //update round
     rounds.modify( round_itr, get_self(), [&]( auto & row ) {
@@ -79,7 +94,7 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
             }
         }
         if (!added) row.accepted_tokens.push_back(ext_quantity);
-        row.user_ids.insert( user_id );
+        if( get_index(row.user_ids, user_id) == -1) row.user_ids.push_back(user_id);
         row.sum_value += value;
         row.sum_boost += boost;
         row.sum_square += new_square - old_square;
@@ -131,4 +146,22 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
 
     if ( itr == projects.end() ) projects.emplace( get_self(), insert );
     else projects.modify( itr, get_self(), insert );
+}
+
+
+int pomelo::get_index(const vector<name>& vec, name value)
+{
+    for(int i = 0; i < vec.size(); i++){
+        if(vec[i] == value ) return i;
+    }
+    return -1;
+}
+
+
+int pomelo::get_index(const vector<contribution_t>& vec, name id)
+{
+    for(int i = 0; i < vec.size(); i++){
+        if(vec[i].id == id ) return i;
+    }
+    return -1;
 }
