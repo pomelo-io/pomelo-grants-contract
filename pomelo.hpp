@@ -455,7 +455,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action pomelo unjoinround '["grant1", 1]' -p pomelo -p 123.eosn
+     * $ cleos push action pomelo unjoinround '["grant1", 1]' -p pomelo
      * ```
      */
     [[eosio::action]]
@@ -508,6 +508,25 @@ public:
      */
     [[eosio::action]]
     void cleartable( const name table_name );
+
+    /**
+     * ## ACTION `removeuser`
+     *
+     * Remove user from all projects at this round and update all matchings
+     *
+     * ### params
+     *
+     * - `{name} user_id` - user ID
+     * - `{uint64_t} round_id` - round ID
+     *
+     * ### example
+     *
+     * ```bash
+     * $ cleos push action pomelo removeuser '["user1.eosn", 1]' -p pomelo
+     * ```
+     */
+    [[eosio::action]]
+    void removeuser( const name user_id, const uint64_t round_id );
 
 private:
     // state_table _state;

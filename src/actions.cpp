@@ -42,13 +42,12 @@ void pomelo::joinround( const name grant_id, const uint64_t round_id )
     });
 }
 
-// @user
+// @admin
 [[eosio::action]]
 void pomelo::unjoinround( const name grant_id, const uint64_t round_id )
 {
     require_auth( get_self() );
 
-    print("\nHi111");
     // remove from rounds table
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto round_itr = rounds.find( round_id );
@@ -69,13 +68,11 @@ void pomelo::unjoinround( const name grant_id, const uint64_t round_id )
     const auto match_itr = _match.find( grant_id.value );
     if(match_itr == _match.end()) return;   //no donations yet made
     _match.erase( match_itr );
-    print("\nHi");
 
     // update users table
     pomelo::users_table _users( get_self(), round_id );
     auto users_itr = _users.begin();
     while(users_itr != _users.end()) {
-        print("\n ", users_itr->user_id);
         int index = get_index(users_itr->contributions, grant_id);
         if(index != -1) {
             if(users_itr->contributions.size() == 1){
@@ -85,7 +82,7 @@ void pomelo::unjoinround( const name grant_id, const uint64_t round_id )
             _users.modify( users_itr, get_self(), [&]( auto & row ) {
                 const auto value = users_itr->contributions[index].value;
                 const auto donated = value / ( users_itr->multiplier + 1);
-                const auto boost = donated * users_itr->Fmultiplier;
+                const auto boost = donated * users_itr->multiplier;
                 vector<contribution_t> vec;
                 for(const auto c: users_itr->contributions)
                     if(c.id != grant_id) vec.push_back(c);
@@ -99,7 +96,7 @@ void pomelo::unjoinround( const name grant_id, const uint64_t round_id )
     }
 }
 
-// @user
+// @admin
 [[eosio::action]]
 void pomelo::enable( const name project_type, const name project_id, const name status )
 {
@@ -175,4 +172,55 @@ void pomelo::cleartable( const name table_name )
     else {
         check(false, "pomelo::cleartable: [table_name] clearing not allowed" );
     }
+}
+
+
+// @admin
+[[eosio::action]]
+void pomelo::removeuser( const name user_id, const uint64_t round_id )
+{
+    require_auth( get_self() );
+
+    // remove from users table
+    pomelo::users_table _users( get_self(), round_id );
+    auto user_itr = _users.find( user_id.value );
+    check(user_itr != _users.end(), "pomelo::removeuser: no donations from [user_id] during [round_id]" );
+    const auto user = *user_itr;
+    _users.erase(user_itr);
+
+    // update match table
+    pomelo::match_table _match( get_self(), round_id );
+    for(const auto grant: user.contributions){
+        const auto match_itr = _match.find( grant.id.value );
+        if(match_itr->total_users == 1){
+            _match.erase(match_itr);
+            continue;
+        }
+        _match.modify( match_itr, get_self(), [&]( auto & row ) {
+            const auto donated = grant.value / (1 + user.multiplier);
+            row.total_users--;
+            row.sum_value -= donated;
+            row.sum_boost -= donated * user.multiplier;
+            row.sum_sqrt -= sqrt( grant.value );
+            row.square = row.sum_sqrt * row.sum_sqrt;
+            row.updated_at = current_time_point();
+        });
+
+    }
+
+    // remove user_id and empty grants from rounds table
+    pomelo::rounds_table rounds( get_self(), get_self().value );
+    const auto round_itr = rounds.find( round_id );
+    check( round_itr != rounds.end(),  "pomelo::removeuser: [round_id] does not exist" );
+    check( get_index(round_itr->user_ids, user_id ) != -1, "pomelo::removeuser: grant does not exist in this round");
+
+    rounds.modify( round_itr, get_self(), [&]( auto & row ) {
+        vector<name> users;
+        for(const auto user: row.user_ids)
+            if(user != user_id) users.push_back(user);
+        row.user_ids = users;
+        row.updated_at = current_time_point();
+    });
+
+
 }

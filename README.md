@@ -389,8 +389,8 @@ Remove grant from round and update all matchings
 
 ### params
 
-- `{name} grant_id` - grant_id
-- `{uint64_t} round_id` - round_id
+- `{name} grant_id` - grant id
+- `{uint64_t} round_id` - round id
 
 ### example
 
@@ -412,4 +412,21 @@ Clear table
 
 ```bash
 $ cleos push action pomelo cleartable '["transfers"]' -p pomelo
+```
+
+## ACTION `removeuser`
+
+- **authority**: `get_self()`
+
+Remove user from all projects at this round and update all matchings
+
+### params
+
+- `{name} user_id` - user id
+- `{uint64_t} round_id` - round id
+
+### example
+
+```bash
+$ cleos push action pomelo removeuser '["user1.eosn", 1]' -p pomelo
 ```
