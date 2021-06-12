@@ -25,4 +25,5 @@ nodeos -p eosio -e \
   --filter-on=* \
   --filter-out=eosio:onblock: \
   --trace-history \
+  --trace-history-debug-mode \
   --chain-state-history 2>stderr &

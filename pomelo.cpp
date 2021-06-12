@@ -174,3 +174,13 @@ void pomelo::clear_table( T& table )
         itr = table.erase( itr );
     }
 }
+
+template <typename T>
+vector<T> pomelo::remove_element(const vector<T>& vec, name id)
+{
+    vector<T> res;
+    for(const auto e: vec){
+        if(e != id) res.push_back(e);
+    }
+    return res;
+}

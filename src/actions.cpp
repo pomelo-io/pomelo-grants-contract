@@ -224,3 +224,68 @@ void pomelo::removeuser( const name user_id, const uint64_t round_id )
 
 
 }
+
+[[eosio::action]]
+void pomelo::collapse(set<name> user_ids, name user_id, uint64_t round_id)
+{
+    require_auth( get_self() );
+    check(user_ids.count(user_id) == 0, "pomelo::collapse: [user_ids] cannot contain [user_id] itself" );
+
+    pomelo::users_table _users( get_self(), round_id );
+    pomelo::match_table _match( get_self(), round_id );
+    pomelo::rounds_table _rounds( get_self(), get_self().value );
+    auto round_itr = _rounds.find(round_id);
+    auto user_itr = _users.find( user_id.value );
+    check( round_itr != _rounds.end(),  "pomelo::collapse: [round_id] does not exist" );
+    check( user_itr != _users.end(), "pomelo::collapse: no donations from [user_id] during [round_id]" );
+    auto user = *user_itr;
+    vector<name> round_users = round_itr->user_ids;
+
+    int erased = 0;
+    auto from_itr = _users.begin();
+    while(from_itr != _users.end()){
+        if(user_ids.count(from_itr->user_id)){
+            for(const auto c: from_itr->contributions){
+                const auto donated = c.value / (from_itr->multiplier + 1);
+                const auto old_contribution = user.contributions[get_index(user.contributions, c.id)].value;
+                user.contributions[get_index(user.contributions, c.id)].value += donated * (user.multiplier + 1);
+                auto match_itr = _match.find(c.id.value);
+                _match.modify( match_itr, get_self(), [&]( auto & row ) {
+                    row.total_users--;
+                    row.sum_boost += donated * (user.multiplier - from_itr->multiplier);
+                    row.sum_sqrt += sqrt(user.contributions[get_index(user.contributions, c.id)].value) - sqrt(donated * (from_itr->multiplier + 1)) - sqrt(old_contribution);
+                    row.square = row.sum_sqrt * row.sum_sqrt;
+                    row.updated_at = current_time_point();
+                });
+            }
+            user.value += from_itr->value;
+            user.boost += from_itr->value * user.multiplier;
+            round_users = remove_element(round_users, from_itr->user_id);
+            from_itr = _users.erase(from_itr);
+            erased++;
+            continue;
+        }
+        ++from_itr;
+    }
+    check(erased == user_ids.size(), "pomelo::collapse: [user_ids] contains user_ids that didn't take part in [round_id]: " + (*user_ids.begin()).to_string() );
+    _users.modify( user_itr, get_self(), [&]( auto & row ) {
+        row.contributions = user.contributions;
+        row.value = user.value;
+        row.boost = user.boost;
+        row.updated_at = current_time_point();
+    });
+
+    // recalculate all matched amounts for this round
+    double round_sum_boost = 0, round_sum_square = 0;
+    for(const auto& grant: _match){
+        round_sum_boost += grant.sum_boost;
+        round_sum_square += grant.square;
+    }
+     _rounds.modify( round_itr, get_self(), [&]( auto & row ) {
+        row.sum_boost = round_sum_boost;
+        row.sum_square = round_sum_square;
+        row.user_ids = round_users;
+        row.updated_at = current_time_point();
+    });
+
+}

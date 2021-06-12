@@ -528,6 +528,26 @@ public:
     [[eosio::action]]
     void removeuser( const name user_id, const uint64_t round_id );
 
+    /**
+     * ## ACTION `collapse`
+     *
+     * Collapse donations from {user_ids} users into {user_id} in {round_id} and recalculate all matchings
+     *
+     * ### params
+     *
+     * - `{set<name>} user_ids` - user IDs to collapse
+     * - `{name} user_id` - user ID to collapse into
+     * - `{uint64_t} round_id` - round ID
+     *
+     * ### example
+     *
+     * ```bash
+     * $ cleos push action pomelo collapse '[["user2.eosn","user3.eosn","user4.eosn"], "user1.eosn", 1]' -p pomelo
+     * ```
+     */
+    [[eosio::action]]
+    void collapse(set<name> user_ids, name user_id, uint64_t round_id);
+
 private:
     // state_table _state;
 
@@ -558,6 +578,9 @@ private:
 
     int get_index(const vector<name>& vec, name value);
     int get_index(const vector<contribution_t>& vec, name id);
+
+    template <typename T>
+    vector<T> remove_element(const vector<T>& vec, name id);
 
     template <typename T>
     void clear_table( T& table );

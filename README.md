@@ -91,6 +91,8 @@ $ ./test.sh
 - [ACTION `joinround`](#action-joinround)
 - [ACTION `unjoinround`](#action-unjoinround)
 - [ACTION `cleartable`](#action-cleartable)
+- [ACTION `removeuser`](#action-removeuser)
+- [ACTION `collapse`](#action-collapse)
 
 ## TABLE `globals`
 
@@ -429,4 +431,22 @@ Remove user from all projects at this round and update all matchings
 
 ```bash
 $ cleos push action pomelo removeuser '["user1.eosn", 1]' -p pomelo
+```
+
+## ACTION `collapse`
+
+- **authority**: `get_self()`
+
+Collapse donations from {user_ids} users into {user_id} in {round_id} and recalculate all matchings
+
+### params
+
+- `{set<name>} user_ids` - user IDs to collapse
+- `{name} user_id` - user ID to collapse into
+- `{uint64_t} round_id` - round ID
+
+### example
+
+```bash
+$ cleos push action pomelo collapse '[["user2.eosn","user3.eosn","user4.eosn"], "user1.eosn", 1]' -p pomelo
 ```
