@@ -426,11 +426,8 @@
   result=$(cleos get table pomelo 3 match -L grant4 -l 1 | jq -r '.rows')
   [ $result = "[]" ]
 
-  result=$(cleos get table pomelo 3 match -L grant3 -l 1 | jq -r '.rows[0].sum_value')
-  [ $result = "210.00000000000000000" ]
-
-  result=$(cleos get table pomelo 3 match -L grant3 -l 1 | jq -r '.rows[0].sum_sqrt')
-  [ $result = "24.74873734152916782" ]
+  result=$(cleos get table pomelo 3 match -L grant3 -l 1 | jq -r '.rows[0] | .sum_value + .sum_sqrt')
+  [ $result = "210.0000000000000000024.74873734152916782" ]
 
   result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0].user_ids[5]')
   [ $result = "null" ]
@@ -438,6 +435,50 @@
   result=$(cleos get table pomelo 3 users -L user11.eosn -l 1 | jq -r '.rows[0].user_id')
   [ $result = "user2.eosn" ]
 }
+
+@test "collapse users into user1 on round 2" {
+
+  result=$(cleos get table pomelo 2 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[0] | .id + .value')
+  [ $result = "grant1123.75000000000000000" ]
+
+  result=$(cleos get table pomelo 2 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[1] | .id + .value')
+  [ $result = "grant20.22500000000000001" ]
+
+  result=$(cleos get table pomelo 2 match -L grant2 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + .square')
+  [ $result = "0.799999999999999930.5250000000000000210.47179370391075182" ]
+
+  result=$(cleos get table pomelo 2 match -L grant1 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + .square')
+  [ $result = "55.0000000000000000068.75000000000000000123.75000000000000000" ]
+
+  result=$(cleos get table pomelo pomelo rounds -L 2 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + .sum_square')
+  [ $result = "55.8000000000000113769.27500000000000568134.22179370391074826" ]
+
+  result=$(cleos get table pomelo pomelo rounds -L 2 -l 1 | jq -r '.rows[0].user_ids' | jq length)
+  [ $result = "8" ]
+
+  run cleos push action pomelo collapse '[["user2.eosn","user3.eosn","user4.eosn","user5.eosn","user11.eosn","user12.eosn","user13.eosn"], "user1.eosn", 2]' -p pomelo
+  [ $status -eq 0 ]
+
+  result=$(cleos get table pomelo 2 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[0] | .id + .value')
+  [ $result = "grant1123.75000000000000000" ]
+
+  result=$(cleos get table pomelo 2 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[1] | .id + .value')
+  [ $result = "grant21.80000000000000049" ]
+
+  result=$(cleos get table pomelo 2 match -L grant2 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + .square')
+  [ $result = "0.799999999999999930.999999999999999891.80000000000000071" ]
+
+  result=$(cleos get table pomelo 2 match -L grant1 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + .square')
+  [ $result = "55.0000000000000000068.75000000000000000123.75000000000000000" ]
+
+  result=$(cleos get table pomelo pomelo rounds -L 2 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + .sum_square')
+  [ $result = "55.8000000000000113769.75000000000000000125.54999999999999716" ]
+
+  result=$(cleos get table pomelo pomelo rounds -L 2 -l 1 | jq -r '.rows[0].user_ids' | jq length)
+  [ $result = "1" ]
+
+}
+
 
 @test "clear transfers table" {
   result=$(cleos get table pomelo pomelo transfers -l 1 | jq -r '.rows[0].user_id')
