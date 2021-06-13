@@ -376,8 +376,11 @@
   result=$(cleos get table pomelo 3 match -l 1 | jq -r '.rows[0].grant_id')
   [ $result = "grant1" ]
 
-  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0].grant_ids[0]')
-  [ $result = "grant1" ]
+  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0].grant_ids' | jq length)
+  [ $result = "5" ]
+
+  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + .sum_square')
+  [ $result = "2830.00000000000000000772.500000000000000007071.69844341655516473" ]
 
   result=$(cleos get table pomelo 3 users -l 1 | jq -r '.rows[0].contributions[0].id')
   [ $result = "grant1" ]
@@ -394,8 +397,11 @@
   result=$(cleos get table pomelo 3 match -l 1 | jq -r '.rows[0].grant_id')
   [ $result = "grant2" ]
 
-  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0].grant_ids[0]')
-  [ $result = "grant2" ]
+  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0].grant_ids' | jq length)
+  [ $result = "4" ]
+
+  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + .sum_square')
+  [ $result = "2330.00000000000000000387.500000000000000004597.06435150140350743" ]
 
   result=$(cleos get table pomelo 3 users -l 1 | jq -r '.rows[0].contributions[0].id')
   [ $result = "grant2" ]
@@ -408,14 +414,17 @@
 }
 
 @test "remove user11.eosn from round 3" {
-  result=$(cleos get table pomelo 3 match -L grant4 -l 1 | jq -r '.rows[0].grant_id')
-  [ $result = "grant4" ]
+  result=$(cleos get table pomelo 3 match | jq -r '.rows' | jq length)
+  [ $result = "3" ]
 
   result=$(cleos get table pomelo 3 match -L grant3 -l 1 | jq -r '.rows[0].sum_value')
   [ $result = "1210.00000000000000000" ]
 
-  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0].user_ids[5]')
-  [ $result = "user11.eosn" ]
+  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0].user_ids' | jq length)
+  [ $result = "6" ]
+
+  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + .sum_square')
+  [ $result = "2330.00000000000000000387.500000000000000004597.06435150140350743" ]
 
   result=$(cleos get table pomelo 3 users -L user11.eosn -l 1 | jq -r '.rows[0].user_id')
   [ $result = "user11.eosn" ]
@@ -423,14 +432,17 @@
   run cleos push action pomelo removeuser '["user11.eosn", 3]' -p pomelo
   [ $status -eq 0 ]
 
-  result=$(cleos get table pomelo 3 match -L grant4 -l 1 | jq -r '.rows')
-  [ $result = "[]" ]
+  result=$(cleos get table pomelo 3 match | jq -r '.rows' | jq length)
+  [ $result = "2" ]
 
   result=$(cleos get table pomelo 3 match -L grant3 -l 1 | jq -r '.rows[0] | .sum_value + .sum_sqrt')
   [ $result = "210.0000000000000000024.74873734152916782" ]
 
-  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0].user_ids[5]')
-  [ $result = "null" ]
+  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0].user_ids' | jq length)
+  [ $result = "5" ]
+
+  result=$(cleos get table pomelo pomelo rounds -L 3 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + .sum_square')
+  [ $result = "330.00000000000000000387.500000000000000001031.81676725155011809" ]
 
   result=$(cleos get table pomelo 3 users -L user11.eosn -l 1 | jq -r '.rows[0].user_id')
   [ $result = "user2.eosn" ]

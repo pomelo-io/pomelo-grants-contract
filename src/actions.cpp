@@ -48,28 +48,36 @@ void pomelo::unjoinround( const name grant_id, const uint64_t round_id )
 {
     require_auth( get_self() );
 
-    // remove from rounds table
-    pomelo::rounds_table rounds( get_self(), get_self().value );
-    const auto round_itr = rounds.find( round_id );
-    check( round_itr != rounds.end(),  "pomelo::unjoinround: [round_id] does not exist" );
+    pomelo::rounds_table _rounds( get_self(), get_self().value );
+    const auto round_itr = _rounds.find( round_id );
+    check( round_itr != _rounds.end(),  "pomelo::unjoinround: [round_id] does not exist" );
     check( get_index(round_itr->grant_ids, grant_id ) != -1, "pomelo::unjoinround: grant does not exist in this round");
-
-    rounds.modify( round_itr, get_self(), [&]( auto & row ) {
-        vector<name> grants;
-        for(const auto grant: row.grant_ids)
-            if(grant != grant_id) grants.push_back(grant);
-        row.grant_ids = grants;
-        // what do we do with user_ids vector?
-        row.updated_at = current_time_point();
-    });
 
     // remove from match table
     pomelo::match_table _match( get_self(), round_id );
     const auto match_itr = _match.find( grant_id.value );
-    if(match_itr == _match.end()) return;   //no donations yet made
+    if(match_itr == _match.end()) return;   //no donations yet made to this project during this round
     _match.erase( match_itr );
 
-    // update users table
+    // recalculate matchings for this round
+    double sum_value = 0, sum_boost = 0, sum_square = 0;
+    for(const auto& grant: _match) {
+        sum_value += grant.sum_value;
+        sum_boost += grant.sum_boost;
+        sum_square += grant.square;
+    }
+
+    // remove from rounds table
+    _rounds.modify( round_itr, get_self(), [&]( auto & row ) {
+        row.grant_ids = remove_element(row.grant_ids, grant_id);
+        row.sum_value = sum_value;
+        row.sum_boost = sum_boost;
+        row.sum_square = sum_square;
+        row.updated_at = current_time_point();
+        // no easy way to update row.accepted_tokens since they were already converted to values
+    });
+
+    // update users table by removing all donations to this project
     pomelo::users_table _users( get_self(), round_id );
     auto users_itr = _users.begin();
     while(users_itr != _users.end()) {
@@ -208,18 +216,26 @@ void pomelo::removeuser( const name user_id, const uint64_t round_id )
 
     }
 
-    // remove user_id and empty grants from rounds table
+    // remove user_id and update sums in rounds table
+    double sum_value = 0, sum_boost = 0, sum_square = 0;
+    for(const auto& grant: _match) {
+        sum_value += grant.sum_value;
+        sum_boost += grant.sum_boost;
+        sum_square += grant.square;
+    }
+
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto round_itr = rounds.find( round_id );
     check( round_itr != rounds.end(),  "pomelo::removeuser: [round_id] does not exist" );
     check( get_index(round_itr->user_ids, user_id ) != -1, "pomelo::removeuser: grant does not exist in this round");
 
     rounds.modify( round_itr, get_self(), [&]( auto & row ) {
-        vector<name> users;
-        for(const auto user: row.user_ids)
-            if(user != user_id) users.push_back(user);
-        row.user_ids = users;
+        row.user_ids = remove_element(row.user_ids, user_id);
+        row.sum_value = sum_value;
+        row.sum_boost = sum_boost;
+        row.sum_square = sum_square;
         row.updated_at = current_time_point();
+        // no easy way to update row.accepted_tokens since they were already converted to values
     });
 
 
