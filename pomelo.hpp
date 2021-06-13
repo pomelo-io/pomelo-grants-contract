@@ -520,15 +520,16 @@ public:
      * ### params
      *
      * - `{name} table_name` - table name, i.e. "transfers"
+     * - `{uint64_t} max_rows` - max number of rows to clear, if 0 - clear all
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action pomelo cleartable '["transfers"]' -p pomelo
+     * $ cleos push action pomelo cleartable '["transfers", 500]' -p pomelo
      * ```
      */
     [[eosio::action]]
-    void cleartable( const name table_name );
+    void cleartable( const name table_name, const uint64_t max_rows );
 
     /**
      * ## ACTION `removeuser`
@@ -604,5 +605,5 @@ private:
     vector<T> remove_element(const vector<T>& vec, name id);
 
     template <typename T>
-    void clear_table( T& table );
+    void clear_table( T& table, uint64_t rows_to_clear );
 };

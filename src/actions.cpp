@@ -180,13 +180,14 @@ void pomelo::setconfig( const name key, const uint64_t value )
 
 // @admin
 [[eosio::action]]
-void pomelo::cleartable( const name table_name )
+void pomelo::cleartable( const name table_name, const uint64_t max_rows )
 {
     require_auth( get_self() );
+    uint64_t rows_to_clear = max_rows == 0 ? -1 : max_rows;
 
     if(table_name == "transfers"_n){
         pomelo::transfers_table table( get_self(), get_self().value );
-        clear_table( table );
+        clear_table( table, rows_to_clear );
     }
     else {
         check(false, "pomelo::cleartable: [table_name] clearing not allowed" );

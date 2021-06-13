@@ -170,10 +170,10 @@ int pomelo::get_index(const vector<contribution_t>& vec, name id)
 }
 
 template <typename T>
-void pomelo::clear_table( T& table )
+void pomelo::clear_table( T& table, uint64_t rows_to_clear )
 {
     auto itr = table.begin();
-    while ( itr != table.end() ) {
+    while ( itr != table.end() && rows_to_clear-- ) {
         itr = table.erase( itr );
     }
 }

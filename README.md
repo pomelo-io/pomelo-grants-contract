@@ -433,11 +433,12 @@ Clear table
 ### params
 
 - `{name} table_name` - table to clear
+- `{uint64_t} max_rows` - max number of rows to clear, if 0 - clear all
 
 ### example
 
 ```bash
-$ cleos push action pomelo cleartable '["transfers"]' -p pomelo
+$ cleos push action pomelo cleartable '["transfers", 100]' -p pomelo
 ```
 
 ## ACTION `removeuser`
