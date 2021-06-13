@@ -20,6 +20,9 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
 
     print("Donate ", project_id, " with ", ext_quantity, " == ", value, " value");
 
+    const uint64_t min_amount = get_key_value("minamount"_n);
+    check( value * 10000 >= min_amount, "pomelo::donate_project: donation is less than [config.min_amount]");
+
     if ( project.type == "grant"_n ) {
         const auto user_id = get_user_id( from );
         donate_grant( project_id, ext_quantity, user_id, value );

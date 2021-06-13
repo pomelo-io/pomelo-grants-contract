@@ -497,6 +497,22 @@
 
 }
 
+@test "donate less than minamount" {
+  run cleos transfer user1 pomelo "0.9000 USDT" "grant:grant2" --contract tethertether
+  [ $status -eq 1 ]
+  [[ "$output" =~ "donation is less than [config.min_amount]" ]]
+
+  run cleos transfer user1 pomelo "0.0999 EOS" "grant:grant3"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "donation is less than [config.min_amount]" ]]
+
+  run cleos push action pomelo setconfig '[minamount, 1001]' -p pomelo
+  [ $status -eq 0 ]
+
+  run cleos transfer user1 pomelo "0.1000 EOS" "grant:grant3"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "donation is less than [config.min_amount]" ]]
+}
 
 @test "clear transfers table" {
   result=$(cleos get table pomelo pomelo transfers -l 1 | jq -r '.rows[0].user_id')
