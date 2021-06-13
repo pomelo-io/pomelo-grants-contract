@@ -32,8 +32,10 @@ public:
      *
      * ```json
      * [
-     *   { "key": "round.id", "value": 1 },
-     *   { "key": "status", "value": 1 }
+     *   { "key": "roundid", "value": 1 },
+     *   { "key": "status", "value": 1 },
+     *   { "key": "systemfee", "value": 500 },
+     *   { "key": "minamount", "value": 1000 }
      * ]
      * ```
      */
@@ -344,22 +346,41 @@ public:
     /**
      * ## ACTION `init`
      *
-     * Set contract status / start round
+     * Init contract config with default parameters (status=2, roundid=0, minamount=1000, systemfee=0)
      *
      * ### params
-     *
-     * - `{uint64_t} round_id` - round ID (0=not active)
-     * - `{uint64_t} status` - contract status (0=testing, 1=ok, 2=maintenance)
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action pomelo init '[1, 1]' -p pomelo
-     * $ cleos push action pomelo init '[0, 2]' -p pomelo
+     * $ cleos push action pomelo init '[]' -p pomelo
      * ```
      */
     [[eosio::action]]
-    void init( const uint64_t round_id, const uint64_t status );
+    void init( );
+
+    /**
+     * ## ACTION `setconfig`
+     *
+     * Set contract config key/value
+     * - `status` - contract status (0=testing, 1=ok, 2=maintenance)
+     * - `roundid` - ongoing round (0=not active)
+     * - `minamount` - minimum grant donation value amount with precision = 4 (1234=0.1234 EOS)
+     * - `systemfee` - donation fee (500=5%)
+     *
+     * ### params
+     *
+     * - `{name} key` - config key
+     * - `{uint64_t} value` - config value
+     *
+     * ### example
+     *
+     * ```bash
+     * $ cleos push action pomelo setconfig '["status", 1]' -p pomelo
+     * ```
+     */
+    [[eosio::action]]
+    void setconfig( const name key, const uint64_t value );
 
     /**
      * ## ACTION `setproject`

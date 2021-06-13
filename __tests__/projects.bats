@@ -102,9 +102,9 @@
 
 @test "round #1: fund grant1 with 2 donations by 2 users" {
 
-  run cleos push action pomelo init '[1, 1]' -p pomelo
+  run cleos push action pomelo setconfig '[roundid, 1]' -p pomelo
   [ $status -eq 0 ]
-  result=$(cleos get table pomelo pomelo globals -L round.id | jq -r '.rows[0].value')
+  result=$(cleos get table pomelo pomelo globals -L roundid | jq -r '.rows[0].value')
   [ $result = "1" ]
 
   run cleos transfer user1 pomelo "10.0000 EOS" "grant:grant1"
@@ -138,9 +138,9 @@
 
 @test "round #2: fund grant1 with 2 donations by 1 user" {
 
-  run cleos push action pomelo init '[2, 1]' -p pomelo
+  run cleos push action pomelo setconfig '[roundid, 2]' -p pomelo
   [ $status -eq 0 ]
-  result=$(cleos get table pomelo pomelo globals -L round.id | jq -r '.rows[0].value')
+  result=$(cleos get table pomelo pomelo globals -L roundid | jq -r '.rows[0].value')
   [ $result = "2" ]
 
   run cleos transfer user1 pomelo "50.0000 EOS" "grant:grant1"
@@ -245,7 +245,7 @@
   run cleos push action pomelo joinround '["grant4", 3]' -p pomelo -p prjman4.eosn
   [ $status -eq 0 ]
 
-  run cleos push action pomelo init '[3, 1]' -p pomelo
+  run cleos push action pomelo setconfig '[roundid, 3]' -p pomelo
   [ $status -eq 0 ]
 
   run cleos transfer user1 pomelo "80.0000 EOS" "grant:grant1"

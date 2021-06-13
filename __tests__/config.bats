@@ -8,7 +8,7 @@
 }
 
 @test "contract under maintenance" {
-  run cleos push action pomelo init '[0, 2]' -p pomelo
+  run cleos push action pomelo init '[]' -p pomelo
   [ $status -eq 0 ]
 
   run cleos transfer user1 pomelo "1000.0000 EOS" ""
@@ -18,11 +18,11 @@
 }
 
 @test "set config" {
-  run cleos push action pomelo init '[0, 1]' -p pomelo
+  run cleos push action pomelo setconfig '[status, 1]' -p pomelo
   echo "Output: $output"
   [ $status -eq 0 ]
 
-  result=$(cleos get table pomelo pomelo globals | jq -r '.rows[1].value')
+  result=$(cleos get table pomelo pomelo globals -L status | jq -r '.rows[0].value')
   [ $result = "1" ]
 
 }

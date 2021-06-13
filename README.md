@@ -3,9 +3,13 @@
 ## Usage
 
 ```bash
+#init config and set status
+cleos push action pomelo init '[]' -p pomelo
+cleos push action pomelo setconfig '[status, 1]' -p pomelo
+
 # create matching round and start it
 cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00"]' -p pomelo
-cleos push action pomelo init '[1, 1]' -p pomelo
+cleos push action pomelo setconfig '[roundid, 1]' -p pomelo
 
 # create Pomelo user for grant manager and link it to EOS account
 cleos push action login.eosn create '["author.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
@@ -84,6 +88,7 @@ $ ./test.sh
 - [TABLE `match`](#table-match)
 - [TABLE `rounds`](#table-rounds)
 - [ACTION `init`](#action-init)
+- [ACTION `setconfig`](#action-setconfig)
 - [ACTION `setgrant`](#action-setgrant)
 - [ACTION `setbounty`](#action-setbounty)
 - [ACTION `enable`](#action-enable)
@@ -105,8 +110,10 @@ $ ./test.sh
 
 ```json
 [
-    { "key": "round.id", "value": 1 },
-    { "key": "status", "value": 1 }
+    { "key": "roundid", "value": 1 },
+    { "key": "status", "value": 1 },
+    { "key": "systemfee", "value": 500 },
+    { "key": "minamount", "value": 1000 }
 ]
 ```
 
@@ -298,18 +305,35 @@ $ ./test.sh
 
 - **authority**: `get_self()`
 
-Set contract status and/or start/end round
+Init contract config with default parameters (status=2, roundid=0, minamount=1000, systemfee=0)
 
 ### params
-
-- `{uint64_t} round_id` - round ID (0=not active)
-- `{uint64_t} status` - contract status (0=testing, 1=ok, 2=maintenance)
 
 ### example
 
 ```bash
-$ cleos push action pomelo init '[1, 1]' -p pomelo
-$ cleos push action pomelo init '[0, 2]' -p pomelo
+$ cleos push action pomelo init '[]' -p pomelo
+
+## ACTION `setconfig`
+
+- **authority**: `get_self()`
+
+Set contract config key/value
+- `status` - contract status (0=testing, 1=ok, 2=maintenance)
+- `roundid` - ongoing round (0=not active)
+- `minamount` - minimum grant donation value amount with precision = 4 (1234=0.1234 EOS)
+- `systemfee` - donation fee (500=5%)
+
+### params
+
+- `{name} key` - config key
+- `{uint64_t} value` - config value
+
+### example
+
+```bash
+$ cleos push action pomelo init '[status, 1]' -p pomelo
+$ cleos push action pomelo init '[roundid, 3]' -p pomelo
 ```
 
 ## ACTION `setproject`

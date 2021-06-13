@@ -35,7 +35,7 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
 [[eosio::on_notify("*::social")]]
 void pomelo::on_social( const name user_id, const set<name> socials )
 {
-    const auto round_id = get_key_value("round.id"_n);
+    const auto round_id = get_key_value("roundid"_n);
 
     if ( round_id == 0 || get_first_receiver() != LOGIN_CONTRACT ) return;
 

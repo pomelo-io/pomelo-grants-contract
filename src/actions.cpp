@@ -158,12 +158,23 @@ void pomelo::setround( const uint64_t round_id, const time_point_sec start_at, c
 
 // @admin
 [[eosio::action]]
-void pomelo::init( const uint64_t round_id, const uint64_t status )
+void pomelo::init( )
 {
     require_auth( get_self() );
 
-    set_key_value("round.id"_n, round_id );
-    set_key_value("status"_n, status );
+    set_key_value("status"_n, 2 );
+    set_key_value("roundid"_n, 0 );
+    set_key_value("minamount"_n, 1000 );
+    set_key_value("systemfee"_n, 0 );
+}
+
+// @admin
+[[eosio::action]]
+void pomelo::setconfig( const name key, const uint64_t value )
+{
+    require_auth( get_self() );
+
+    set_key_value(key, value );
 }
 
 
