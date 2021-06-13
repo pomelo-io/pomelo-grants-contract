@@ -456,6 +456,9 @@
   result=$(cleos get table pomelo 2 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[1] | .id + .value')
   [ $result = "grant20.22500000000000001" ]
 
+  result=$(cleos get table pomelo 2 users | jq -r '.rows' |  jq length)
+  [ $result = "8" ]
+
   result=$(cleos get table pomelo 2 match -L grant2 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + .square')
   [ $result = "0.799999999999999930.5250000000000000210.47179370391075182" ]
 
@@ -473,6 +476,9 @@
 
   result=$(cleos get table pomelo 2 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[0] | .id + .value')
   [ $result = "grant1123.75000000000000000" ]
+
+  result=$(cleos get table pomelo 2 users | jq -r '.rows' |  jq length)
+  [ $result = "1" ]
 
   result=$(cleos get table pomelo 2 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[1] | .id + .value')
   [ $result = "grant21.80000000000000049" ]
