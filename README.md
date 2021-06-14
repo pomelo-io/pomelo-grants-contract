@@ -176,6 +176,7 @@ $ ./test.sh
 - `{name} from` - EOS account sender
 - `{name} to` - EOS account receiver
 - `{extended_asset} ext_quantity` - amount of tokens transfered
+- `{asset} fee` - system fee charged
 - `{string} memo` - transfer memo
 - `{name} user_id` - Pomelo user account ID
 - `{uint64_t} round_id` - participating round ID
