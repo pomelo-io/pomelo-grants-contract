@@ -575,6 +575,7 @@ private:
 
     // getters
     double calculate_value(const extended_asset ext_quantity);
+    asset calculate_fee(const asset quantity);
     name get_user_id( const name user );
     bool is_user( const name user_id );
     double get_user_boost_mutliplier( const name user_id );

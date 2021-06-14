@@ -21,7 +21,9 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
     check( memo_parts.size() == 2, ERROR_INVALID_MEMO);
     const name project_type = sx::utils::parse_name(memo_parts[0]);
     const name project_id = sx::utils::parse_name(memo_parts[1]);
-    const extended_asset ext_quantity = { quantity, get_first_receiver() };
+
+    const auto fee = calculate_fee( quantity );
+    const extended_asset ext_quantity = { quantity - fee, get_first_receiver() };
 
     if (project_type == "grant"_n) {
         donate_project(_grants, project_id, from, to, ext_quantity, memo );

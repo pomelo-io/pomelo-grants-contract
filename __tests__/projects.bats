@@ -517,6 +517,23 @@
   [ $status -eq 0 ]
 }
 
+@test "donate with a 10% fee" {
+  run cleos push action pomelo setconfig '[systemfee, 1000]' -p pomelo
+  [ $status -eq 0 ]
+
+  balance=$(cleos get currency balance eosio.token pomelo)
+  [ "$balance" = "0.0000 EOS" ]
+
+  run cleos transfer user1 pomelo "10.0000 EOS" "grant:grant2"
+  [ $status -eq 0 ]
+
+  balance=$(cleos get currency balance eosio.token pomelo)
+  [ "$balance" = "1.0000 EOS" ]
+
+  run cleos push action pomelo setconfig '[systemfee, 0]' -p pomelo
+  [ $status -eq 0 ]
+}
+
 @test "clear transfers table" {
   result=$(cleos get table pomelo pomelo transfers -l 1 | jq -r '.rows[0].user_id')
   [ $result = "user1.eosn" ]
