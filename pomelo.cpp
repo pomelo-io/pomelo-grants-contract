@@ -16,22 +16,30 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     check(project.status == "ok"_n, "pomelo::donate_project: project not available for donation");
     check(project.accepted_tokens.count(ext_quantity.get_extended_symbol()), "pomelo::donate_project: not acceptable tokens for this project");
 
-    const auto value = calculate_value( ext_quantity );
+    auto donation = ext_quantity;
+    auto value = calculate_value( donation );
 
-    print("Donate ", project_id, " with ", ext_quantity, " == ", value, " value");
+    print("Donation ", project_id, " with ", donation, " == ", value, " value");
 
     const uint64_t min_amount = get_key_value("minamount"_n);
     check( value * 10000 >= min_amount, "pomelo::donate_project: donation is less than [config.min_amount]");
 
+    const uint64_t fee = get_key_value("systemfee"_n);
+    asset fee_amount = donation.quantity * fee / 10000;
+    donation.quantity -= fee_amount;
+    value -= value * fee / 10000;
+
     if ( project.type == "grant"_n ) {
         const auto user_id = get_user_id( from );
-        donate_grant( project_id, ext_quantity, user_id, value );
+        donate_grant( project_id, donation, user_id, value );
     }
 
-    save_transfer( from, to, ext_quantity, memo, project.type, project.id, value );
+    save_transfer( from, to, donation, fee_amount, memo, project.type, project.id, value );
 
-    eosio::token::transfer_action transfer(ext_quantity.contract, { get_self(), "active"_n });
-    transfer.send( get_self(), project.funding_account, ext_quantity.quantity, "🍈 " + memo + " donation via pomelo.io");
+    eosio::token::transfer_action transfer(donation.contract, { get_self(), "active"_n });
+    transfer.send( get_self(), project.funding_account, donation.quantity, "🍈 " + memo + " donation via pomelo.io");
+
+    if(fee_amount.amount > 0) transfer.send( get_self(), FEE_ACCOUNT, fee_amount, "🍈 " + memo + " fee ");
 }
 
 void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity, const name user_id, const double value )
@@ -105,7 +113,7 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
     });
 }
 
-void pomelo::save_transfer( const name from, const name to, const extended_asset ext_quantity, const string& memo, const name project_type, const name project_id, const double value )
+void pomelo::save_transfer( const name from, const name to, const extended_asset ext_quantity, const asset fee, const string& memo, const name project_type, const name project_id, const double value )
 {
     const auto user_id = get_user_id( from );
     const auto round_id = get_key_value( "roundid"_n );
@@ -116,6 +124,7 @@ void pomelo::save_transfer( const name from, const name to, const extended_asset
         row.from = from;
         row.to = to;
         row.ext_quantity = ext_quantity;
+        row.fee = fee;
         row.memo = memo;
         row.user_id = user_id;
         row.round_id = round_id;

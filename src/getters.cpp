@@ -2,12 +2,6 @@
 
 using namespace sx;
 
-asset pomelo::calculate_fee( const asset quantity )
-{
-    const uint64_t fee = get_key_value("systemfee"_n);
-
-    return quantity * fee / 10000;
-}
 
 double pomelo::calculate_value( const extended_asset ext_quantity )
 {

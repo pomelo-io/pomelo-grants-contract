@@ -12,6 +12,7 @@ using namespace std;
 
 static constexpr extended_symbol VALUE_SYM = { symbol {"EOS", 4}, "eosio.token"_n };
 static constexpr name LOGIN_CONTRACT = "login.eosn"_n;
+static constexpr name FEE_ACCOUNT = "fee.pomelo"_n;
 static set<name> STATUS_TYPES = set<name>{"ok"_n, "testing"_n, "pending"_n, "disabled"_n};
 
 static string ERROR_INVALID_MEMO = "invalid transfer memo (ex: \"grant:mygrant\" or \"bounty:mybounty\")";
@@ -134,7 +135,8 @@ public:
      * - `{uint64_t} transfer_id` - (primary key) token transfer ID
      * - `{name} from` - EOS account sender
      * - `{name} to` - EOS account receiver
-     * - `{extended_asset} ext_quantity - amount of tokens transfered
+     * - `{extended_asset} ext_quantity` - amount of tokens transfered
+     * - `{asset} fee` - fee charged and sent to `FEE_ACCOUNT`
      * - `{string} memo` - transfer memo
      * - `{name} user_id` - Pomelo user account ID
      * - `{uint64_t} round_id` - participating round ID
@@ -152,6 +154,7 @@ public:
      *     "from": "myaccount",
      *     "to": "pomelo",
      *     "ext_quantity": {"contract": "eosio.token", "quantity": "15.0000 EOS"},
+     *     "fee": "1.0000 EOS",
      *     "memo": "grant:grant1",
      *     "user_id": "user1.eosn",
      *     "round": 1,
@@ -168,6 +171,7 @@ public:
         name                    from;
         name                    to;
         extended_asset          ext_quantity;
+        asset                   fee;
         string                  memo;
         name                    user_id;
         uint64_t                round_id;
@@ -575,7 +579,6 @@ private:
 
     // getters
     double calculate_value(const extended_asset ext_quantity);
-    asset calculate_fee(const asset quantity);
     name get_user_id( const name user );
     bool is_user( const name user_id );
     double get_user_boost_mutliplier( const name user_id );
@@ -597,7 +600,7 @@ private:
     template <typename T>
     void set_project(T& table, const name project_type, const name project_id, const name author_id, const name funding_account, const set<extended_symbol> accepted_tokens );
 
-    void save_transfer( const name from, const name to, const extended_asset ext_quantity, const string& memo, const name project_type, const name project_id, const double value );
+    void save_transfer( const name from, const name to, const extended_asset ext_quantity, const asset fee, const string& memo, const name project_type, const name project_id, const double value );
 
     int get_index(const vector<name>& vec, name value);
     int get_index(const vector<contribution_t>& vec, name id);

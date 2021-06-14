@@ -448,7 +448,7 @@
   [ $result = "user2.eosn" ]
 }
 
-@test "collapse users into user1 on round 2" {
+@test "collapse 8 users into 1 on round 2" {
 
   result=$(cleos get table pomelo 2 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[0] | .id + .value')
   [ $result = "grant1123.75000000000000000" ]
@@ -517,21 +517,22 @@
   [ $status -eq 0 ]
 }
 
-@test "donate with a 10% fee" {
-  run cleos push action pomelo setconfig '[systemfee, 1000]' -p pomelo
+@test "donate with a 5% fee" {
+  run cleos push action pomelo setconfig '[systemfee, 500]' -p pomelo
   [ $status -eq 0 ]
 
-  balance=$(cleos get currency balance eosio.token pomelo)
-  [ "$balance" = "0.0000 EOS" ]
+  balance=$(cleos get currency balance eosio.token fee.pomelo EOS)
+  [ "$balance" = "" ]
 
   run cleos transfer user1 pomelo "10.0000 EOS" "grant:grant2"
   [ $status -eq 0 ]
 
-  balance=$(cleos get currency balance eosio.token pomelo)
+  run cleos transfer user1 pomelo "10.0000 EOS" "bounty:bounty1"
+  [ $status -eq 0 ]
+
+  balance=$(cleos get currency balance eosio.token fee.pomelo EOS)
   [ "$balance" = "1.0000 EOS" ]
 
-  run cleos push action pomelo setconfig '[systemfee, 0]' -p pomelo
-  [ $status -eq 0 ]
 }
 
 @test "clear transfers table" {

@@ -25,4 +25,10 @@
   result=$(cleos get table pomelo pomelo globals -L status | jq -r '.rows[0].value')
   [ $result = "1" ]
 
+  run cleos push action pomelo setconfig '[systemfee, 0]' -p pomelo
+  [ $status -eq 0 ]
+
+  run cleos push action pomelo setconfig '[minamount, 1000]' -p pomelo
+  [ $status -eq 0 ]
+
 }
