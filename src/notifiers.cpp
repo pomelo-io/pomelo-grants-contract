@@ -25,9 +25,9 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
     const extended_asset ext_quantity = { quantity, get_first_receiver() };
 
     if (project_type == "grant"_n) {
-        donate_project(_grants, project_id, from, to, ext_quantity, memo );
+        donate_project(_grants, project_id, from, ext_quantity, memo );
     } else if (project_type == "bounty"_n) {
-        donate_project(_bounties, project_id, from, to, ext_quantity, memo );
+        donate_project(_bounties, project_id, from, ext_quantity, memo );
     } else {
         check( false, ERROR_INVALID_MEMO);
     }

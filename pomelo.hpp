@@ -593,7 +593,7 @@ private:
     void enable_project( T& table, const name project_id, const name status );
 
     template <typename T>
-    void donate_project(const T& table, const name project_id, const name from, const name to, const extended_asset ext_quantity, const string memo );
+    void donate_project(const T& table, const name project_id, const name from, const extended_asset ext_quantity, const string memo );
 
     void donate_grant(const name grant_id, const extended_asset ext_quantity, const name user_id, const double value);
 

@@ -9,7 +9,7 @@
 #include "src/notifiers.cpp"
 
 template <typename T>
-void pomelo::donate_project(const T& table, const name project_id, const name from, const name to, const extended_asset ext_quantity, const string memo )
+void pomelo::donate_project(const T& table, const name project_id, const name from, const extended_asset ext_quantity, const string memo )
 {
     const auto project = table.get(project_id.value, "pomelo::donate_project: project not found");
 
@@ -34,7 +34,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
         donate_grant( project_id, donation, user_id, value );
     }
 
-    save_transfer( from, to, donation, fee_amount, memo, project.type, project.id, value );
+    save_transfer( from, project.funding_account, donation, fee_amount, memo, project.type, project.id, value );
 
     eosio::token::transfer_action transfer(donation.contract, { get_self(), "active"_n });
     transfer.send( get_self(), project.funding_account, donation.quantity, "🍈 " + memo + " donation via pomelo.io");
