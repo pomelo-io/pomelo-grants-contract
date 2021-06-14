@@ -164,8 +164,8 @@ void pomelo::init( )
 
     set_key_value("status"_n, 2 );
     set_key_value("roundid"_n, 0 );
-    set_key_value("minamount"_n, 1000 );
-    set_key_value("systemfee"_n, 0 );
+    set_key_value("minamount"_n, 10000 );
+    set_key_value("systemfee"_n, 500 );
 }
 
 // @admin
@@ -174,7 +174,8 @@ void pomelo::setconfig( const name key, const uint64_t value )
 {
     require_auth( get_self() );
 
-    set_key_value(key, value );
+    check( get_key_value( key ) != value, "pomelo::setconfig: value was not modified");
+    set_key_value( key, value );
 }
 
 
@@ -185,13 +186,21 @@ void pomelo::cleartable( const name table_name, const uint64_t max_rows )
     require_auth( get_self() );
     uint64_t rows_to_clear = max_rows == 0 ? -1 : max_rows;
 
-    if(table_name == "transfers"_n){
-        pomelo::transfers_table table( get_self(), get_self().value );
-        clear_table( table, rows_to_clear );
-    }
-    else {
-        check(false, "pomelo::cleartable: [table_name] clearing not allowed" );
-    }
+    // tables
+    pomelo::transfers_table transfers( get_self(), get_self().value );
+    pomelo::rounds_table rounds( get_self(), get_self().value );
+    pomelo::match_table match( get_self(), get_self().value );
+    pomelo::bounties_table bounties( get_self(), get_self().value );
+    pomelo::grants_table grants( get_self(), get_self().value );
+    pomelo::globals_table globals( get_self(), get_self().value );
+
+    if (table_name == "transfers"_n) clear_table( transfers, rows_to_clear );
+    else if (table_name == "rounds"_n) clear_table( rounds, rows_to_clear );
+    else if (table_name == "match"_n) clear_table( match, rows_to_clear );
+    else if (table_name == "bounties"_n) clear_table( bounties, rows_to_clear );
+    else if (table_name == "grants"_n) clear_table( grants, rows_to_clear );
+    else if (table_name == "globals"_n) clear_table( globals, rows_to_clear );
+    else check(false, "pomelo::cleartable: [table_name] unknown table to clear" );
 }
 
 
