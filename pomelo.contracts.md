@@ -6,6 +6,14 @@ summary: Initialize contract
 icon: https://avatars.githubusercontent.com/u/83723501#b74cf8b3d884f42fffea4bfe7070b3871e1845805c57973a48324af1228ad9cc
 ---
 
+<h1 class="contract">setconfig</h1>
+---
+spec_version: "0.2.0"
+title: init
+summary: Set config parameter
+icon: https://avatars.githubusercontent.com/u/83723501#b74cf8b3d884f42fffea4bfe7070b3871e1845805c57973a48324af1228ad9cc
+---
+
 <h1 class="contract">setproject</h1>
 ---
 spec_version: "0.2.0"
@@ -38,10 +46,42 @@ summary: Join round
 icon: https://avatars.githubusercontent.com/u/83723501#b74cf8b3d884f42fffea4bfe7070b3871e1845805c57973a48324af1228ad9cc
 ---
 
+<h1 class="contract">unjoinround</h1>
+---
+spec_version: "0.2.0"
+title: unjoinround
+summary: Exclude grant from round
+icon: https://avatars.githubusercontent.com/u/83723501#b74cf8b3d884f42fffea4bfe7070b3871e1845805c57973a48324af1228ad9cc
+---
+
 <h1 class="contract">startround</h1>
 ---
 spec_version: "0.2.0"
 title: startround
 summary: Start round
+icon: https://avatars.githubusercontent.com/u/83723501#b74cf8b3d884f42fffea4bfe7070b3871e1845805c57973a48324af1228ad9cc
+---
+
+<h1 class="contract">removeuser</h1>
+---
+spec_version: "0.2.0"
+title: removeuser
+summary: Remove user
+icon: https://avatars.githubusercontent.com/u/83723501#b74cf8b3d884f42fffea4bfe7070b3871e1845805c57973a48324af1228ad9cc
+---
+
+<h1 class="contract">collapse</h1>
+---
+spec_version: "0.2.0"
+title: collapse
+summary: Collapse users and their donations
+icon: https://avatars.githubusercontent.com/u/83723501#b74cf8b3d884f42fffea4bfe7070b3871e1845805c57973a48324af1228ad9cc
+---
+
+<h1 class="contract">cleartable</h1>
+---
+spec_version: "0.2.0"
+title: cleartable
+summary: Clear table
 icon: https://avatars.githubusercontent.com/u/83723501#b74cf8b3d884f42fffea4bfe7070b3871e1845805c57973a48324af1228ad9cc
 ---
