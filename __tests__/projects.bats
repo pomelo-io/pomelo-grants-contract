@@ -38,6 +38,10 @@
 @test "create bounty1 and fund it" {
 
   run cleos push action app.pomelo setproject '["prjman1.eosn", "bounty", "bounty1", "prjbounty1", [["4,EOS", "eosio.token"]]]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[funding_account] must by empty" ]]
+
+  run cleos push action app.pomelo setproject '["prjman1.eosn", "bounty", "bounty1", "", [["4,EOS", "eosio.token"]]]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo bounties | jq -r '.rows[0].id')
   [ $result = "bounty1" ]
@@ -55,6 +59,15 @@
   run cleos transfer user1 app.pomelo "100.0000 EOS" "bounty:bounty1" --contract fake.token
   [ $status -eq 1 ]
   [[ "$output" =~ "not accepted tokens for this project" ]]
+
+  run cleos transfer user1 app.pomelo "100.0000 EOS" "bounty:bounty1"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[funding_account] is not set" ]]
+
+  run cleos push action app.pomelo setproject '["prjman1.eosn", "bounty", "bounty1", "prjbounty1", [["4,EOS", "eosio.token"]]]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo bounties | jq -r '.rows[0].funding_account')
+  [ $result = "prjbounty1" ]
 
   run cleos transfer user1 app.pomelo "500.0000 EOS" "bounty:bounty1"
   [ $status -eq 0 ]

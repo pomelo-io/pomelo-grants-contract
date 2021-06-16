@@ -89,8 +89,7 @@ $ ./test.sh
 - [TABLE `rounds`](#table-rounds)
 - [ACTION `init`](#action-init)
 - [ACTION `setconfig`](#action-setconfig)
-- [ACTION `setgrant`](#action-setgrant)
-- [ACTION `setbounty`](#action-setbounty)
+- [ACTION `setproject`](#action-setproject)
 - [ACTION `enable`](#action-enable)
 - [ACTION `setround`](#action-setround)
 - [ACTION `joinround`](#action-joinround)
@@ -343,10 +342,10 @@ Create/update grant/bounty project without modifying project status
 
 ### params
 
-- `{name} author_id` - author user id
-- `{name} project_type` - project type (grant/bounty)
-- `{name} project_id` - project ID
-- `{name} funding_account` - account to forward donations to
+- `{name} author_id` - author user id - cannot be modified
+- `{name} project_type` - project type (grant/bounty) - cannot be modified
+- `{name} project_id` - project ID - cannot be modified
+- `{name} funding_account` - account to forward donations to, when creating bounty should be `""_n`
 - `{set<extended_symbol>} accepted_tokens` - accepted tokens
 
 ### example

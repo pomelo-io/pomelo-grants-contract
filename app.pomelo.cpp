@@ -16,6 +16,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
 
     check(project.status == "ok"_n, "pomelo::donate_project: project not available for donation");
     check(project.accepted_tokens.count(ext_quantity.get_extended_symbol()), "pomelo::donate_project: not acceptable tokens for this project");
+    check(project.funding_account.value, "pomelo::donate_project: [funding_account] is not set");
 
     auto donation = ext_quantity;
     auto value = calculate_value( donation );
@@ -145,6 +146,11 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
     if (itr != projects.end()) {
         check( project_type == itr->type, "pomelo::set_project: project [type] cannot be modified" );
         check( author_id == itr->author_user_id, "pomelo::set_project: project [author_id] cannot be modifed" );
+        check( is_account(funding_account) || (project_type == "bounty"_n && funding_account.value == 0), "pomelo::set_project: [funding_account] does not exists" );
+    }
+    else {  // new project
+        if( project_type == "bounty"_n ) check( funding_account.value == 0, "pomelo::set_project: [funding_account] must by empty for bounties" );
+        else check( is_account(funding_account), "pomelo::set_project: [funding_account] does not exists" );
     }
 
     auto insert = [&]( auto & row ) {
