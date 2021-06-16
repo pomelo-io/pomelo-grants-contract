@@ -18,7 +18,7 @@ cleos push action login.eosn create '["fund.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqc
 # create matching user, link to EOS account and set socials for matching boost
 cleos push action login.eosn create '["user.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
 cleos push action login.eosn social '["user.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn -p user.eosn
-cleos push action login.eosn link '["user.eosn", ["user.eosn"]]' -p login.eosn -p user.eosn
+cleos push action login.eosn link '["user.eosn", ["user1"]]' -p login.eosn -p user.eosn
 
 # create grant, enable it and join round
 cleos push action app.pomelo setproject '["author.eosn", "grant", "grant1", "fund.eosn", [["4,EOS", "eosio.token"]]]' -p app.pomelo -p author.eosn
@@ -26,7 +26,7 @@ cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo -p
 cleos push action app.pomelo joinround '["grant1", 1]' -p app.pomelo -p author.eosn
 
 # fund grant1
-cleos transfer user.eosn app.pomelo "10.0000 EOS" "grant:grant1"
+cleos transfer user1 app.pomelo "10.0000 EOS" "grant:grant1"
 
 # query transfer trx id
 cleos get table app.pomelo app.pomelo transfers | jq -r '.rows[0].trx_id'
