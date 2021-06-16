@@ -168,7 +168,7 @@ void login::social( const name user_id, const set<name> socials )
     login::users_table _users( get_self(), get_self().value );
 
     // notify contracts
-    if ( is_account("pomelo"_n) ) require_recipient("pomelo"_n);
+    if ( is_account("app.pomelo"_n) ) require_recipient("app.pomelo"_n);
 
     // validate user ID
     auto itr = _users.find( user_id.value );
