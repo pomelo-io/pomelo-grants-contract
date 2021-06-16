@@ -357,7 +357,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action pomelo init '[]' -p pomelo
+     * $ cleos push action app.pomelo init '[]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
@@ -380,7 +380,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action pomelo setconfig '["status", 1]' -p pomelo
+     * $ cleos push action app.pomelo setconfig '["status", 1]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
@@ -402,7 +402,7 @@ public:
      * ### Example
      *
      * ```bash
-     * $ cleos push action pomelo setproject '["123.eosn", "grant", "mygrant", "project2fund", [["4,USDT", "tethertether"]]]' -p pomelo -p 123.eosn
+     * $ cleos push action app.pomelo setproject '["123.eosn", "grant", "mygrant", "project2fund", [["4,USDT", "tethertether"]]]' -p app.pomelo -p 123.eosn
      * ```
      */
     [[eosio::action]]
@@ -422,7 +422,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action pomelo enable '["grant", "grant1", 1]' -p pomelo
+     * $ cleos push action app.pomelo enable '["grant", "grant1", 1]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
@@ -442,7 +442,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00"]' -p pomelo
+     * $ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00"]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
@@ -461,7 +461,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action pomelo joinround '["grant1", 1]' -p pomelo -p 123.eosn
+     * $ cleos push action app.pomelo joinround '["grant1", 1]' -p app.pomelo -p 123.eosn
      * ```
      */
     [[eosio::action]]
@@ -480,7 +480,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action pomelo unjoinround '["grant1", 1]' -p pomelo
+     * $ cleos push action app.pomelo unjoinround '["grant1", 1]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
@@ -529,7 +529,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action pomelo cleartable '["transfers", 500]' -p pomelo
+     * $ cleos push action app.pomelo cleartable '["transfers", 500]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
@@ -548,7 +548,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action pomelo removeuser '["user1.eosn", 1]' -p pomelo
+     * $ cleos push action app.pomelo removeuser '["user1.eosn", 1]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
@@ -568,7 +568,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action pomelo collapse '[["user2.eosn","user3.eosn","user4.eosn"], "user1.eosn", 1]' -p pomelo
+     * $ cleos push action app.pomelo collapse '[["user2.eosn","user3.eosn","user4.eosn"], "user1.eosn", 1]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
