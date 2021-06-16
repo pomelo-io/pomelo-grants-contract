@@ -1,7 +1,8 @@
 #include <eosn.login/login.eosn.hpp>
 #include <eosio.token/eosio.token.hpp>
 #include <sx.utils/utils.hpp>
-#include "pomelo.hpp"
+
+#include "app.pomelo.hpp"
 
 #include "src/utils.cpp"
 #include "src/actions.cpp"

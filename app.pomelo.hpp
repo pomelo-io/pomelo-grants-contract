@@ -17,7 +17,7 @@ static set<name> STATUS_TYPES = set<name>{"ok"_n, "testing"_n, "pending"_n, "dis
 
 static string ERROR_INVALID_MEMO = "invalid transfer memo (ex: \"grant:mygrant\" or \"bounty:mybounty\")";
 
-class [[eosio::contract]] pomelo : public eosio::contract {
+class [[eosio::contract("app.pomelo")]] pomelo : public eosio::contract {
 public:
     using contract::contract;
 

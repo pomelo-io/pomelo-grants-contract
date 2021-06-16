@@ -4,9 +4,9 @@
 cleos wallet unlock --password $(cat ~/eosio-wallet/.pass)
 
 # build
-eosio-cpp pomelo.cpp -I include
-# blanc++ pomelo.cpp -I include
-cleos set contract pomelo . pomelo.wasm pomelo.abi
+eosio-cpp app.pomelo.cpp -I include
+# blanc++ app.pomelo.cpp -I include
+cleos set contract pomelo . app.pomelo.wasm app.pomelo.abi
 
 # additional builds
 if [ ! -f "./include/eosio.token/eosio.token.wasm" ]; then

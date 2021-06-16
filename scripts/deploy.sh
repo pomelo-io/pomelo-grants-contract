@@ -4,7 +4,7 @@
 cleos wallet unlock --password $(cat ~/eosio-wallet/.pass)
 
 # create account
-cleos create account eosio pomelo EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+cleos create account eosio app.pomelo EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio fee.pomelo EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio eosn EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio login.eosn EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
@@ -39,10 +39,10 @@ cleos set contract tethertether ./include/eosio.token eosio.token.wasm eosio.tok
 cleos set contract fake.token ./include/eosio.token eosio.token.wasm eosio.token.abi
 cleos set contract login.eosn ./include/eosn.login login.eosn.wasm login.eosn.abi
 cleos set contract swap.defi ./include/swap.defi swap.defi.wasm swap.defi.abi
-cleos set contract pomelo . pomelo.wasm pomelo.abi
+cleos set contract app.pomelo . app.pomelo.wasm app.pomelo.abi
 
 # @eosio.code permission
-cleos set account permission pomelo active --add-code
+cleos set account permission app.pomelo active --add-code
 cleos set account permission login.eosn active --add-code
 cleos set account permission eosn active login.eosn --add-code
 
