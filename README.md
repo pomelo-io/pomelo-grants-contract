@@ -38,6 +38,9 @@ cleos get table app.pomelo 1 match -L grant1 | jq -r '.rows[0].square'
 # query sum of grant squares for that round
 cleos get table app.pomelo app.pomelo rounds -L 1 | jq -r '.rows[0].sum_square'
 # => 22.5 => grant1 receives 22.5/22.5 = 100% of matching funding
+
+# clear 100 rows from transfers table
+cleos push action app.pomelo cleartable '["transfers", 100]' -p app.pomelo
 ```
 
 ## Dependencies
@@ -154,7 +157,7 @@ $ ./test.sh
 }
 ```
 
-## TABLE `transfer`
+## TABLE `transfers`
 
 - **scope**: `get_self() {name}`
 
@@ -313,6 +316,7 @@ Init contract config with default parameters (status=2, roundid=0, minamount=100
 
 ```bash
 $ cleos push action app.pomelo init '[]' -p app.pomelo
+```
 
 ## ACTION `setconfig`
 
