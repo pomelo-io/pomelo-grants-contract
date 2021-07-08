@@ -153,6 +153,11 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
         else check( is_account(funding_account), "pomelo::set_project: [funding_account] does not exists" );
     }
 
+    for ( const extended_symbol accepted_token : accepted_tokens ) {
+        const asset supply = token::get_supply( accepted_token.get_contract(), accepted_token.get_symbol().code() );
+        check( supply.symbol == accepted_token.get_symbol(), "pomelo::set_project: [accepted_tokens] symbol does not match with token supply");
+    }
+
     auto insert = [&]( auto & row ) {
         row.id = project_id;
         row.type = project_type;
