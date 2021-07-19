@@ -47,7 +47,8 @@ void pomelo::on_social( const name user_id, const set<name> socials )
     const auto round_itr = _rounds.find( round_id );
     if (round_itr == _rounds.end() || get_index( round_itr->user_ids, user_id ) == -1) return;
 
-    const auto new_multiplier = get_user_boost_mutliplier( user_id );
+    const auto weight = eosn::login::get_user_weight( get_self(), user_id );
+    const double new_multiplier = static_cast<double>( weight ) / 100;
 
     const auto user_itr = _users.find( user_id.value );
     if (user_itr == _users.end() || user_itr->multiplier == new_multiplier) return;

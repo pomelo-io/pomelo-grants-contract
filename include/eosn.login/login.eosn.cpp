@@ -237,4 +237,24 @@ void login::authorize( const name user_id )
     require_auth_user_id( user_id );
 }
 
+[[eosio::action]]
+void login::setsocial( const name contract, const name social, const uint32_t weight )
+{
+    require_auth( get_self() );
+    check( weight <= 200, "login::setsocial: [weight] should be <= 200");
+
+    login::socials_table _socials( get_self(), contract.value );
+
+    auto insert = [&]( auto & row ) {
+        row.social = social;
+        row.weight = weight;
+    };
+    const auto itr = _socials.find( social.value );
+    if ( itr == _socials.end() ) _socials.emplace( get_self(), insert );
+    else {
+        if( weight == 0 ) _socials.erase( itr );
+        else _socials.modify( itr, get_self(), insert );
+    }
+}
+
 } // namespace eosn

@@ -78,3 +78,11 @@ cleos transfer eosio user.noeosn "1000000.0000 EOS" ""
 
 # set price in defibox contract
 cleos push action swap.defi setprice '[12, ["4,EOS", "eosio.token"], ["4,USDT", "tethertether"], 10]' -p swap.defi
+
+# set socials weights
+cleos push action login.eosn setsocial '["app.pomelo", "sms", 25]' -p login.eosn
+cleos push action login.eosn setsocial '["app.pomelo", "facebook", 25]' -p login.eosn
+cleos push action login.eosn setsocial '["app.pomelo", "twitter", 25]' -p login.eosn
+cleos push action login.eosn setsocial '["app.pomelo", "github", 25]' -p login.eosn
+cleos push action login.eosn setsocial '["app.pomelo", "passport", 25]' -p login.eosn
+cleos push action login.eosn setsocial '["app.pomelo", "eden", 50]' -p login.eosn

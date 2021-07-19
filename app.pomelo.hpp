@@ -581,7 +581,6 @@ private:
     double calculate_value(const extended_asset ext_quantity);
     name get_user_id( const name user );
     bool is_user( const name user_id );
-    double get_user_boost_mutliplier( const name user_id );
     void validate_round( const uint64_t round_id );
 
     // globals key/value

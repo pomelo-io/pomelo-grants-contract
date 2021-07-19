@@ -47,21 +47,6 @@ bool pomelo::is_user( const name user_id )
     return users.find(user_id.value) != users.end();
 }
 
-double pomelo::get_user_boost_mutliplier( const name user_id )
-{
-    eosn::login::users_table users( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
-    const auto user = users.get(user_id.value, "pomelo::get_user_boost_mutliplier: user id doesn't exist");
-
-    check(user.status != "deleted"_n, "pomelo::get_user_boost_mutliplier: user is not allowed to donate");
-
-    double multiplier = 0;
-
-    //each social gives 25% boost
-    multiplier += user.socials.size() * 0.25;
-
-    return multiplier;
-}
-
 void pomelo::validate_round( const uint64_t round_id )
 {
     pomelo::rounds_table _rounds( get_self(), get_self().value );
