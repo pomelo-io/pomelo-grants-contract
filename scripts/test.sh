@@ -10,6 +10,6 @@ cleos push action app.pomelo setconfig '["status", 1]' -p app.pomelo
 cleos push action app.pomelo setconfig '["roundid", 1]' -p app.pomelo
 
 # create grant, enable it and join round
-cleos push action app.pomelo setgrant '["grant1", "prjman.eosn", ["prjman.eosn"], "prjgrant", [["4,EOS", "eosio.token"]]]' -p app.pomelo
-cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo
-cleos push action app.pomelo joinround '["grant1", 1]' -p app.pomelo
+cleos push action app.pomelo setproject '["prjman1.eosn", "grant", "mygrant", "prjgrant1", [["4,EOS", "eosio.token"], ["4,USDT", "tethertether"]]]' -p app.pomelo -p prjman1.eosn
+cleos push action app.pomelo enable '["grant", "mygrant", "ok"]' -p app.pomelo -p prjman1.eosn
+cleos push action app.pomelo joinround '["mygrant", 1]' -p app.pomelo -p prjman1.eosn

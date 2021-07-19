@@ -18,6 +18,7 @@ public:
     using contract::contract;
 
     static constexpr name LOGIN_CONTRACT = "login.eosn"_n;
+    static constexpr name POMELO_CONTRACT = "app.pomelo"_n;
 
     /**
      * ## TABLE `users`
@@ -107,6 +108,56 @@ public:
     typedef eosio::multi_index< "accounts"_n, accounts_row,
         indexed_by< "byuser"_n, const_mem_fun<accounts_row, uint64_t, &accounts_row::byuser> >
     > accounts_table;
+
+    /**
+     * ## TABLE `proofs`
+     *
+     * ### multi-indexes
+     *
+     * | `param`        | `index_position` | `key_type` |
+     * |--------------- |------------------|------------|
+     * | `byaccount`    | 2                | i64        |
+     * | `bynonce`      | 3                | i64        |
+     * | `bycreated`    | 4                | i64        |
+     *
+     * ### params
+     *
+     * - `{uint64_t} id` - (primary key) incremental ID
+     * - `{name} account` - nonce number
+     * - `{uint64_t} nonce` - nonce number
+     * - `{string} data` - (optional) string data
+     * - `{time_point_sec} created_at` - created at time
+     *
+     * ### example
+     *
+     * ```json
+     * {
+     *     "id": 1,
+     *     "account": "myaccount",
+     *     "nonce": 1,
+     *     "data": "any data",
+     *     "created_at": "2020-12-06T00:00:00",
+     * }
+     * ```
+     */
+    struct [[eosio::table("proofs")]] proofs_row {
+        uint64_t            id;
+        name                account;
+        uint64_t            nonce;
+        string              data;
+        time_point_sec      created_at;
+
+        uint64_t primary_key() const { return id; }
+        uint64_t byaccount() const { return account.value; };
+        uint64_t bynonce() const { return nonce; };
+        uint64_t bycreated() const { return created_at.sec_since_epoch(); };
+    };
+    typedef eosio::multi_index< "proofs"_n, proofs_row,
+        indexed_by< "byaccount"_n, const_mem_fun<proofs_row, uint64_t, &proofs_row::byaccount> >,
+        indexed_by< "bynonce"_n, const_mem_fun<proofs_row, uint64_t, &proofs_row::bynonce> >,
+        indexed_by< "bycreated"_n, const_mem_fun<proofs_row, uint64_t, &proofs_row::bycreated> >
+        // indexed_by< "byexpired"_n, const_mem_fun<proofs_row, uint64_t, &proofs_row::byexpired> >
+    > proofs_table;
 
     /**
      * ## ACTION `create`
@@ -219,6 +270,26 @@ public:
      */
     [[eosio::action]]
     void social( const name user_id, const set<name> socials );
+
+    /**
+     * ## ACTION `proof`
+     *
+     * - **authority**: `account`
+     *
+     * ### params
+     *
+     * - `{name} account` - account name
+     * - `{uint64_t} nonce` - proof nonce
+     * - `{string} [data=""]` - (optional) string data
+     *
+     * ### Example
+     *
+     * ```bash
+     * $ cleos push action login.eosn proof '["myaccount", 123, "any data"]' -p myaccount
+     * ```
+     */
+    [[eosio::action]]
+    void proof( const name account, const uint64_t nonce, const optional<string> data );
 
     /**
      * ## ACTION `authorize`
