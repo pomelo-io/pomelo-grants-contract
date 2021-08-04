@@ -470,7 +470,7 @@ public:
     /**
      * ## ACTION `unjoinround`
      *
-     * Add grant to matching round
+     * Remove grant from matching round
      *
      * ### params
      *

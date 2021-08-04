@@ -305,18 +305,17 @@ public:
      *
      * ### params
      *
-     * - `{name} contract` - app contract
      * - `{name} social` - social
      * - `{uint32_t} weight` - social weight
      *
      * ### Example
      *
      * ```bash
-     * $ cleos push action login.eosn setsocial '["app.pomelo", "eden", 50]' -p login.eosn
+     * $ cleos push action login.eosn setsocial '["eden", 50]' -p login.eosn
      * ```
      */
     [[eosio::action]]
-    void setsocial( const name contract, const name social, const uint32_t weight );
+    void setsocial( const name social, const uint32_t weight );
 
     /**
      * ## ACTION `proof`
@@ -422,7 +421,6 @@ public:
      *
      * ### params
      *
-     * - `{name} contract` - contract, i.e. "app.pomelo"_n
      * - `{name} user_id` - user ID
      *
      * ### returns
@@ -432,22 +430,21 @@ public:
      * ### example
      *
      * ```c++
-     * const name contract = "app.pomelo"_n;
      * const name user_id = "123.eosn"_n;
+     * const auto weight = eosn::login::get_user_weight( user_id );
      * //=> 150
      * ```
      */
-    static uint32_t get_user_weight( const name contract, const name user_id )
+    static uint32_t get_user_weight( const name user_id )
     {
         login::users_table _users( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
-        login::socials_table _socials( LOGIN_CONTRACT, contract.value );
+        login::socials_table _socials( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
 
         auto user = _users.get( user_id.value, "login::get_user_weight: [user_id] does not exist" );
         check( user.status != "deleted"_n, "login::get_user_weight: user is deleted" );
         uint32_t total_weight = 0;
-        for ( const auto& row : _socials ) {
-            if(user.socials.count( row.social ))
-                total_weight += row.weight;
+        for( const auto& social: user.socials ){
+            total_weight += _socials.get( social.value, "login::get_user_weight: [user_id] has unknown social").weight;
         }
         return total_weight;
     }

@@ -182,6 +182,7 @@ void login::social( const name user_id, const set<name> socials )
     require_auth_user_id( user_id );
 
     login::users_table _users( get_self(), get_self().value );
+    login::socials_table _socials( get_self(), get_self().value );
 
     // notify contracts
     if ( is_account(POMELO_CONTRACT) ) require_recipient(POMELO_CONTRACT);
@@ -189,6 +190,9 @@ void login::social( const name user_id, const set<name> socials )
     // validate user ID
     auto itr = _users.find( user_id.value );
     check( itr != _users.end(), "login::social: [user_id] does not exist" );
+    for(const auto& social: socials){
+        check( _socials.find( social.value ) != _socials.end(), "login::social: one of the [socials] is unknown" );
+    }
 
     // modify user row
     _users.modify( itr, get_self(), [&]( auto & row ) {
@@ -238,12 +242,12 @@ void login::authorize( const name user_id )
 }
 
 [[eosio::action]]
-void login::setsocial( const name contract, const name social, const uint32_t weight )
+void login::setsocial( const name social, const uint32_t weight )
 {
     require_auth( get_self() );
     check( weight <= 200, "login::setsocial: [weight] should be <= 200");
 
-    login::socials_table _socials( get_self(), contract.value );
+    login::socials_table _socials( get_self(), get_self().value );
 
     auto insert = [&]( auto & row ) {
         row.social = social;

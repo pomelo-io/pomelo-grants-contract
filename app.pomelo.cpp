@@ -55,7 +55,7 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
     check( get_index(round_itr->grant_ids, grant_id) != -1, "pomelo::donate_grant: [grant_id] has not joined current matching round");
 
     // update project matching records
-    const auto weight = eosn::login::get_user_weight( get_self(), user_id );
+    const auto weight = eosn::login::get_user_weight( user_id );
     const double multiplier = static_cast<double>( weight ) / 100;
     const auto boost = value * multiplier;  // boost based on socials and other boosters
 
