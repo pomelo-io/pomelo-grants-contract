@@ -1,6 +1,44 @@
+// @admin
+[[eosio::action]]
+void pomelo::token( const symbol sym, const name contract, const uint64_t min_amount, const optional<string> description, const optional<string> url )
+{
+    // authenticate
+    require_auth( get_self() );
+
+    pomelo::tokens_table tokens( get_self(), get_self().value );
+
+    const asset supply = token::get_supply( contract, sym.code() );
+    check( supply.symbol == sym, "pomelo::token: [sym] symbol does not match with token supply");
+    check( supply.amount, "pomelo::token: [sym] has no supply");
+
+    const auto insert = [&]( auto & row ) {
+        row.sym = sym;
+        row.contract = contract;
+        row.min_amount = min_amount;
+        if ( description ) row.description = *description;
+        if ( url ) row.url = *url;
+    };
+
+    const auto itr = tokens.find( sym.code().raw() );
+    if ( itr == tokens.end() ) tokens.emplace( get_self(), insert );
+    else tokens.modify( itr, get_self(), insert );
+}
+
+// @admin
+[[eosio::action]]
+void pomelo::deltoken( const symbol_code symcode )
+{
+    // authenticate
+    require_auth( get_self() );
+
+    pomelo::tokens_table tokens( get_self(), get_self().value );
+    const auto & itr = tokens.get( symcode.raw(), "pomelo::deltoken: [symcode] token not found" );
+    tokens.erase( itr );
+}
+
 // @user
 [[eosio::action]]
-void pomelo::setproject( const name author_id, const name project_type, const name project_id, const name funding_account, const set<extended_symbol> accepted_tokens )
+void pomelo::setproject( const name author_id, const name project_type, const name project_id, const name funding_account, const set<symbol_code> accepted_tokens )
 {
     // authenticate
     require_auth( get_self() );
@@ -134,7 +172,7 @@ void pomelo::enable_project( T& table, const name project_id, const name status 
 
 // @admin
 [[eosio::action]]
-void pomelo::setround( const uint64_t round_id, const time_point_sec start_at, const time_point_sec end_at )
+void pomelo::setround( const uint64_t round_id, const time_point_sec start_at, const time_point_sec end_at, const string description, const vector<extended_asset> match_tokens )
 {
     require_auth( get_self() );
 
@@ -143,8 +181,10 @@ void pomelo::setround( const uint64_t round_id, const time_point_sec start_at, c
 
     const auto insert = [&]( auto & row ) {
         row.round = round_id;
+        row.description = description;
         row.start_at = start_at;
         row.end_at = end_at;
+        row.match_tokens = match_tokens;
         row.updated_at = current_time_point();
         if( itr == rounds.end() ) row.created_at = current_time_point();
     };
@@ -161,7 +201,6 @@ void pomelo::init( )
 
     set_key_value("status"_n, 2 );
     set_key_value("roundid"_n, 0 );
-    set_key_value("minamount"_n, 10000 );
     set_key_value("systemfee"_n, 500 );
 }
 
@@ -190,6 +229,7 @@ void pomelo::cleartable( const name table_name, const uint64_t max_rows )
     pomelo::bounties_table bounties( get_self(), get_self().value );
     pomelo::grants_table grants( get_self(), get_self().value );
     pomelo::globals_table globals( get_self(), get_self().value );
+    pomelo::tokens_table tokens( get_self(), get_self().value );
 
     if (table_name == "transfers"_n) clear_table( transfers, rows_to_clear );
     else if (table_name == "rounds"_n) clear_table( rounds, rows_to_clear );
@@ -197,6 +237,7 @@ void pomelo::cleartable( const name table_name, const uint64_t max_rows )
     else if (table_name == "bounties"_n) clear_table( bounties, rows_to_clear );
     else if (table_name == "grants"_n) clear_table( grants, rows_to_clear );
     else if (table_name == "globals"_n) clear_table( globals, rows_to_clear );
+    else if (table_name == "tokens"_n) clear_table( tokens, rows_to_clear );
     else check(false, "pomelo::cleartable: [table_name] unknown table to clear" );
 }
 
@@ -216,9 +257,9 @@ void pomelo::removeuser( const name user_id, const uint64_t round_id )
 
     // update match table
     pomelo::match_table _match( get_self(), round_id );
-    for(const auto grant: user.contributions){
+    for (const auto grant: user.contributions) {
         const auto match_itr = _match.find( grant.id.value );
-        if(match_itr->total_users == 1){
+        if (match_itr->total_users == 1) {
             _match.erase(match_itr);
             continue;
         }
@@ -255,8 +296,6 @@ void pomelo::removeuser( const name user_id, const uint64_t round_id )
         row.updated_at = current_time_point();
         // no easy way to update row.accepted_tokens since they were already converted to values
     });
-
-
 }
 
 [[eosio::action]]

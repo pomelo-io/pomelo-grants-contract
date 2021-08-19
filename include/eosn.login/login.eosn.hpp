@@ -443,7 +443,7 @@ public:
         auto user = _users.get( user_id.value, "login::get_user_weight: [user_id] does not exist" );
         check( user.status != "deleted"_n, "login::get_user_weight: user is deleted" );
         uint32_t total_weight = 0;
-        for( const auto& social: user.socials ){
+        for ( const auto& social: user.socials ) {
             total_weight += _socials.get( social.value, "login::get_user_weight: [user_id] has unknown social").weight;
         }
         return total_weight;

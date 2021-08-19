@@ -90,6 +90,7 @@ $ ./test.sh
 - [TABLE `transfers`](#table-transfers)
 - [TABLE `match`](#table-match)
 - [TABLE `rounds`](#table-rounds)
+- [TABLE `tokens`](#table-tokens)
 - [ACTION `init`](#action-init)
 - [ACTION `setconfig`](#action-setconfig)
 - [ACTION `setproject`](#action-setproject)
@@ -100,6 +101,7 @@ $ ./test.sh
 - [ACTION `cleartable`](#action-cleartable)
 - [ACTION `removeuser`](#action-removeuser)
 - [ACTION `collapse`](#action-collapse)
+- [ACTION `token`](#action-token)
 
 ## TABLE `globals`
 
@@ -135,7 +137,7 @@ $ ./test.sh
 - `{name} type` - (❗️**IMMUTABLE**) project type (ex: `grant/bounty`)
 - `{name} author_user_id` - (❗️**IMMUTABLE**) author (Pomelo User Id)
 - `{name} [funding_account=""]` - funding account (EOS account)
-- `{set<extended_symbol>} [accepted_tokens=["4,EOS@eosio.token"]]` - accepted tokens (ex: `EOS/USDT`)
+- `{set<symbol_code>} [accepted_tokens=["EOS"]]` - accepted tokens (ex: `["EOS"]`)
 - `{name} [status="pending"]` - status (`pending/ok/disabled`)
 - `{time_point_sec} created_at` - created at time
 - `{time_point_sec} updated_at` - updated at time
@@ -149,7 +151,7 @@ $ ./test.sh
     "type": "grant",
     "author_user_id": "user1.eosn",
     "funding_account": "myreceiver",
-    "accepted_tokens": [{"contract": "eosio.token", "symbol": "4,EOS"}],
+    "accepted_tokens": ["EOS"],
     "status": "ok",
     "created_at": "2020-12-06T00:00:00",
     "updated_at": "2020-12-06T00:00:00",
@@ -273,9 +275,11 @@ $ ./test.sh
 ### params
 
 - `{uint64_t} round` - (primary key) matching rounds
+- `{string} description` - grant text description
 - `{set<name>} grant_ids` - grants IDs participating
 - `{set<name>} user_ids` - user IDs participating
-- `{vector<extended_asset>} accepted_tokens` - accepted tokens
+- `{vector<extended_asset>} donated_tokens` - donated tokens
+- `{vector<extended_asset>} match_tokens` - matching pool tokens
 - `{double} sum_value` - total value donated this round
 - `{double} sum_boost` - total boost received this round
 - `{double} sum_square` - square of total sqrt sum
@@ -290,9 +294,11 @@ $ ./test.sh
 ```json
 {
     "round": 1,
+    "description": "Grant Round #1",
     "grant_ids": ["grant1"],
     "user_ids": ["user1.eosn"],
-    "accepted_tokens": [{"contract": "eosio.token", "quantity": "1.0000 EOS"}],
+    "donated_tokens": [{"contract": "eosio.token", "quantity": "100.0000 EOS"}],
+    "match_tokens": [{"contract": "eosio.token", "quantity": "1000.0000 EOS"}],
     "sum_value": 12345,
     "sum_boost": 3231,
     "sum_square": 423451.1233,
@@ -304,11 +310,33 @@ $ ./test.sh
 }
 ```
 
+## TABLE `tokens`
+
+### params
+
+- `{symbol} sym` - (primary key) symbol
+- `{name} contract` - token contract
+- `{uint64_t} min_amount` - min amount required when donating
+- `{string} description` - token description
+- `{string} url` - token url
+
+### example
+
+```json
+{
+    "sym": "4,EOS",
+    "contract": "eosio.token",
+    "min_amount": 10000,
+    "description": "EOS token",
+    "url": "https://eos.io"
+}
+```
+
 ## ACTION `init`
 
 - **authority**: `get_self()`
 
-Init contract config with default parameters (status=2, roundid=0, minamount=1000, systemfee=0)
+Init contract config with default parameters (status=2, roundid=0, systemfee=0)
 
 ### params
 
@@ -325,7 +353,6 @@ $ cleos push action app.pomelo init '[]' -p app.pomelo
 Set contract config key/value
 - `status` - contract status (0=testing, 1=ok, 2=maintenance)
 - `roundid` - ongoing round (0=not active)
-- `minamount` - minimum grant donation value amount with precision = 4 (1234=0.1234 EOS)
 - `systemfee` - donation fee (500=5%)
 
 ### params
@@ -350,12 +377,12 @@ Create/update grant/bounty project without modifying project status
 - `{name} project_type` - project type (grant/bounty) - cannot be modified
 - `{name} project_id` - project ID - cannot be modified
 - `{name} funding_account` - account to forward donations to, when creating bounty should be `""_n`
-- `{set<extended_symbol>} accepted_tokens` - accepted tokens
+- `{set<symbol_code>} accepted_tokens` - accepted tokens
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo setproject '["123.eosn", "grant", "mygrant", "project2fund", [["4,USDT", "tethertether"]]]' -p app.pomelo -p 123.eosn
+$ cleos push action app.pomelo setproject '["123.eosn", "grant", "mygrant", "project2fund", ["EOS"]]' -p app.pomelo -p 123.eosn
 ```
 
 ## ACTION `enable`
@@ -378,20 +405,20 @@ $ cleos push action app.pomelo enable '["grant", "grant1", 1]' -p app.pomelo
 
 ## ACTION `setround`
 
-- **authority**: `get_self()` + `author_id`
-
-Creates/updates match round with specified parameters.
+Create/update round
 
 ### params
 
-- `{uint64_t} round_id` - round_id
+- `{uint64_t} round_id` - round id
 - `{time_point_sec} start_at` - round start time
 - `{time_point_sec} end_at` - round end time
+- `{string} description` - grant description
+- `{vector<extended_asset>} match_tokens` - matching pool tokens
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00"]' -p app.pomelo
+$ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Grant Round #1", [["1000.0000 EOS", "eosio.token"]]]' -p app.pomelo
 ```
 
 ## ACTION `joinround`
@@ -478,4 +505,21 @@ Collapse donations from {user_ids} users into {user_id} in {round_id} and recalc
 
 ```bash
 $ cleos push action app.pomelo collapse '[["user2.eosn","user3.eosn","user4.eosn"], "user1.eosn", 1]' -p app.pomelo
+```
+
+## ACTION `token`
+
+Set token information
+
+### params
+
+- `{extended_symbol} token` - (primary key) extended symbol
+- `{uint64_t} min_amount` - min amount required when donating
+- `{string} [description=""]` - (optional) token description
+- `{string} [url=""]` - (optional) token url
+
+### example
+
+```bash
+$ cleos push action app.pomelo token '[[["eosio.token", "4,EOS"]], 10000, "EOS Token", "https://eosio.io"]' -p app.pomelo
 ```

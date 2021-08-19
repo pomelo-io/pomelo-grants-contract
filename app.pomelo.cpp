@@ -14,17 +14,19 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
 {
     const auto project = table.get(project_id.value, "pomelo::donate_project: project not found");
 
+    const symbol_code symcode = ext_quantity.quantity.symbol.code();
     check(project.status == "ok"_n, "pomelo::donate_project: project not available for donation");
-    check(project.accepted_tokens.count(ext_quantity.get_extended_symbol()), "pomelo::donate_project: not acceptable tokens for this project");
+    check(project.accepted_tokens.count(symcode), "pomelo::donate_project: not acceptable tokens for this project");
     check(project.funding_account.value, "pomelo::donate_project: [funding_account] is not set");
+    check(is_token_enabled( symcode ), "pomelo::donate_project: [token=" + symcode.to_string() + "] is disabled");
 
     auto donation = ext_quantity;
     auto value = calculate_value( donation );
 
     print("Donation ", project_id, " with ", donation, " == ", value, " value");
 
-    const uint64_t min_amount = get_key_value("minamount"_n);
-    check( value * 10000 >= min_amount, "pomelo::donate_project: donation is less than [config.min_amount]");
+    const uint64_t min_amount = get_token_min_amount( symcode );
+    check( value * 10000 >= min_amount, "pomelo::donate_project: donation is less than [tokens.min_amount]");
 
     const uint64_t fee = get_key_value("systemfee"_n);
     asset fee_amount = donation.quantity * fee / 10000;
@@ -41,7 +43,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     eosio::token::transfer_action transfer(donation.contract, { get_self(), "active"_n });
     transfer.send( get_self(), project.funding_account, donation.quantity, "🍈 " + memo + " donation via pomelo.io");
 
-    if(fee_amount.amount > 0) transfer.send( get_self(), FEE_ACCOUNT, fee_amount, "🍈 " + memo + " fee ");
+    if ( is_account( FEE_ACCOUNT ) && fee_amount.amount > 0 ) transfer.send( get_self(), FEE_ACCOUNT, fee_amount, "🍈 " + memo + " fee ");
 }
 
 void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity, const name user_id, const double value )
@@ -52,7 +54,9 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
     // get round
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto round_itr = rounds.find( round_id );
+    const symbol_code symcode = ext_quantity.quantity.symbol.code();
     check( get_index(round_itr->grant_ids, grant_id) != -1, "pomelo::donate_grant: [grant_id] has not joined current matching round");
+    check( is_token_enabled( symcode ), "pomelo::donate_grant: [token=" + symcode.to_string() + "] is currently disabled");
 
     // update project matching records
     const auto weight = eosn::login::get_user_weight( user_id );
@@ -98,16 +102,16 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
     if ( match_itr == _match.end() ) _match.emplace( get_self(), insert_match );
     else _match.modify( match_itr, get_self(), insert_match );
 
-    //update round
+    // update round
     rounds.modify( round_itr, get_self(), [&]( auto & row ) {
         bool added = false;
-        for ( auto& accepted_token : row.accepted_tokens ) {
-            if ( accepted_token.get_extended_symbol() == ext_quantity.get_extended_symbol() ) {
-                accepted_token += ext_quantity;
+        for ( extended_asset & donated_token : row.donated_tokens ) {
+            if ( donated_token.get_extended_symbol() == ext_quantity.get_extended_symbol() ) {
+                donated_token += ext_quantity;
                 added = true;
             }
         }
-        if (!added) row.accepted_tokens.push_back(ext_quantity);
+        if (!added) row.donated_tokens.push_back(ext_quantity);
         if( get_index(row.user_ids, user_id) == -1) row.user_ids.push_back(user_id);
         row.sum_value += value;
         row.sum_boost += boost;
@@ -140,7 +144,7 @@ void pomelo::save_transfer( const name from, const name to, const extended_asset
 }
 
 template <typename T>
-void pomelo::set_project( T& projects, const name project_type, const name project_id, const name author_id, const name funding_account, const set<extended_symbol> accepted_tokens )
+void pomelo::set_project( T& projects, const name project_type, const name project_id, const name author_id, const name funding_account, const set<symbol_code> accepted_tokens )
 {
     // create/update project
     const auto itr = projects.find( project_id.value );
@@ -150,13 +154,12 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
         check( is_account(funding_account) || (project_type == "bounty"_n && funding_account.value == 0), "pomelo::set_project: [funding_account] does not exists" );
     }
     else {  // new project
-        if( project_type == "bounty"_n ) check( funding_account.value == 0, "pomelo::set_project: [funding_account] must by empty for bounties" );
+        if ( project_type == "bounty"_n ) check( funding_account.value == 0, "pomelo::set_project: [funding_account] must by empty for bounties" );
         else check( is_account(funding_account), "pomelo::set_project: [funding_account] does not exists" );
     }
 
-    for ( const extended_symbol accepted_token : accepted_tokens ) {
-        const asset supply = token::get_supply( accepted_token.get_contract(), accepted_token.get_symbol().code() );
-        check( supply.symbol == accepted_token.get_symbol(), "pomelo::set_project: [accepted_tokens] symbol does not match with token supply");
+    for ( const symbol_code accepted_token : accepted_tokens ) {
+        check( is_token_enabled( accepted_token ), "pomelo::set_project: [accepted_token=" + accepted_token.to_string() +"] token id disabled" );
     }
 
     auto insert = [&]( auto & row ) {
@@ -165,6 +168,7 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
         row.author_user_id = author_id;
         row.funding_account = funding_account;
         if ( accepted_tokens.size() ) row.accepted_tokens = accepted_tokens;
+        check( accepted_tokens.size(), "pomelo::set_project: [accepted_tokens] cannot be empty");
         if ( itr == projects.end() ) row.created_at = current_time_point();
         row.updated_at = current_time_point();
     };

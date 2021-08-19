@@ -519,15 +519,12 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "donation is less than [config.min_amount]" ]]
 
-  run cleos push action app.pomelo setconfig '[minamount, 1001]' -p app.pomelo
+  run cleos push action app.pomelo token '["4,EOS", "eosio.token", 1001, null, null]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos transfer user1 app.pomelo "0.1000 EOS" "grant:grant3"
   [ $status -eq 1 ]
   [[ "$output" =~ "donation is less than [config.min_amount]" ]]
-
-  run cleos push action app.pomelo setconfig '[minamount, 0]' -p app.pomelo
-  [ $status -eq 0 ]
 }
 
 @test "donate with a 5% fee" {

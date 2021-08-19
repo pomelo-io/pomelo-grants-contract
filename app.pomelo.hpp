@@ -22,6 +22,29 @@ public:
     using contract::contract;
 
     /**
+     * ## TABLE `status`
+     *
+     * ### params
+     *
+     * - `{vector<uint32_t>} counters` - counters
+     * - `{time_point_sec} last_update` - last update timestamp
+     *
+     * ### example
+     *
+     * ```json
+     * {
+     *     "counters": [1],
+     *     "last_update": "2021-08-19T00:00:00"
+     * }
+     * ```
+     */
+    struct [[eosio::table("status")]] status_row {
+        vector<uint32_t>    counters;
+        time_point_sec      last_update;
+    };
+    typedef eosio::singleton< "status"_n, status_row> status_table;
+
+    /**
      * ## TABLE `globals`
      *
      * ### params
@@ -33,10 +56,9 @@ public:
      *
      * ```json
      * [
-     *   { "key": "roundid", "value": 1 },
-     *   { "key": "status", "value": 1 },
-     *   { "key": "systemfee", "value": 500 },
-     *   { "key": "minamount", "value": 1000 }
+     *     { "key": "roundid", "value": 1 },
+     *     { "key": "status", "value": 1 },
+     *     { "key": "systemfee", "value": 500 }
      * ]
      * ```
      */
@@ -49,6 +71,40 @@ public:
     typedef eosio::multi_index< "globals"_n, globals_row> globals_table;
 
     /**
+     * ## TABLE `tokens`
+     *
+     * ### params
+     *
+     * - `{symbol} sym` - (primary key) symbol
+     * - `{name} contract` - token contract
+     * - `{uint64_t} min_amount` - min amount required when donating
+     * - `{string} description` - token description
+     * - `{string} url` - token url
+     *
+     * ### example
+     *
+     * ```json
+     * {
+     *     "sym": "4,EOS",
+     *     "contract": "eosio.token",
+     *     "min_amount": 10000,
+     *     "description": "EOS token",
+     *     "url": "https://eos.io"
+     * }
+     * ```
+     */
+    struct [[eosio::table("tokens")]] tokens_row {
+        symbol              sym;
+        name                contract;
+        uint64_t            min_amount;
+        string              description;
+        string              url;
+
+        uint64_t primary_key() const { return sym.code().raw(); }
+    };
+    typedef eosio::multi_index< "tokens"_n, tokens_row> tokens_table;
+
+    /**
      * ## TABLE `grants` & `bounties`
      *
      * *scope*: `get_self()` (name)
@@ -57,7 +113,7 @@ public:
      * - `{name} type` - (❗️IMMUTABLE) project type (ex: `grant/bounty`)
      * - `{name} author_user_id - (❗️IMMUTABLE) author (Pomelo User Id)
      * - `{name} funding_account - ""` - funding account (EOS account)
-     * - `{set<extended_symbol>} accepted_tokens = ["4,EOS@eosio.token"]]` - accepted tokens (ex: `EOS/USDT`)
+     * - `{set<symbol_code>} accepted_tokens (ex: `["EOS"]`)
      * - `{name} status = "pending" - status (`pending/ok/disabled`)
      * - `{time_point_sec} created_at` - created at time
      * - `{time_point_sec} updated_at` - updated at time
@@ -73,15 +129,15 @@ public:
      *
      * ```json
      * {
-     *   "id": "mygrant",
-     *   "type": "grant",
-     *   "author_user_id": "123.eosn",
-     *   "funding_account": "myreceiver",
-     *   "accepted_tokens": [{"contract": "eosio.token", "symbol": "4,EOS"}],
-     *   "status": "ok",
-     *   "created_at": "2020-12-06T00:00:00",
-     *   "updated_at": "2020-12-06T00:00:00",
-     *   "deleted_at": "1970-01-01T00:00:00"
+     *     "id": "mygrant",
+     *     "type": "grant",
+     *     "author_user_id": "123.eosn",
+     *     "funding_account": "myreceiver",
+     *     "accepted_tokens": ["EOS"],
+     *     "status": "ok",
+     *     "created_at": "2020-12-06T00:00:00",
+     *     "updated_at": "2020-12-06T00:00:00",
+     *     "deleted_at": "1970-01-01T00:00:00"
      * }
      * ```
      */
@@ -90,7 +146,7 @@ public:
         name                    type;
         name                    author_user_id;
         name                    funding_account;
-        set<extended_symbol>    accepted_tokens = { extended_symbol {symbol{"EOS", 4}, "eosio.token"_n}};
+        set<symbol_code>        accepted_tokens = { symbol_code{"EOS"} };
         name                    status = "pending"_n;
         time_point_sec          created_at;
         time_point_sec          updated_at;
@@ -217,15 +273,15 @@ public:
      *
      * ```json
      * {
-     *   "round_id": 1,
-     *   "grant_id": "grant_id",
-     *   "total_users": 2,
-     *   "sum_value": 150.0,
-     *   "sum_boost": 325.0,
-     *   "sum_sqrt": 25.0,
-     *   "square": 625.0,
-     *   "updated_at": "2020-12-06T00:00:00"
-     *   }
+     *     "grant_id": "grant_id",
+     *     "round_id": 1,
+     *     "total_users": 2,
+     *     "sum_value": 150.0,
+     *     "sum_boost": 325.0,
+     *     "sum_sqrt": 25.0,
+     *     "square": 625.0,
+     *     "updated_at": "2020-12-06T00:00:00"
+     * }
      * ```
      */
     struct [[eosio::table("match")]] match_row {
@@ -241,7 +297,6 @@ public:
         uint64_t primary_key() const { return grant_id.value; };
     };
     typedef eosio::multi_index< "match"_n, match_row > match_table;
-
 
     /**
      * ## TABLE `users`
@@ -298,12 +353,14 @@ public:
     /**
      * ## TABLE `rounds`
      *
-     * *scope*: `get_self()` (name)
+     * ### params
      *
-     * - `{uint64_t} round` - (primary key) matching round
-     * - `{vector<name>} grant_ids` - grants IDs participating
-     * - `{vector<name>} user_ids` - user IDs participating
-     * - `{vector<extended_asset>} accepted_tokens` - accepted tokens
+     * - `{uint64_t} round` - (primary key) matching rounds
+     * - `{string} description` - grant text description
+     * - `{set<name>} grant_ids` - grants IDs participating
+     * - `{set<name>} user_ids` - user IDs participating
+     * - `{vector<extended_asset>} donated_tokens` - donated tokens
+     * - `{vector<extended_asset>} match_tokens` - matching pool tokens
      * - `{double} sum_value` - total value donated this round
      * - `{double} sum_boost` - total boost received this round
      * - `{double} sum_square` - square of total sqrt sum
@@ -317,23 +374,30 @@ public:
      *
      * ```json
      * {
-     *   "round": 1,
-     *   "grant_ids": ["grant1"],
-     *   "user_ids": ["user1.eosn"],
-     *   "accepted_tokens": [{"contract": "eosio.token", "quantity": "1.0000 EOS"}],
-     *   "start_at": "2020-12-06T00:00:00",
-     *   "end_at": "2020-12-12T00:00:00",
-     *   "created_at": "2020-12-06T00:00:00",
-     *   "updated_at": "2020-12-06T00:00:00",
-     *   "deleted_at": "1970-01-01T00:00:00"
+     *     "round": 1,
+     *     "description": "Grant Round #1",
+     *     "grant_ids": ["grant1"],
+     *     "user_ids": ["user1.eosn"],
+     *     "donated_tokens": [{"contract": "eosio.token", "quantity": "100.0000 EOS"}],
+     *     "match_tokens": [{"contract": "eosio.token", "quantity": "1000.0000 EOS"}],
+     *     "sum_value": 12345,
+     *     "sum_boost": 3231,
+     *     "sum_square": 423451.1233,
+     *     "start_at": "2020-12-06T00:00:00",
+     *     "end_at": "2020-12-12T00:00:00",
+     *     "created_at": "2020-12-06T00:00:00",
+     *     "updated_at": "2020-12-06T00:00:00",
+     *     "deleted_at": "1970-01-01T00:00:00"
      * }
      * ```
      */
     struct [[eosio::table("rounds")]] rounds_row {
         uint64_t                round;
+        string                  description;
         vector<name>            grant_ids;
         vector<name>            user_ids;
-        vector<extended_asset>  accepted_tokens;
+        vector<extended_asset>  donated_tokens;
+        vector<extended_asset>  match_tokens;
         double                  sum_value;
         double                  sum_boost;
         double                  sum_square;
@@ -369,7 +433,6 @@ public:
      * Set contract config key/value
      * - `status` - contract status (0=testing, 1=ok, 2=maintenance)
      * - `roundid` - ongoing round (0=not active)
-     * - `minamount` - minimum grant donation value amount with precision = 4 (1234=0.1234 EOS)
      * - `systemfee` - donation fee (500=5%)
      *
      * ### params
@@ -397,16 +460,16 @@ public:
      * - `{name} project_type` - project type (grant/bounty)
      * - `{name} project_id` - project ID
      * - `{name} funding_account` - account to forward donations to
-     * - `{set<extended_symbol>} accepted_tokens` - accepted tokens
+     * - `{set<symbol_code>} accepted_tokens` - accepted tokens (ex: `["EOS"]`)
      *
      * ### Example
      *
      * ```bash
-     * $ cleos push action app.pomelo setproject '["123.eosn", "grant", "mygrant", "project2fund", [["4,USDT", "tethertether"]]]' -p app.pomelo -p 123.eosn
+     * $ cleos push action app.pomelo setproject '["123.eosn", "grant", "mygrant", "project2fund", ["EOS"]]' -p app.pomelo -p 123.eosn
      * ```
      */
     [[eosio::action]]
-    void setproject( const name author_id, const name project_type, const name project_id, const name funding_account, const set<extended_symbol> accepted_tokens );
+    void setproject( const name author_id, const name project_type, const name project_id, const name funding_account, const set<symbol_code> accepted_tokens );
 
     /**
      * ## ACTION `enable`
@@ -438,15 +501,17 @@ public:
      * - `{uint64_t} round_id` - round id
      * - `{time_point_sec} start_at` - round start time
      * - `{time_point_sec} end_at` - round end time
+     * - `{string} description` - grant description
+     * - `{vector<extended_asset>} match_tokens` - matching pool tokens
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00"]' -p app.pomelo
+     * $ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Grant Round #1", [["1000.0000 EOS", "eosio.token"]]]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void setround( const uint64_t round_id, const time_point_sec start_at, const time_point_sec end_at );
+    void setround( const uint64_t round_id, const time_point_sec start_at, const time_point_sec end_at, const string description, const vector<extended_asset> match_tokens );
 
     /**
      * ## ACTION `joinround`
@@ -574,6 +639,31 @@ public:
     [[eosio::action]]
     void collapse(set<name> user_ids, name user_id, uint64_t round_id);
 
+    /**
+     * ## ACTION `token`
+     *
+     * Set token information
+     *
+     * ### params
+     *
+     * - `{symbol} sym` - (primary key) symbol
+     * - `{name} contract` - token contract
+     * - `{uint64_t} min_amount` - min amount required when donating
+     * - `{string} [description=""]` - (optional) token description
+     * - `{string} [url=""]` - (optional) token url
+     *
+     * ### example
+     *
+     * ```bash
+     * $ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, "EOS Token", "https://eosio.io"]' -p app.pomelo
+     * ```
+     */
+    [[eosio::action]]
+    void token( const symbol sym, const name contract, const uint64_t min_amount, const optional<string> description, const optional<string> url );
+
+    [[eosio::action]]
+    void deltoken( const symbol_code symcode );
+
 private:
     // state_table _state;
 
@@ -582,6 +672,11 @@ private:
     name get_user_id( const name user );
     bool is_user( const name user_id );
     void validate_round( const uint64_t round_id );
+
+    // tokens
+    extended_symbol get_token( const symbol_code symcode );
+    bool is_token_enabled( const symbol_code symcode );
+    bool get_token_min_amount( const symbol_code symcode );
 
     // globals key/value
     void set_key_value( const name key, const uint64_t value );
@@ -597,7 +692,7 @@ private:
     void donate_grant(const name grant_id, const extended_asset ext_quantity, const name user_id, const double value);
 
     template <typename T>
-    void set_project(T& table, const name project_type, const name project_id, const name author_id, const name funding_account, const set<extended_symbol> accepted_tokens );
+    void set_project(T& table, const name project_type, const name project_id, const name author_id, const name funding_account, const set<symbol_code> accepted_tokens );
 
     void save_transfer( const name from, const name to, const extended_asset ext_quantity, const asset fee, const string& memo, const name project_type, const name project_id, const double value );
 

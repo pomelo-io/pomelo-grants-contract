@@ -2,6 +2,27 @@
 
 using namespace sx;
 
+extended_symbol pomelo::get_token( const symbol_code symcode )
+{
+    pomelo::tokens_table _tokens( get_self(), get_self().value );
+    auto itr = _tokens.find( symcode.raw() );
+    if ( itr == _tokens.end() ) return {};
+    return extended_symbol{ itr->sym, itr->contract };
+}
+
+bool pomelo::is_token_enabled( const symbol_code symcode )
+{
+    pomelo::tokens_table _tokens( get_self(), get_self().value );
+    auto itr = _tokens.find( symcode.raw() );
+    return itr != _tokens.end();
+}
+
+bool pomelo::get_token_min_amount( const symbol_code symcode )
+{
+    pomelo::tokens_table _tokens( get_self(), get_self().value );
+    auto itr = _tokens.get( symcode.raw(), "pomelo::get_token_min_amount: [symcode] not found" );
+    return itr.min_amount;
+}
 
 double pomelo::calculate_value( const extended_asset ext_quantity )
 {

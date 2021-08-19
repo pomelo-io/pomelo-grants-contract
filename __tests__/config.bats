@@ -28,7 +28,4 @@
   run cleos push action app.pomelo setconfig '[systemfee, 0]' -p app.pomelo
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo setconfig '[minamount, 1000]' -p app.pomelo
-  [ $status -eq 0 ]
-
 }
