@@ -40,8 +40,6 @@ void pomelo::deltoken( const symbol_code symcode )
 [[eosio::action]]
 void pomelo::setproject( const name author_id, const name project_type, const name project_id, const name funding_account, const set<symbol_code> accepted_tokens )
 {
-    // authenticate
-    require_auth( get_self() );
     eosn::login::require_auth_user_id( author_id );
 
     // tables
@@ -58,8 +56,6 @@ void pomelo::setproject( const name author_id, const name project_type, const na
 [[eosio::action]]
 void pomelo::joinround( const name grant_id, const uint64_t round_id )
 {
-    require_auth( get_self() );
-
     // authenticate user
     pomelo::grants_table grants( get_self(), get_self().value );
     const auto grant = grants.get( grant_id.value, "pomelo::joinround: [grant_id] does not exist" );
@@ -161,9 +157,9 @@ template <typename T>
 void pomelo::enable_project( T& table, const name project_id, const name status )
 {
     const auto & itr = table.get( project_id.value, "pomelo::enable_project: [project_id] does not exist");
+    eosn::login::require_auth_user_id( itr.author_user_id );
+
     table.modify( itr, get_self(), [&]( auto & row ) {
-        // authenticate user
-        eosn::login::require_auth_user_id( row.author_user_id );
         check( row.status != status, "pomelo::enable_project: status was not modified");
         row.status = status;
         row.updated_at = current_time_point();

@@ -373,17 +373,18 @@ public:
      * ```c++
      * const name user_id = "123.eosn"_n;
      * const bool is_auth  = eosn::login::is_auth( user_id );
-     * //=> true
+     * //=> true/false
      * ```
      */
     static bool is_auth( const name user_id )
     {
         login::users_table _users( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
-        auto users = _users.get( user_id.value, "login::is_auth: [user_id] does not exist");
 
         if ( has_auth( user_id ) ) return true;
 
-        for ( const name account : users.accounts ) {
+        // EOSN login fallback accounts
+        auto users = _users.find( user_id.value );
+        for ( const name account : users->accounts ) {
             if ( has_auth(account) ) return true;
         }
         return false;
@@ -440,10 +441,11 @@ public:
         login::users_table _users( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
         login::socials_table _socials( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
 
-        auto user = _users.get( user_id.value, "login::get_user_weight: [user_id] does not exist" );
-        check( user.status != "deleted"_n, "login::get_user_weight: user is deleted" );
+        auto itr = _users.find( user_id.value );
+        if ( itr == _users.end() ) return 0;
+
         uint32_t total_weight = 0;
-        for ( const auto& social: user.socials ) {
+        for ( const name social: itr->socials ) {
             total_weight += _socials.get( social.value, "login::get_user_weight: [user_id] has unknown social").weight;
         }
         return total_weight;

@@ -24,25 +24,23 @@ public:
     /**
      * ## TABLE `status`
      *
-     * ### params
-     *
-     * - `{vector<uint32_t>} counters` - counters
-     * - `{time_point_sec} last_update` - last update timestamp
+     * - `vector<uint32_t>` counters;   // 0 - total rewdards claimed
+     * - `time_point_sec` last_updated;
      *
      * ### example
      *
      * ```json
      * {
-     *     "counters": [1],
-     *     "last_update": "2021-08-19T00:00:00"
+     *   "counters": [1234, 12],
+     *   "last_updated": "2021-04-12T12:23:42"
      * }
      * ```
      */
     struct [[eosio::table("status")]] status_row {
-        vector<uint32_t>    counters;
-        time_point_sec      last_update;
+        vector<uint32_t>        counters;
+        time_point_sec          last_updated;
     };
-    typedef eosio::singleton< "status"_n, status_row> status_table;
+    typedef eosio::singleton< "status"_n, status_row > status_table;
 
     /**
      * ## TABLE `globals`
@@ -704,4 +702,7 @@ private:
 
     template <typename T>
     void clear_table( T& table, uint64_t rows_to_clear );
+
+    // update counters in status singleton
+    void update_status( const uint32_t index, const uint32_t count );
 };

@@ -31,6 +31,7 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
     } else {
         check( false, ERROR_INVALID_MEMO);
     }
+    update_status(0, 1);
 }
 
 [[eosio::on_notify("*::social")]]
