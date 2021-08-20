@@ -11,10 +11,10 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
     // tables
     pomelo::grants_table _grants( get_self(), get_self().value );
     pomelo::bounties_table _bounties( get_self(), get_self().value );
+    pomelo::globals_table _globals( get_self(), get_self().value );
 
     // state
-    const uint64_t status = get_key_value("status"_n);
-    check( status <= 1, "pomelo::on_transfer: contract is under maintenance");
+    check( _globals.exists(), "pomelo::on_transfer: contract is under maintenance");
 
     // parse memo
     const auto memo_parts = sx::utils::split(memo, ":");
@@ -37,7 +37,7 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
 [[eosio::on_notify("*::social")]]
 void pomelo::on_social( const name user_id, const set<name> socials )
 {
-    const auto round_id = get_key_value("roundid"_n);
+    const uint16_t round_id = get_globals().round_id;
 
     if ( round_id == 0 || get_first_receiver() != LOGIN_CONTRACT ) return;
 

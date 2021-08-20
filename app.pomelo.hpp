@@ -31,8 +31,8 @@ public:
      *
      * ```json
      * {
-     *   "counters": [1234, 12],
-     *   "last_updated": "2021-04-12T12:23:42"
+     *     "counters": [1234, 12],
+     *     "last_updated": "2021-04-12T12:23:42"
      * }
      * ```
      */
@@ -45,28 +45,23 @@ public:
     /**
      * ## TABLE `globals`
      *
-     * ### params
-     *
-     * - `{name} key` - (primary key) key
-     * - `{uint64_t} value` - value
+     * - `{uint16_t} round_id` - round ID (0 = not active)
+     * - `{uint64_t} system_fee` - system fee (bips - 1/100 1%)
      *
      * ### example
      *
      * ```json
-     * [
-     *     { "key": "roundid", "value": 1 },
-     *     { "key": "status", "value": 1 },
-     *     { "key": "systemfee", "value": 500 }
-     * ]
+     * {
+     *     "round_id": 1,
+     *     "system_fee": 500
+     * }
      * ```
      */
     struct [[eosio::table("globals")]] globals_row {
-        name                key;
-        uint64_t            value;
-
-        uint64_t primary_key() const { return key.value; }
+        uint16_t        round_id = 0;
+        uint64_t        system_fee = 500;
     };
-    typedef eosio::multi_index< "globals"_n, globals_row> globals_table;
+    typedef eosio::singleton< "globals"_n, globals_row > globals_table;
 
     /**
      * ## TABLE `tokens`
@@ -193,7 +188,7 @@ public:
      * - `{asset} fee` - fee charged and sent to `FEE_ACCOUNT`
      * - `{string} memo` - transfer memo
      * - `{name} user_id` - Pomelo user account ID
-     * - `{uint64_t} round_id` - participating round ID
+     * - `{uint16_t} round_id` - participating round ID
      * - `{name} project_type` - project type ("grant" / "bounty")
      * - `{name} project_id` - project ID
      * - `{double} value` - valuation at time of received
@@ -228,7 +223,7 @@ public:
         asset                   fee;
         string                  memo;
         name                    user_id;
-        uint64_t                round_id;
+        uint16_t                round_id;
         name                    project_type;
         name                    project_id;
         double                  value;
@@ -259,7 +254,7 @@ public:
      * *scope*: `round_id`
      *
      * - `{name} grant_id` - (primary key) grant ID
-     * - `{uint64_t} round_id` - round ID
+     * - `{uint16_t} round_id` - round ID
      * - `{uint64_t} total_users` - total number of users
      * - `{double} sum_value` - sum of all user value contributions
      * - `{double} sum_boost` - sum of all user contribution boosts
@@ -284,7 +279,7 @@ public:
      */
     struct [[eosio::table("match")]] match_row {
         name                    grant_id;
-        uint64_t                round_id;
+        uint16_t                round_id;
         uint64_t                total_users;
         double                  sum_value;
         double                  sum_boost;
@@ -299,7 +294,7 @@ public:
     /**
      * ## TABLE `users`
      *
-     * *scope*: `round_id` (name)
+     * *scope*: `{uint16_t} round_id`
      *
      * ### multi-indexes
      *
@@ -307,6 +302,8 @@ public:
      * |--------------- |------------------|------------|
      * | `bydonated`    | 2                | i64        |
      * | `byboosted`    | 3                | i64        |
+     *
+     * ### params
      *
      * - `{name} user_id` - (primary key) user_id
      * - `{double} multiplier` - user multiplier this round
@@ -410,42 +407,21 @@ public:
     typedef eosio::multi_index< "rounds"_n, rounds_row > rounds_table;
 
     /**
-     * ## ACTION `init`
-     *
-     * Init contract config with default parameters (status=2, roundid=0, minamount=1000, systemfee=0)
-     *
-     * ### params
-     *
-     * ### example
-     *
-     * ```bash
-     * $ cleos push action app.pomelo init '[]' -p app.pomelo
-     * ```
-     */
-    [[eosio::action]]
-    void init( );
-
-    /**
      * ## ACTION `setconfig`
      *
-     * Set contract config key/value
-     * - `status` - contract status (0=testing, 1=ok, 2=maintenance)
-     * - `roundid` - ongoing round (0=not active)
-     * - `systemfee` - donation fee (500=5%)
-     *
      * ### params
      *
-     * - `{name} key` - config key
-     * - `{uint64_t} value` - config value
+     * - `{uint16_t} round_id` - round ID (0 = not active)
+     * - `{uint64_t} system_fee` - system fee (bips - 1/100 1%)
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo setconfig '["status", 1]' -p app.pomelo
+     * $ cleos push action app.pomelo setconfig '[1, 500]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void setconfig( const name key, const uint64_t value );
+    void setconfig( const optional<uint16_t> round_id, const optional<uint64_t> system_fee );
 
     /**
      * ## ACTION `setproject`
@@ -496,7 +472,7 @@ public:
      *
      * ### params
      *
-     * - `{uint64_t} round_id` - round id
+     * - `{uint16_t} round_id` - round id
      * - `{time_point_sec} start_at` - round start time
      * - `{time_point_sec} end_at` - round end time
      * - `{string} description` - grant description
@@ -509,7 +485,7 @@ public:
      * ```
      */
     [[eosio::action]]
-    void setround( const uint64_t round_id, const time_point_sec start_at, const time_point_sec end_at, const string description, const vector<extended_asset> match_tokens );
+    void setround( const uint16_t round_id, const time_point_sec start_at, const time_point_sec end_at, const string description, const vector<extended_asset> match_tokens );
 
     /**
      * ## ACTION `joinround`
@@ -519,7 +495,7 @@ public:
      * ### params
      *
      * - `{name} grant_id` - grant ID
-     * - `{uint64_t} round_id` - round ID
+     * - `{uint16_t} round_id` - round ID
      *
      * ### example
      *
@@ -528,7 +504,7 @@ public:
      * ```
      */
     [[eosio::action]]
-    void joinround( const name grant_id, const uint64_t round_id );
+    void joinround( const name grant_id, const uint16_t round_id );
 
     /**
      * ## ACTION `unjoinround`
@@ -538,7 +514,7 @@ public:
      * ### params
      *
      * - `{name} grant_id` - grant ID
-     * - `{uint64_t} round_id` - round ID
+     * - `{uint16_t} round_id` - round ID
      *
      * ### example
      *
@@ -547,7 +523,7 @@ public:
      * ```
      */
     [[eosio::action]]
-    void unjoinround( const name grant_id, const uint64_t round_id );
+    void unjoinround( const name grant_id, const uint16_t round_id );
 
     /**
      * ## TRANSFER NOTIFY HANDLER `on_transfer`
@@ -606,7 +582,7 @@ public:
      * ### params
      *
      * - `{name} user_id` - user ID
-     * - `{uint64_t} round_id` - round ID
+     * - `{uint16_t} round_id` - round ID
      *
      * ### example
      *
@@ -615,7 +591,7 @@ public:
      * ```
      */
     [[eosio::action]]
-    void removeuser( const name user_id, const uint64_t round_id );
+    void removeuser( const name user_id, const uint16_t round_id );
 
     /**
      * ## ACTION `collapse`
@@ -626,7 +602,7 @@ public:
      *
      * - `{set<name>} user_ids` - user IDs to collapse
      * - `{name} user_id` - user ID to collapse into
-     * - `{uint64_t} round_id` - round ID
+     * - `{uint16_t} round_id` - round ID
      *
      * ### example
      *
@@ -635,7 +611,7 @@ public:
      * ```
      */
     [[eosio::action]]
-    void collapse(set<name> user_ids, name user_id, uint64_t round_id);
+    void collapse(set<name> user_ids, name user_id, uint16_t round_id);
 
     /**
      * ## ACTION `token`
@@ -663,23 +639,26 @@ public:
     void deltoken( const symbol_code symcode );
 
 private:
-    // state_table _state;
+    void transfer( const name from, const name to, const extended_asset value, const string memo );
 
     // getters
     double calculate_value(const extended_asset ext_quantity);
     name get_user_id( const name user );
     bool is_user( const name user_id );
-    void validate_round( const uint64_t round_id );
+    void validate_round( const uint16_t round_id );
+    extended_asset calculate_fee( const extended_asset ext_quantity );
 
     // tokens
     extended_symbol get_token( const symbol_code symcode );
     bool is_token_enabled( const symbol_code symcode );
-    bool get_token_min_amount( const symbol_code symcode );
+    int64_t get_token_min_amount( const symbol_code symcode );
 
     // globals key/value
-    void set_key_value( const name key, const uint64_t value );
-    uint64_t get_key_value( const name key );
-    bool del_key( const name key );
+    // void set_key_value( const name key, const uint64_t value );
+    // uint64_t get_key_value( const name key );
+    // bool del_key( const name key );
+
+    globals_row get_globals();
 
     template <typename T>
     void enable_project( T& table, const name project_id, const name status );

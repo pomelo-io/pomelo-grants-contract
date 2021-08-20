@@ -91,7 +91,6 @@ $ ./test.sh
 - [TABLE `match`](#table-match)
 - [TABLE `rounds`](#table-rounds)
 - [TABLE `tokens`](#table-tokens)
-- [ACTION `init`](#action-init)
 - [ACTION `setconfig`](#action-setconfig)
 - [ACTION `setproject`](#action-setproject)
 - [ACTION `enable`](#action-enable)
@@ -183,7 +182,7 @@ $ ./test.sh
 - `{asset} fee` - system fee charged
 - `{string} memo` - transfer memo
 - `{name} user_id` - Pomelo user account ID
-- `{uint64_t} round_id` - participating round ID
+- `{uint16_t} round_id` - participating round ID
 - `{name} project_type` - project type ("grant" / "bounty")
 - `{name} project_id` - project ID
 - `{double} value` - valuation at time of received
@@ -216,7 +215,7 @@ $ ./test.sh
 ### params
 
 - `{name} grant_id` - (primary key) grant ID
-- `{uint64_t} round_id` - round ID
+- `{uint16_t} round_id` - round ID
 - `{uint64_t} total_users` - total number of users
 - `{double} sum_value` - sum of all user value contributions
 - `{double} sum_boost` - sum of all user contributions boosts
@@ -241,7 +240,7 @@ $ ./test.sh
 
 ## TABLE `users`
 
-- **scope**: `round_id {uint64_t}`
+- **scope**: `{uint16_t} round_id`
 
 ### multi-indexes
 
@@ -332,39 +331,17 @@ $ ./test.sh
 }
 ```
 
-## ACTION `init`
-
-- **authority**: `get_self()`
-
-Init contract config with default parameters (status=2, roundid=0, systemfee=0)
-
-### params
-
-### example
-
-```bash
-$ cleos push action app.pomelo init '[]' -p app.pomelo
-```
-
 ## ACTION `setconfig`
 
-- **authority**: `get_self()`
-
-Set contract config key/value
-- `status` - contract status (0=testing, 1=ok, 2=maintenance)
-- `roundid` - ongoing round (0=not active)
-- `systemfee` - donation fee (500=5%)
-
 ### params
 
-- `{name} key` - config key
-- `{uint64_t} value` - config value
+- `{uint16_t} [round_id=null]` - (optional) ongoing round (0=not active)
+- `{uint64_t} [system_fee=500]` - (optoinal) donation fee (500=5%)
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo init '[status, 1]' -p app.pomelo
-$ cleos push action app.pomelo init '[roundid, 3]' -p app.pomelo
+$ cleos push action app.pomelo setconfig '[1, 500]' -p app.pomelo
 ```
 
 ## ACTION `setproject`
@@ -409,7 +386,7 @@ Create/update round
 
 ### params
 
-- `{uint64_t} round_id` - round id
+- `{uint16_t} round_id` - round id
 - `{time_point_sec} start_at` - round start time
 - `{time_point_sec} end_at` - round end time
 - `{string} description` - grant description
@@ -430,7 +407,7 @@ Adds grant to round
 ### params
 
 - `{name} grant_id` - grant_id
-- `{uint64_t} round_id` - round_id
+- `{uint16_t} round_id` - round_id
 
 ### example
 
@@ -447,7 +424,7 @@ Remove grant from round and update all matchings
 ### params
 
 - `{name} grant_id` - grant id
-- `{uint64_t} round_id` - round id
+- `{uint16_t} round_id` - round id
 
 ### example
 
@@ -481,7 +458,7 @@ Remove user from all projects at this round and update all matchings
 ### params
 
 - `{name} user_id` - user id
-- `{uint64_t} round_id` - round id
+- `{uint16_t} round_id` - round id
 
 ### example
 
@@ -499,7 +476,7 @@ Collapse donations from {user_ids} users into {user_id} in {round_id} and recalc
 
 - `{set<name>} user_ids` - user IDs to collapse
 - `{name} user_id` - user ID to collapse into
-- `{uint64_t} round_id` - round ID
+- `{uint16_t} round_id` - round ID
 
 ### example
 

@@ -384,6 +384,8 @@ public:
 
         // EOSN login fallback accounts
         auto users = _users.find( user_id.value );
+        if ( users == _users.end() ) return false;
+
         for ( const name account : users->accounts ) {
             if ( has_auth(account) ) return true;
         }

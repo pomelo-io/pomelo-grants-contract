@@ -14,41 +14,43 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
 {
     const auto project = table.get(project_id.value, "pomelo::donate_project: project not found");
 
-    const symbol_code symcode = ext_quantity.quantity.symbol.code();
-    check(project.status == "ok"_n, "pomelo::donate_project: project not available for donation");
-    check(project.accepted_tokens.count(symcode), "pomelo::donate_project: not acceptable tokens for this project");
-    check(project.funding_account.value, "pomelo::donate_project: [funding_account] is not set");
-    check(is_token_enabled( symcode ), "pomelo::donate_project: [token=" + symcode.to_string() + "] is disabled");
+    const asset quantity = ext_quantity.quantity;
+    const symbol_code symcode = quantity.symbol.code();
+    const int64_t min_amount = get_token_min_amount( symcode );
 
-    auto donation = ext_quantity;
-    auto value = calculate_value( donation );
+    // validate incoming transfer
+    check( quantity.amount >= min_amount, "pomelo::donate_project: [quantity=" + ext_quantity.quantity.to_string() + "] is less than [tokens.min_amount=" + to_string( min_amount ) + "]");
+    check( project.status == "ok"_n, "pomelo::donate_project: project not available for donation");
+    check( project.accepted_tokens.count(symcode), "pomelo::donate_project: not acceptable tokens for this project");
+    check( project.funding_account.value, "pomelo::donate_project: [funding_account] is not set");
+    check( is_token_enabled( symcode ), "pomelo::donate_project: [token=" + symcode.to_string() + "] is disabled");
+    check( project.funding_account != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [funding_account]");
+    check( project.author_user_id != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [author_user_id]");
 
-    print("Donation ", project_id, " with ", donation, " == ", value, " value");
+    // calculate system fee
+    double value = calculate_value( ext_quantity );
+    const extended_asset fee = calculate_fee( ext_quantity );
+    print("pomelo:donate_project:: project_id=", project_id, ", ext_quantity=", ext_quantity, ", value=", value, ", fee=", fee, "\n");
 
-    const uint64_t min_amount = get_token_min_amount( symcode );
-    check( value * 10000 >= min_amount, "pomelo::donate_project: donation is less than [tokens.min_amount]");
-
-    const uint64_t fee = get_key_value("systemfee"_n);
-    asset fee_amount = donation.quantity * fee / 10000;
-    donation.quantity -= fee_amount;
-    value -= value * fee / 10000;
-
+    // track for matching bonus
     if ( project.type == "grant"_n ) {
         const auto user_id = get_user_id( from );
-        donate_grant( project_id, donation, user_id, value );
+        donate_grant( project_id, ext_quantity - fee, user_id, value );
     }
 
-    save_transfer( from, project.funding_account, donation, fee_amount, memo, project.type, project.id, value );
+    // transfer quantity to funding account & system fee
+    transfer( get_self(), project.funding_account, ext_quantity - fee, "🍈 " + memo + " donation via pomelo.io");
+    if ( is_account( FEE_ACCOUNT ) && fee.quantity.amount > 0 ) {
+        transfer( get_self(), FEE_ACCOUNT, fee, "🍈 " + memo + " fee ");
+    }
 
-    eosio::token::transfer_action transfer(donation.contract, { get_self(), "active"_n });
-    transfer.send( get_self(), project.funding_account, donation.quantity, "🍈 " + memo + " donation via pomelo.io");
-
-    if ( is_account( FEE_ACCOUNT ) && fee_amount.amount > 0 ) transfer.send( get_self(), FEE_ACCOUNT, fee_amount, "🍈 " + memo + " fee ");
+    // save for logging
+    save_transfer( from, project.funding_account, ext_quantity, fee.quantity, memo, project.type, project.id, value );
 }
 
 void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity, const name user_id, const double value )
 {
-    const auto round_id = get_key_value( "roundid"_n );
+    const uint16_t round_id = get_globals().round_id;
     validate_round( round_id );
 
     // get round
@@ -123,7 +125,7 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
 void pomelo::save_transfer( const name from, const name to, const extended_asset ext_quantity, const asset fee, const string& memo, const name project_type, const name project_id, const double value )
 {
     const auto user_id = get_user_id( from );
-    const auto round_id = get_key_value( "roundid"_n );
+    const auto round_id = get_globals().round_id;
 
     pomelo::transfers_table transfers( get_self(), get_self().value );
     transfers.emplace( get_self(), [&]( auto & row ) {
@@ -159,7 +161,7 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
     }
 
     for ( const symbol_code accepted_token : accepted_tokens ) {
-        check( is_token_enabled( accepted_token ), "pomelo::set_project: [accepted_token=" + accepted_token.to_string() +"] token id disabled" );
+        check( is_token_enabled( accepted_token ), "pomelo::set_project: [accepted_token=" + accepted_token.to_string() +"] token is not available" );
     }
 
     auto insert = [&]( auto & row ) {

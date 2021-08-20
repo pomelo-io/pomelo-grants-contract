@@ -54,7 +54,7 @@ void pomelo::setproject( const name author_id, const name project_type, const na
 
 // @user
 [[eosio::action]]
-void pomelo::joinround( const name grant_id, const uint64_t round_id )
+void pomelo::joinround( const name grant_id, const uint16_t round_id )
 {
     // authenticate user
     pomelo::grants_table grants( get_self(), get_self().value );
@@ -75,7 +75,7 @@ void pomelo::joinround( const name grant_id, const uint64_t round_id )
 
 // @admin
 [[eosio::action]]
-void pomelo::unjoinround( const name grant_id, const uint64_t round_id )
+void pomelo::unjoinround( const name grant_id, const uint16_t round_id )
 {
     require_auth( get_self() );
 
@@ -92,7 +92,7 @@ void pomelo::unjoinround( const name grant_id, const uint64_t round_id )
 
     // recalculate matchings for this round
     double sum_value = 0, sum_boost = 0, sum_square = 0;
-    for(const auto& grant: _match) {
+    for (const auto& grant: _match) {
         sum_value += grant.sum_value;
         sum_boost += grant.sum_boost;
         sum_square += grant.square;
@@ -111,10 +111,10 @@ void pomelo::unjoinround( const name grant_id, const uint64_t round_id )
     // update users table by removing all donations to this project
     pomelo::users_table _users( get_self(), round_id );
     auto users_itr = _users.begin();
-    while(users_itr != _users.end()) {
+    while (users_itr != _users.end()) {
         int index = get_index(users_itr->contributions, grant_id);
-        if(index != -1) {
-            if(users_itr->contributions.size() == 1){
+        if (index != -1) {
+            if (users_itr->contributions.size() == 1) {
                 users_itr = _users.erase(users_itr);
                 continue;
             }
@@ -156,8 +156,8 @@ void pomelo::enable( const name project_type, const name project_id, const name 
 template <typename T>
 void pomelo::enable_project( T& table, const name project_id, const name status )
 {
-    const auto & itr = table.get( project_id.value, "pomelo::enable_project: [project_id] does not exist");
-    eosn::login::require_auth_user_id( itr.author_user_id );
+    auto & itr = table.get( project_id.value, "pomelo::enable_project: [project_id] does not exist");
+    // eosn::login::require_auth_user_id( itr.author_user_id );
 
     table.modify( itr, get_self(), [&]( auto & row ) {
         check( row.status != status, "pomelo::enable_project: status was not modified");
@@ -168,7 +168,7 @@ void pomelo::enable_project( T& table, const name project_id, const name status 
 
 // @admin
 [[eosio::action]]
-void pomelo::setround( const uint64_t round_id, const time_point_sec start_at, const time_point_sec end_at, const string description, const vector<extended_asset> match_tokens )
+void pomelo::setround( const uint16_t round_id, const time_point_sec start_at, const time_point_sec end_at, const string description, const vector<extended_asset> match_tokens )
 {
     require_auth( get_self() );
 
@@ -191,25 +191,17 @@ void pomelo::setround( const uint64_t round_id, const time_point_sec start_at, c
 
 // @admin
 [[eosio::action]]
-void pomelo::init( )
+void pomelo::setconfig( const optional<uint16_t> round_id, const optional<uint64_t> system_fee )
 {
     require_auth( get_self() );
 
-    set_key_value("status"_n, 2 );
-    set_key_value("roundid"_n, 0 );
-    set_key_value("systemfee"_n, 500 );
+    pomelo::globals_table _globals( get_self(), get_self().value );
+    auto globals = _globals.get_or_default();
+
+    if ( round_id ) globals.round_id = *round_id;
+    if ( system_fee ) globals.system_fee = *system_fee;
+    _globals.set( globals, get_self() );
 }
-
-// @admin
-[[eosio::action]]
-void pomelo::setconfig( const name key, const uint64_t value )
-{
-    require_auth( get_self() );
-
-    check( get_key_value( key ) != value, "pomelo::setconfig: value was not modified");
-    set_key_value( key, value );
-}
-
 
 // @admin
 [[eosio::action]]
@@ -226,21 +218,24 @@ void pomelo::cleartable( const name table_name, const uint64_t max_rows )
     pomelo::grants_table grants( get_self(), get_self().value );
     pomelo::globals_table globals( get_self(), get_self().value );
     pomelo::tokens_table tokens( get_self(), get_self().value );
+    pomelo::status_table status( get_self(), get_self().value );
 
     if (table_name == "transfers"_n) clear_table( transfers, rows_to_clear );
     else if (table_name == "rounds"_n) clear_table( rounds, rows_to_clear );
     else if (table_name == "match"_n) clear_table( match, rows_to_clear );
     else if (table_name == "bounties"_n) clear_table( bounties, rows_to_clear );
     else if (table_name == "grants"_n) clear_table( grants, rows_to_clear );
-    else if (table_name == "globals"_n) clear_table( globals, rows_to_clear );
     else if (table_name == "tokens"_n) clear_table( tokens, rows_to_clear );
+    else if (table_name == "globals"_n) globals.remove();
+    else if (table_name == "status"_n) status.remove();
+    // else if (table_name == "global"_n) global.remove();
     else check(false, "pomelo::cleartable: [table_name] unknown table to clear" );
 }
 
 
 // @admin
 [[eosio::action]]
-void pomelo::removeuser( const name user_id, const uint64_t round_id )
+void pomelo::removeuser( const name user_id, const uint16_t round_id )
 {
     require_auth( get_self() );
 
@@ -295,7 +290,7 @@ void pomelo::removeuser( const name user_id, const uint64_t round_id )
 }
 
 [[eosio::action]]
-void pomelo::collapse(set<name> user_ids, name user_id, uint64_t round_id)
+void pomelo::collapse(set<name> user_ids, name user_id, uint16_t round_id)
 {
     require_auth( get_self() );
     check(user_ids.count(user_id) == 0, "pomelo::collapse: [user_ids] cannot contain [user_id] itself" );
@@ -349,4 +344,10 @@ void pomelo::collapse(set<name> user_ids, name user_id, uint64_t round_id)
         row.user_ids = round_users;
         row.updated_at = current_time_point();
     });
+}
+
+void pomelo::transfer( const name from, const name to, const extended_asset value, const string memo )
+{
+    eosio::token::transfer_action transfer( value.contract, { from, "active"_n });
+    transfer.send( from, to, value.quantity, memo );
 }

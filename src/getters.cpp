@@ -2,6 +2,19 @@
 
 using namespace sx;
 
+extended_asset pomelo::calculate_fee( const extended_asset ext_quantity )
+{
+    const int64_t amount = ext_quantity.quantity.amount * get_globals().system_fee / 10000;
+    return { amount, ext_quantity.get_extended_symbol() };
+}
+
+pomelo::globals_row pomelo::get_globals()
+{
+    pomelo::globals_table _globals( get_self(), get_self().value );
+    check( _globals.exists(), "pomelo::get_global: contract is under maintenance");
+    return _globals.get();
+}
+
 extended_symbol pomelo::get_token( const symbol_code symcode )
 {
     pomelo::tokens_table _tokens( get_self(), get_self().value );
@@ -17,7 +30,7 @@ bool pomelo::is_token_enabled( const symbol_code symcode )
     return itr != _tokens.end();
 }
 
-bool pomelo::get_token_min_amount( const symbol_code symcode )
+int64_t pomelo::get_token_min_amount( const symbol_code symcode )
 {
     pomelo::tokens_table _tokens( get_self(), get_self().value );
     auto itr = _tokens.get( symcode.raw(), "pomelo::get_token_min_amount: [symcode] not found" );
@@ -56,9 +69,10 @@ double pomelo::calculate_value( const extended_asset ext_quantity )
 name pomelo::get_user_id( const name account )
 {
     eosn::login::accounts_table _accounts( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
-    const auto accounts = _accounts.get(account.value, "pomelo::get_user_id: account is not linked with EOSN Login");
-
-    return accounts.user_id;
+    const auto itr = _accounts.find(account.value);
+    // check( itr != _accounts.end(), "pomelo::get_user_id: [account=" + account.to_string() + "] is not linked with EOSN Login");
+    if ( itr == _accounts.end() ) return account;
+    return itr->user_id;
 }
 
 bool pomelo::is_user( const name user_id )
@@ -68,7 +82,7 @@ bool pomelo::is_user( const name user_id )
     return users.find(user_id.value) != users.end();
 }
 
-void pomelo::validate_round( const uint64_t round_id )
+void pomelo::validate_round( const uint16_t round_id )
 {
     pomelo::rounds_table _rounds( get_self(), get_self().value );
 
@@ -80,33 +94,33 @@ void pomelo::validate_round( const uint64_t round_id )
     check(now <= rounds.end_at.sec_since_epoch(), "pomelo::validate_round: [round_id] has expired");
 }
 
-void pomelo::set_key_value( const name key, const uint64_t value )
-{
-    globals_table _globals(get_self(), get_self().value);
-    auto insert = [&]( auto & row ) {
-        row.key = key;
-        row.value = value;
-    };
-    auto itr = _globals.find( key.value );
-    if ( itr == _globals.end() ) _globals.emplace( get_self(), insert );
-    else _globals.modify( itr, get_self(), insert );
-}
+// void pomelo::set_key_value( const name key, const uint64_t value )
+// {
+//     globals_table _globals(get_self(), get_self().value);
+//     auto insert = [&]( auto & row ) {
+//         row.key = key;
+//         row.value = value;
+//     };
+//     auto itr = _globals.find( key.value );
+//     if ( itr == _globals.end() ) _globals.emplace( get_self(), insert );
+//     else _globals.modify( itr, get_self(), insert );
+// }
 
-uint64_t pomelo::get_key_value( const name key )
-{
-    globals_table _globals(get_self(), get_self().value);
-    auto itr = _globals.find( key.value );
-    check( itr != _globals.end() ,"pomelo::get_key_value: [" + key.to_string() + "] key does not exists");
-    return itr->value;
-}
+// uint64_t pomelo::get_key_value( const name key )
+// {
+//     globals_table _globals(get_self(), get_self().value);
+//     auto itr = _globals.find( key.value );
+//     check( itr != _globals.end() ,"pomelo::get_key_value: [" + key.to_string() + "] key does not exists");
+//     return itr->value;
+// }
 
-bool pomelo::del_key( const name key )
-{
-    globals_table _globals(get_self(), get_self().value);
-    auto itr = _globals.find( key.value );
-    if ( itr != _globals.end() ) {
-        _globals.erase( itr );
-        return true;
-    }
-    return false;
-}
+// bool pomelo::del_key( const name key )
+// {
+//     globals_table _globals(get_self(), get_self().value);
+//     auto itr = _globals.find( key.value );
+//     if ( itr != _globals.end() ) {
+//         _globals.erase( itr );
+//         return true;
+//     }
+//     return false;
+// }
