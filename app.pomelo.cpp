@@ -28,8 +28,8 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     check( project.author_user_id != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [author_user_id]");
 
     // calculate system fee
-    double value = calculate_value( ext_quantity );
     const extended_asset fee = calculate_fee( ext_quantity );
+    double value = calculate_value( ext_quantity - fee );
     print("pomelo:donate_project:: project_id=", project_id, ", ext_quantity=", ext_quantity, ", value=", value, ", fee=", fee, "\n");
 
     // track for matching bonus
@@ -39,7 +39,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     }
 
     // transfer quantity to funding account & system fee
-    transfer( get_self(), project.funding_account, ext_quantity - fee, "🍈 " + memo + " donation via pomelo.io");
+    transfer( get_self(), project.funding_account, ext_quantity - fee, "🍈 " + memo + " donated via Pomelo");
     if ( is_account( FEE_ACCOUNT ) && fee.quantity.amount > 0 ) {
         transfer( get_self(), FEE_ACCOUNT, fee, "🍈 " + memo + " fee ");
     }
