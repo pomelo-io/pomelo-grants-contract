@@ -1,6 +1,6 @@
 // @admin
 [[eosio::action]]
-void pomelo::token( const symbol sym, const name contract, const uint64_t min_amount, const optional<string> description, const optional<string> url )
+void pomelo::token( const symbol sym, const name contract, const uint64_t min_amount )
 {
     // authenticate
     require_auth( get_self() );
@@ -15,8 +15,6 @@ void pomelo::token( const symbol sym, const name contract, const uint64_t min_am
         row.sym = sym;
         row.contract = contract;
         row.min_amount = min_amount;
-        if ( description ) row.description = *description;
-        if ( url ) row.url = *url;
     };
 
     const auto itr = tokens.find( sym.code().raw() );

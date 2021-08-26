@@ -71,8 +71,6 @@ public:
      * - `{symbol} sym` - (primary key) symbol
      * - `{name} contract` - token contract
      * - `{uint64_t} min_amount` - min amount required when donating
-     * - `{string} description` - token description
-     * - `{string} url` - token url
      *
      * ### example
      *
@@ -80,9 +78,7 @@ public:
      * {
      *     "sym": "4,EOS",
      *     "contract": "eosio.token",
-     *     "min_amount": 10000,
-     *     "description": "EOS token",
-     *     "url": "https://eos.io"
+     *     "min_amount": 10000
      * }
      * ```
      */
@@ -90,8 +86,6 @@ public:
         symbol              sym;
         name                contract;
         uint64_t            min_amount;
-        string              description;
-        string              url;
 
         uint64_t primary_key() const { return sym.code().raw(); }
     };
@@ -623,17 +617,15 @@ public:
      * - `{symbol} sym` - (primary key) symbol
      * - `{name} contract` - token contract
      * - `{uint64_t} min_amount` - min amount required when donating
-     * - `{string} [description=""]` - (optional) token description
-     * - `{string} [url=""]` - (optional) token url
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, "EOS Token", "https://eosio.io"]' -p app.pomelo
+     * $ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void token( const symbol sym, const name contract, const uint64_t min_amount, const optional<string> description, const optional<string> url );
+    void token( const symbol sym, const name contract, const uint64_t min_amount );
 
     [[eosio::action]]
     void deltoken( const symbol_code symcode );

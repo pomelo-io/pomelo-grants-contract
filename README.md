@@ -316,8 +316,6 @@ $ ./test.sh
 - `{symbol} sym` - (primary key) symbol
 - `{name} contract` - token contract
 - `{uint64_t} min_amount` - min amount required when donating
-- `{string} description` - token description
-- `{string} url` - token url
 
 ### example
 
@@ -325,9 +323,7 @@ $ ./test.sh
 {
     "sym": "4,EOS",
     "contract": "eosio.token",
-    "min_amount": 10000,
-    "description": "EOS token",
-    "url": "https://eos.io"
+    "min_amount": 10000
 }
 ```
 
@@ -490,13 +486,12 @@ Set token information
 
 ### params
 
-- `{extended_symbol} token` - (primary key) extended symbol
+- `{symbol} sym` - (primary key) symbol
+- `{name} contract` - token contract
 - `{uint64_t} min_amount` - min amount required when donating
-- `{string} [description=""]` - (optional) token description
-- `{string} [url=""]` - (optional) token url
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo token '[[["eosio.token", "4,EOS"]], 10000, "EOS Token", "https://eosio.io"]' -p app.pomelo
+$ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000]' -p app.pomelo
 ```
