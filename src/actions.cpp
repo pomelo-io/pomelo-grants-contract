@@ -14,7 +14,7 @@ void pomelo::token( const symbol sym, const name contract, const uint64_t min_am
     check( supply.amount, "pomelo::token: [sym] has no supply");
 
     // check if Defibox pair ID exists
-    if ( is_account( defibox::code ) ) defibox::get_reserves( pair_id, sym );
+    if ( is_account( defibox::code ) && extended_symbol{ sym, contract } != VALUE_SYM ) defibox::get_reserves( pair_id, sym );
 
     const auto insert = [&]( auto & row ) {
         row.sym = sym;
