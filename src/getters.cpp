@@ -41,8 +41,9 @@ double pomelo::calculate_value( const extended_asset ext_quantity )
 {
     const double value = ext_quantity.quantity.amount / pow( 10, ext_quantity.quantity.symbol.precision());
 
-    if (ext_quantity.get_extended_symbol() == VALUE_SYM)
-        return  value;
+    if ( ext_quantity.get_extended_symbol() == VALUE_SYM ) {
+        return value;
+    }
 
     //if local node - just divide by 10, i.e. 10 USDT => EOS = 1.0 value
     if (!is_account(defibox::code)) {
@@ -93,34 +94,3 @@ void pomelo::validate_round( const uint16_t round_id )
     check(rounds.start_at.sec_since_epoch() <= now, "pomelo::validate_round: [round_id] has not started");
     check(now <= rounds.end_at.sec_since_epoch(), "pomelo::validate_round: [round_id] has expired");
 }
-
-// void pomelo::set_key_value( const name key, const uint64_t value )
-// {
-//     globals_table _globals(get_self(), get_self().value);
-//     auto insert = [&]( auto & row ) {
-//         row.key = key;
-//         row.value = value;
-//     };
-//     auto itr = _globals.find( key.value );
-//     if ( itr == _globals.end() ) _globals.emplace( get_self(), insert );
-//     else _globals.modify( itr, get_self(), insert );
-// }
-
-// uint64_t pomelo::get_key_value( const name key )
-// {
-//     globals_table _globals(get_self(), get_self().value);
-//     auto itr = _globals.find( key.value );
-//     check( itr != _globals.end() ,"pomelo::get_key_value: [" + key.to_string() + "] key does not exists");
-//     return itr->value;
-// }
-
-// bool pomelo::del_key( const name key )
-// {
-//     globals_table _globals(get_self(), get_self().value);
-//     auto itr = _globals.find( key.value );
-//     if ( itr != _globals.end() ) {
-//         _globals.erase( itr );
-//         return true;
-//     }
-//     return false;
-// }

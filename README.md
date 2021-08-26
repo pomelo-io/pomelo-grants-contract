@@ -312,6 +312,7 @@ $ ./test.sh
 - `{symbol} sym` - (primary key) symbol
 - `{name} contract` - token contract
 - `{uint64_t} min_amount` - min amount required when donating
+- `{uint64_t} pair_id` - Defibox swap pair ID
 
 ### example
 
@@ -319,7 +320,8 @@ $ ./test.sh
 {
     "sym": "4,EOS",
     "contract": "eosio.token",
-    "min_amount": 10000
+    "min_amount": 10000,
+    "pair_id": 12
 }
 ```
 

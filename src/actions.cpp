@@ -1,6 +1,8 @@
+#include <sx.defibox/defibox.hpp>
+
 // @admin
 [[eosio::action]]
-void pomelo::token( const symbol sym, const name contract, const uint64_t min_amount )
+void pomelo::token( const symbol sym, const name contract, const uint64_t min_amount, const uint64_t pair_id )
 {
     // authenticate
     require_auth( get_self() );
@@ -11,10 +13,14 @@ void pomelo::token( const symbol sym, const name contract, const uint64_t min_am
     check( supply.symbol == sym, "pomelo::token: [sym] symbol does not match with token supply");
     check( supply.amount, "pomelo::token: [sym] has no supply");
 
+    // check if Defibox pair ID exists
+    if ( is_account( defibox::code ) ) defibox::get_reserves( pair_id, sym );
+
     const auto insert = [&]( auto & row ) {
         row.sym = sym;
         row.contract = contract;
         row.min_amount = min_amount;
+        row.pair_id = pair_id;
     };
 
     const auto itr = tokens.find( sym.code().raw() );
@@ -172,6 +178,13 @@ void pomelo::setround( const uint16_t round_id, const time_point_sec start_at, c
 
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto itr = rounds.find( round_id );
+
+    // validate input
+    check( end_at >= start_at, "pomelo::setround: [end_at] must be after [start_at]");
+    check( end_at.sec_since_epoch() - start_at.sec_since_epoch() >= DAY * 7, "pomelo::setround: minimum period must be at least 7 days");
+    for ( const extended_asset match_token : match_tokens ) {
+        check( is_token_enabled( match_token.quantity.symbol.code() ), "pomelo::setround: [match_token=" + match_token.quantity.to_string() +"] token is not available" );
+    }
 
     const auto insert = [&]( auto & row ) {
         row.round = round_id;

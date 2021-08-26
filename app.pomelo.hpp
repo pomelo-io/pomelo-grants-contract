@@ -14,6 +14,7 @@ static constexpr extended_symbol VALUE_SYM = { symbol {"EOS", 4}, "eosio.token"_
 static constexpr name LOGIN_CONTRACT = "login.eosn"_n;
 static constexpr name FEE_ACCOUNT = "fee.pomelo"_n;
 static set<name> STATUS_TYPES = set<name>{"ok"_n, "testing"_n, "pending"_n, "disabled"_n};
+static constexpr uint32_t DAY = 86400;
 
 static string ERROR_INVALID_MEMO = "invalid transfer memo (ex: \"grant:mygrant\" or \"bounty:mybounty\")";
 
@@ -71,6 +72,7 @@ public:
      * - `{symbol} sym` - (primary key) symbol
      * - `{name} contract` - token contract
      * - `{uint64_t} min_amount` - min amount required when donating
+     * - `{uint64_t} pair_id` - Defibox swap pair ID
      *
      * ### example
      *
@@ -78,7 +80,8 @@ public:
      * {
      *     "sym": "4,EOS",
      *     "contract": "eosio.token",
-     *     "min_amount": 10000
+     *     "min_amount": 10000,
+     *     "pair_id": 12
      * }
      * ```
      */
@@ -86,6 +89,7 @@ public:
         symbol              sym;
         name                contract;
         uint64_t            min_amount;
+        uint64_t            pair_id;
 
         uint64_t primary_key() const { return sym.code().raw(); }
     };
@@ -617,15 +621,16 @@ public:
      * - `{symbol} sym` - (primary key) symbol
      * - `{name} contract` - token contract
      * - `{uint64_t} min_amount` - min amount required when donating
+     * - `{uint64_t} pair_id` - Defibox swap pair ID
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000]' -p app.pomelo
+     * $ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 12]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void token( const symbol sym, const name contract, const uint64_t min_amount );
+    void token( const symbol sym, const name contract, const uint64_t min_amount, const uint64_t pair_id );
 
     [[eosio::action]]
     void deltoken( const symbol_code symcode );
@@ -634,7 +639,7 @@ private:
     void transfer( const name from, const name to, const extended_asset value, const string memo );
 
     // getters
-    double calculate_value(const extended_asset ext_quantity);
+    double calculate_value(const extended_asset ext_quantity );
     name get_user_id( const name user );
     bool is_user( const name user_id );
     void validate_round( const uint16_t round_id );

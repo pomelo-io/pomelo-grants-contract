@@ -1,4 +1,3 @@
-
 [[eosio::on_notify("*::transfer")]]
 void pomelo::on_transfer( const name from, const name to, const asset quantity, const string memo )
 {

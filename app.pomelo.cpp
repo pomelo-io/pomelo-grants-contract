@@ -5,8 +5,8 @@
 #include "app.pomelo.hpp"
 
 #include "src/utils.cpp"
-#include "src/actions.cpp"
 #include "src/getters.cpp"
+#include "src/actions.cpp"
 #include "src/notifiers.cpp"
 
 template <typename T>
