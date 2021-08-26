@@ -18,7 +18,24 @@ public:
     using contract::contract;
 
     static constexpr name LOGIN_CONTRACT = "login.eosn"_n;
-    static constexpr name POMELO_CONTRACT = "app.pomelo"_n;
+
+    /**
+     * ## TABLE `config`
+     *
+     * - `{vector<name>} notifiers` - accounts to be notified via inline action
+     *
+     * ### example
+     *
+     * ```json
+     * {
+     *   "notifiers": ["mynotify"]
+     * }
+     * ```
+     */
+    struct [[eosio::table("config")]] config_row {
+        vector<name>        notifiers = {};
+    };
+    typedef eosio::singleton< "config"_n, config_row > config_table;
 
     /**
      * ## TABLE `users`
@@ -39,7 +56,6 @@ public:
      * - `{name} [status="pending"]` - user status (ex: `created/ok/deleted`)
      * - `{time_point_sec} created_at` - created at time
      * - `{time_point_sec} updated_at` - updated at time
-     * - `{time_point_sec} deleted_at` - deleted at time
      *
      * ### example
      *
@@ -51,8 +67,7 @@ public:
      *     "socials": ["github"],
      *     "status": "ok",
      *     "created_at": "2020-12-06T00:00:00",
-     *     "updated_at": "2020-12-06T00:00:00",
-     *     "deleted_at": "1970-01-01T00:00:00"
+     *     "updated_at": "2020-12-06T00:00:00"
      * }
      * ```
      */
@@ -64,7 +79,6 @@ public:
         name                status;
         time_point_sec      created_at;
         time_point_sec      updated_at;
-        time_point_sec      deleted_at;
 
         uint64_t primary_key() const { return user_id.value; }
         uint64_t bystatus() const { return status.value; };
@@ -112,19 +126,19 @@ public:
     /**
      * ## TABLE `socials`
      *
-     * scope: contract, i.e. "app.pomelo"_n.value
+     * scope: get_self()
      *
      * ### params
      *
      * - `{name} social` - (primary key) social
-     * - `{uint32_t} weight` - social weight(0-100), i.e. 50 gives 50% boost
+     * - `{uint32_t} weight` - (pips 1 = 0.01% ) social weight (0-20000), i.e. 5000 gives 50% boost
      *
      * ### example
      *
      * ```json
      * {
-     *     "social": "eden"_n,
-     *     "weight": "50"
+     *     "social": "github",
+     *     "weight": 5000
      * }
      * ```
      */
@@ -143,14 +157,12 @@ public:
      *
      * | `param`        | `index_position` | `key_type` |
      * |--------------- |------------------|------------|
-     * | `byaccount`    | 2                | i64        |
-     * | `bynonce`      | 3                | i64        |
-     * | `bycreated`    | 4                | i64        |
+     * | `bynonce`      | 2                | i64        |
+     * | `bycreated`    | 3                | i64        |
      *
      * ### params
      *
-     * - `{uint64_t} id` - (primary key) incremental ID
-     * - `{name} account` - nonce number
+     * - `{name} account` - (primary key) account name
      * - `{uint64_t} nonce` - nonce number
      * - `{string} data` - (optional) string data
      * - `{time_point_sec} created_at` - created at time
@@ -159,31 +171,26 @@ public:
      *
      * ```json
      * {
-     *     "id": 1,
      *     "account": "myaccount",
-     *     "nonce": 1,
+     *     "nonce": 123,
      *     "data": "any data",
      *     "created_at": "2020-12-06T00:00:00",
      * }
      * ```
      */
     struct [[eosio::table("proofs")]] proofs_row {
-        uint64_t            id;
         name                account;
         uint64_t            nonce;
         string              data;
         time_point_sec      created_at;
 
-        uint64_t primary_key() const { return id; }
-        uint64_t byaccount() const { return account.value; };
+        uint64_t primary_key() const { return account.value; }
         uint64_t bynonce() const { return nonce; };
         uint64_t bycreated() const { return created_at.sec_since_epoch(); };
     };
     typedef eosio::multi_index< "proofs"_n, proofs_row,
-        indexed_by< "byaccount"_n, const_mem_fun<proofs_row, uint64_t, &proofs_row::byaccount> >,
         indexed_by< "bynonce"_n, const_mem_fun<proofs_row, uint64_t, &proofs_row::bynonce> >,
         indexed_by< "bycreated"_n, const_mem_fun<proofs_row, uint64_t, &proofs_row::bycreated> >
-        // indexed_by< "byexpired"_n, const_mem_fun<proofs_row, uint64_t, &proofs_row::byexpired> >
     > proofs_table;
 
     /**
@@ -208,7 +215,7 @@ public:
     /**
      * ## ACTION `status`
      *
-     * - **authority**: `get_self()` and (`user_id` or `accounts`)
+     * - **authority**: `user_id`
      *
      * ### params
      *
@@ -227,7 +234,7 @@ public:
     /**
      * ## ACTION `deluser`
      *
-     * - **authority**: `get_self()` and (`user_id` or `accounts`)
+     * - **authority**: `user_id`
      *
      * ### params
      *
@@ -245,61 +252,98 @@ public:
     /**
      * ## ACTION `link`
      *
-     * - **authority**: `get_self()` and (`user_id` or `accounts`)
+     * > Link user with EOS account
+     *
+     * - **authority**: (`user_id` AND `account`) OR (`user_id` AND `sig`) **two signatures required**
      *
      * ### params
      *
      * - `{name} user_id` - user ID
-     * - `{name} [accounts=[]]` - EOS account names
+     * - `{name} account` - account name
+     * - `{signature} [sig=null]` - (optional) EOSIO signature from `user_id` (request to backend)
      *
      * ### Example
      *
+     * > both `eosn` + `account` signatures
+     *
      * ```bash
-     * $ cleos push action login.eosn link '["123.eosn", ["myaccount"]]' -p login.eosn
+     * $ cleos push action login.eosn link '["123.eosn", "myaccount", null]' -p 123.eosn -p myaccount
+     * ```
+     *
+     * > only using `account` signature
+     *
+     * ```
+     * $ cleos push action login.eosn link '["123.eosn", "myaccount", "SIG_K1_K99CcsndK53Vt3uC7kbBkfUQ7sYYgeX7FEoMbrn5gS2zA1Pmj5ii4k6AtDCdsJRW8tMxL5UbfTqsXTDpxoSxv1eF43S4xY"]' -p myaccount
      * ```
      */
     [[eosio::action]]
-    void link( const name user_id, const set<name> accounts );
+    void link( const name user_id, const name account, const signature sig);
 
     /**
      * ## ACTION `unlink`
      *
-     * - **authority**: `get_self()` and (`user_id` or `accounts`)
+     * > Unlink user of EOS account
+     *
+     * - **authority**: `user_id` OR `account`
      *
      * ### params
      *
      * - `{name} user_id` - user ID
+     * - `{optional<name>} [account=""]` - (optional) account name (if null is provided, erease all)
      *
      * ### Example
      *
      * ```bash
-     * $ cleos push action login.eosn unlink '["123.eosn"]' -p login.eosn
+     * $ cleos push action login.eosn unlink '["123.eosn", "myaccount"]' -p login.eosn
      * ```
      */
     [[eosio::action]]
-    void unlink( const name user_id );
+    void unlink( const name user_id, const optional<name> account );
 
     /**
      * ## ACTION `social`
      *
-     * - **authority**: `get_self()` and (`user_id` or `accounts`)
+     * > Enable user social logins
+     *
+     * - **authority**: `user_id`
      *
      * ### params
      *
      * - `{name} user_id` - user ID
-     * - `{set<name>} [socials=[]]` - social accounts enabled
+     * - `{name} social` - enable social account
      *
      * ### Example
      *
      * ```bash
-     * $ cleos push action login.eosn social '["123.eosn", ["github"]]' -p login.eosn
+     * $ cleos push action login.eosn social '["123.eosn", "github"]' -p login.eosn
      * ```
      */
     [[eosio::action]]
-    void social( const name user_id, const set<name> socials );
+    void social( const name user_id, const name social );
 
     /**
-     * ## ACTION `setsocial`
+     * ## ACTION `unsocial`
+     *
+     * > Disable user social logins
+     *
+     * - **authority**: `user_id`
+     *
+     * ### params
+     *
+     * - `{name} user_id` - user ID
+     * - `{optional<name>} [social=""]` - (optional) disable social account (if null, disable all socials)
+     *
+     * ### Example
+     *
+     * ```bash
+     * $ cleos push action login.eosn unsocial '["123.eosn", "github"]' -p login.eosn
+     * ```
+     */
+    [[eosio::action]]
+    void unsocial( const name user_id, const optional<name> social );
+
+    /**
+     * ## ACTION `configsocial`
      *
      * - **authority**: `get_self()`
      *
@@ -311,11 +355,11 @@ public:
      * ### Example
      *
      * ```bash
-     * $ cleos push action login.eosn setsocial '["eden", 50]' -p login.eosn
+     * $ cleos push action login.eosn configsocial '["github", 50]' -p login.eosn
      * ```
      */
     [[eosio::action]]
-    void setsocial( const name social, const uint32_t weight );
+    void configsocial( const name social, const uint32_t weight );
 
     /**
      * ## ACTION `proof`
@@ -337,23 +381,26 @@ public:
     [[eosio::action]]
     void proof( const name account, const uint64_t nonce, const optional<string> data );
 
+    [[eosio::action]]
+    void reset( const name table );
+
     /**
-     * ## ACTION `authorize`
+     * ## ACTION `setnotifiers`
      *
-     * - **authority**: `user_id` or `accounts`
+     * - **authority**: `get_self()`
      *
      * ### params
      *
-     * - `{name} user_id` - user ID
+     * - `{vector<name>} notifiers` - contracts to be notified on event
      *
      * ### Example
      *
      * ```bash
-     * $ cleos push action login.eosn authorize '["123.eosn"]' -p 123.eosn
+     * $ cleos push action login.eosn setnotifiers '[["app.pomelo"]]' -p login.eosn
      * ```
      */
     [[eosio::action]]
-    void authorize( const name user_id );
+    void setnotifiers( const vector<name> notifiers );
 
     /**
      * ## STATIC `is_auth`
@@ -373,20 +420,17 @@ public:
      * ```c++
      * const name user_id = "123.eosn"_n;
      * const bool is_auth  = eosn::login::is_auth( user_id );
-     * //=> true/false
+     * //=> true
      * ```
      */
     static bool is_auth( const name user_id )
     {
         login::users_table _users( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
+        auto users = _users.get( user_id.value, "login::is_auth: [user_id] does not exist");
 
         if ( has_auth( user_id ) ) return true;
 
-        // EOSN login fallback accounts
-        auto users = _users.find( user_id.value );
-        if ( users == _users.end() ) return false;
-
-        for ( const name account : users->accounts ) {
+        for ( const name account : users.accounts ) {
             if ( has_auth(account) ) return true;
         }
         return false;
@@ -443,11 +487,10 @@ public:
         login::users_table _users( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
         login::socials_table _socials( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
 
-        auto itr = _users.find( user_id.value );
-        if ( itr == _users.end() ) return 0;
-
+        auto user = _users.get( user_id.value, "login::get_user_weight: [user_id] does not exist" );
+        check( user.status != "deleted"_n, "login::get_user_weight: user is deleted" );
         uint32_t total_weight = 0;
-        for ( const name social: itr->socials ) {
+        for( const auto& social: user.socials ){
             total_weight += _socials.get( social.value, "login::get_user_weight: [user_id] has unknown social").weight;
         }
         return total_weight;
@@ -459,10 +502,16 @@ public:
     using link_action = eosio::action_wrapper<"link"_n, &eosn::login::link>;
     using unlink_action = eosio::action_wrapper<"unlink"_n, &eosn::login::unlink>;
     using social_action = eosio::action_wrapper<"social"_n, &eosn::login::social>;
-    using authorize_action = eosio::action_wrapper<"authorize"_n, &eosn::login::authorize>;
 
 private:
-    void unlink_user( const name user_id );
+    void unlink_by_user( const name user_id );
+    void unlink_by_account( const name account );
+    template <typename T>
+    bool erase_table( T& table );
+    void erase_stale_proofs();
+    void alert_notifiers();
+    void create_account( const name user_id, const set<public_key> public_keys );
+    void verify_sig( const name user_id, const name account, const signature& sig );
 };
 
 } // namespace eosn

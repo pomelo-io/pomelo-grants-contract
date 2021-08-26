@@ -1,6 +1,7 @@
 #include <eosio/native.hpp>
 #include <eosio.system/eosio.system.hpp>
 #include <eosio.token/eosio.token.hpp>
+#include <eosio/crypto.hpp>
 
 #include "login.eosn.hpp"
 
@@ -10,6 +11,7 @@ namespace eosn {
 void login::create( const name user_id, const set<public_key> public_keys )
 {
     require_auth( get_self() );
+    alert_notifiers();
 
     login::users_table _users( get_self(), get_self().value );
 
@@ -17,7 +19,6 @@ void login::create( const name user_id, const set<public_key> public_keys )
     const name suffix = user_id.suffix();
     auto itr = _users.find( user_id.value );
     check( itr == _users.end(), "login::create: [user_id] already exists" );
-    check( !is_account( user_id ), "login::create: [user_id] account already exists" );
     check( public_keys.size(), "login::create: [public_keys] is empty" );
     check( suffix.value, "login::create: [user_id] does not include a suffix" );
     check( suffix == "eosn"_n, "login::create: [user_id] suffix must be *.eosn" );
@@ -31,16 +32,24 @@ void login::create( const name user_id, const set<public_key> public_keys )
         row.updated_at = current_time_point();
     });
 
+    // if on-chain account is not yet created
+    if ( !is_account( user_id ) ) create_account( user_id, public_keys );
+}
+
+void login::create_account( const name user_id, const set<public_key> public_keys )
+{
+    const name suffix = user_id.suffix();
+
     // setup account permission
     vector<eosiosystem::key_weight> keys;
     for ( const public_key key : public_keys ) {
         keys.push_back({ key, 1 });
     }
+
     const vector<eosiosystem::permission_level_weight> accounts = {{ { get_self(), "eosio.code"_n }, 1 }};
     const eosiosystem::authority owner = { 1, {}, accounts, {} };
     const eosiosystem::authority active = { 1, keys, {}, {} };
 
-    // create new account
     eosiosystem::native::newaccount_action newaccount( "eosio"_n, { suffix, "active"_n} );
     newaccount.send( suffix, user_id, owner, active );
 
@@ -51,24 +60,16 @@ void login::create( const name user_id, const set<public_key> public_keys )
     // open EOS token balance
     eosio::token::open_action open( "eosio.token"_n, { get_self(), "active"_n });
     open.send( get_self(), symbol{"EOS", 4}, get_self() );
-
-    // add created account to linked table
-    login::accounts_table _accounts( get_self(), get_self().value );
-    _accounts.emplace( get_self(), [&]( auto & row ) {
-        row.account = user_id;
-        row.user_id = user_id;
-    });
 }
 
 [[eosio::action]]
 void login::status( const name user_id, const name status )
 {
-    require_auth( get_self() );
-    require_auth_user_id( user_id );
-
-    login::users_table _users( get_self(), get_self().value );
+    require_auth( user_id );
+    alert_notifiers();
 
     // validate user ID
+    login::users_table _users( get_self(), get_self().value );
     auto itr = _users.find( user_id.value );
     check( itr != _users.end(), "login::status: [user_id] does not exist" );
 
@@ -83,30 +84,36 @@ void login::status( const name user_id, const name status )
 [[eosio::action]]
 void login::deluser( const name user_id )
 {
-    require_auth( get_self() );
-    require_auth_user_id( user_id );
-
-    login::users_table _users( get_self(), get_self().value );
-
-    // notify contracts
-    if ( is_account(POMELO_CONTRACT) ) require_recipient(POMELO_CONTRACT);
+    require_auth( user_id );
+    alert_notifiers();
 
     // validate user ID
+    login::users_table _users( get_self(), get_self().value );
     auto itr = _users.find( user_id.value );
-    check( itr != _users.end(), "login::deluser: [user_id] does not exist" );
-    check( itr->deleted_at.sec_since_epoch() == 0, "login::deluser: [user_id] is already deleted" );
+    _users.erase( itr );
+    unlink_by_user( user_id );
+}
 
-    // modify user row
-    _users.modify( itr, get_self(), [&]( auto & row ) {
-        row.deleted_at = current_time_point();
-    });
+void login::verify_sig(const name user_id, const name account, const signature& sig ){
+
+    login::users_table _users( get_self(), get_self().value );
+    auto user = _users.get( user_id.value, "login::verify_sig: [user_id] does not exist" );
+
+    checksum256 digest = sha256((const char*) &account.value, sizeof(account.value));
+    const auto pk = recover_key( digest, sig);
+    check( user.public_keys.count(pk), "login::verify_sig: invalid signature");
 }
 
 [[eosio::action]]
-void login::link( const name user_id, const set<name> accounts )
+void login::link( const name user_id, const name account, const signature sig )
 {
-    require_auth( get_self() );
-    require_auth_user_id( user_id );
+    // - **authority**: (`user_id` AND `account`) OR (`user_id` AND `sig`) **two signatures required**
+    check( has_auth( account) || is_auth( user_id ), "login::link: is not authorized");
+
+    // verrify `sig` is valid for `user_id`
+    verify_sig(user_id, account, sig);
+
+    alert_notifiers();
 
     login::users_table _users( get_self(), get_self().value );
     login::accounts_table _accounts( get_self(), get_self().value );
@@ -114,45 +121,33 @@ void login::link( const name user_id, const set<name> accounts )
     // validate user ID
     auto itr = _users.find( user_id.value );
     check( itr != _users.end(), "login::link: [user_id] does not exist" );
-
-    // notify contracts
-    if ( is_account(POMELO_CONTRACT) ) require_recipient(POMELO_CONTRACT);
+    check( is_account( account ), "login::link: [" + account.to_string() + "] account does not exist" );
+    check( user_id != account, "login::link: [user_id] cannot be the same as [account]" );
 
     // modify user row
     _users.modify( itr, get_self(), [&]( auto & row ) {
-        row.accounts = accounts;
+        check( !row.accounts.count( account ), "login::link: [account] is already linked" );
+        row.accounts.insert( account );
         row.updated_at = current_time_point();
     });
 
-    // remove any accounts linked to user id
-    unlink_user( user_id );
+    // link account related to user id
+    auto accounts_itr = _accounts.find( account.value );
+    check( accounts_itr == _accounts.end(), "login::link: [" + account.to_string() + "] account already linked with [" + accounts_itr->user_id.to_string() + "] user_id" );
 
-    // link all accounts related to user id
-    for ( const name account : accounts ) {
-        check( is_account( account ), "login::link: [" + account.to_string() + "] account does not exist" );
-        auto accounts_itr = _accounts.find( account.value );
-        check( accounts_itr == _accounts.end(), "login::link: [" + account.to_string() + "] account already linked with [" + accounts_itr->user_id.to_string() + "] user_id" );
-
-        _accounts.emplace( get_self(), [&]( auto & row ) {
-            row.account = account;
-            row.user_id = user_id;
-        });
-    }
+    _accounts.emplace( get_self(), [&]( auto & row ) {
+        row.account = account;
+        row.user_id = user_id;
+    });
 }
 
 [[eosio::action]]
-void login::unlink( const name user_id )
+void login::unlink( const name user_id, const optional<name> account )
 {
-    require_auth( get_self() );
-    require_auth_user_id( user_id );
+    check( is_auth( user_id ) || has_auth( *account), "login::link: is not authorized");
+    alert_notifiers();
 
     login::users_table _users( get_self(), get_self().value );
-
-    // remove any accounts linked to user id
-    unlink_user( user_id );
-
-    // notify contracts
-    if ( is_account(POMELO_CONTRACT) ) require_recipient(POMELO_CONTRACT);
 
     // validate user ID
     auto itr = _users.find( user_id.value );
@@ -161,12 +156,27 @@ void login::unlink( const name user_id )
 
     // modify user row
     _users.modify( itr, get_self(), [&]( auto & row ) {
-        row.accounts = {};
+        if ( account ) {
+            check( row.accounts.count( *account ), "login::unlink: [account] is already unlinked" );
+            row.accounts.erase( *account );
+            unlink_by_account( *account );
+        } else row.accounts = {};
+
+        // remove any accounts linked to user id
+        if ( row.accounts.size() == 0 ) unlink_by_user( user_id );
         row.updated_at = current_time_point();
     });
 }
 
-void login::unlink_user( const name user_id )
+void login::unlink_by_account( const name account )
+{
+    login::accounts_table _accounts( get_self(), get_self().value );
+
+    auto itr = _accounts.find( account.value );
+    if ( itr != _accounts.end() ) _accounts.erase( itr );
+}
+
+void login::unlink_by_user( const name user_id )
 {
     login::accounts_table _accounts( get_self(), get_self().value );
 
@@ -176,27 +186,51 @@ void login::unlink_user( const name user_id )
 }
 
 [[eosio::action]]
-void login::social( const name user_id, const set<name> socials )
+void login::social( const name user_id, const name social )
 {
-    require_auth( get_self() );
-    require_auth_user_id( user_id );
+    require_auth( user_id );
 
     login::users_table _users( get_self(), get_self().value );
     login::socials_table _socials( get_self(), get_self().value );
 
     // notify contracts
-    if ( is_account(POMELO_CONTRACT) ) require_recipient(POMELO_CONTRACT);
+    alert_notifiers();
 
     // validate user ID
     auto itr = _users.find( user_id.value );
     check( itr != _users.end(), "login::social: [user_id] does not exist" );
-    for(const auto& social: socials){
-        check( _socials.find( social.value ) != _socials.end(), "login::social: one of the [socials] is unknown" );
-    }
+    check( _socials.find( social.value ) != _socials.end(), "login::social: one of the [socials] is unknown" );
 
     // modify user row
     _users.modify( itr, get_self(), [&]( auto & row ) {
-        row.socials = socials;
+        check( !row.socials.count( social ), "login::unsocial: [social] is already exists" );
+        row.socials.insert( social );
+        row.updated_at = current_time_point();
+    });
+}
+
+[[eosio::action]]
+void login::unsocial( const name user_id, const optional<name> social )
+{
+    require_auth( user_id );
+
+    login::users_table _users( get_self(), get_self().value );
+    login::socials_table _socials( get_self(), get_self().value );
+
+    // notify contracts
+    alert_notifiers();
+
+    // validate user ID
+    auto itr = _users.find( user_id.value );
+    check( itr != _users.end(), "login::social: [user_id] does not exist" );
+    check( _socials.find( social->value ) != _socials.end(), "login::social: [socials] is unknown" );
+
+    // modify user row
+    _users.modify( itr, get_self(), [&]( auto & row ) {
+        if ( social ) {
+            check( row.socials.count( *social ), "login::unsocial: [social] is already removed" );
+            row.socials.erase( *social );
+        } else row.socials = {};
         row.updated_at = current_time_point();
     });
 }
@@ -206,46 +240,88 @@ void login::proof( const name account, const uint64_t nonce, const optional<stri
 {
     require_auth( account );
 
+    erase_stale_proofs();
     login::proofs_table _proofs( get_self(), get_self().value );
 
-    // create row
-    _proofs.emplace( get_self(), [&]( auto & row ) {
-        row.id = _proofs.available_primary_key();
+    auto insert = [&]( auto & row ) {
         row.account = account;
         row.nonce = nonce;
         row.data = *data;
         row.created_at = current_time_point();
-    });
+    };
 
+    // create/modify row
+    auto itr = _proofs.find( account.value );
+    if ( itr == _proofs.end() ) _proofs.emplace( get_self(), insert );
+    else _proofs.modify( itr, get_self(), insert );
+}
+
+[[eosio::action]]
+void login::setnotifiers( const vector<name> notifiers )
+{
+    require_auth( get_self() );
+
+    for ( const name notifier : notifiers ) {
+        check( is_account( notifier ), "login::setnotifiers: `notifier` does not exist");
+    }
+    login::config_table _config( get_self(), get_self().value );
+    auto config = _config.get_or_default();
+    config.notifiers = notifiers;
+    _config.set( config, get_self() );
+}
+
+void login::alert_notifiers()
+{
+    login::config_table _config( get_self(), get_self().value );
+
+    for ( const name notifier : _config.get_or_default().notifiers ) {
+        require_recipient( notifier );
+    }
+}
+
+void login::erase_stale_proofs()
+{
     // delete last 10 rows after 24 hours
+    login::proofs_table _proofs( get_self(), get_self().value );
     auto index = _proofs.get_index<"bycreated"_n>();
     auto itr = index.begin();
-    vector<uint64_t> to_erase;
+    vector<name> to_erase;
     while ( true ) {
         const uint64_t time_delta = current_time_point().sec_since_epoch() - itr->created_at.sec_since_epoch();
         if ( itr == index.end() ) break;
         if ( time_delta <= 86400 ) break;
         if ( to_erase.size() >= 10 ) break;
-        print(to_string(itr->id) + ":" + to_string(time_delta) + "\n");
-        to_erase.push_back( itr->id );
+        print(itr->account.to_string() + ":" + to_string(time_delta) + "\n");
+        to_erase.push_back( itr->account );
         itr++;
     }
-    for ( const uint64_t id : to_erase ) {
-        _proofs.erase(_proofs.find( id ));
+    for ( const name account : to_erase ) {
+        _proofs.erase(_proofs.find( account.value ));
     }
 }
 
 [[eosio::action]]
-void login::authorize( const name user_id )
+void login::reset( const name table )
 {
-    require_auth_user_id( user_id );
+    require_auth( get_self() );
+
+    login::users_table _users( get_self(), get_self().value );
+    login::proofs_table _proofs( get_self(), get_self().value );
+    login::accounts_table _accounts( get_self(), get_self().value );
+    login::config_table _config( get_self(), get_self().value );
+
+    if ( table == "users"_n ) erase_table( _users );
+    else if ( table == "proofs"_n ) erase_table( _proofs );
+    else if ( table == "accounts"_n ) erase_table( _accounts );
+    else if ( table == "config"_n ) _config.remove();
+    else check( false, "invalid table name");
 }
 
 [[eosio::action]]
-void login::setsocial( const name social, const uint32_t weight )
+void login::configsocial( const name social, const uint32_t weight )
 {
     require_auth( get_self() );
-    check( weight <= 200, "login::setsocial: [weight] should be <= 200");
+    check( weight <= 20000, "login::setsocial: [weight] should be <= 20000");
 
     login::socials_table _socials( get_self(), get_self().value );
 
@@ -256,9 +332,21 @@ void login::setsocial( const name social, const uint32_t weight )
     const auto itr = _socials.find( social.value );
     if ( itr == _socials.end() ) _socials.emplace( get_self(), insert );
     else {
-        if( weight == 0 ) _socials.erase( itr );
+        if ( weight == 0 ) _socials.erase( itr );
         else _socials.modify( itr, get_self(), insert );
     }
+}
+
+template <typename T>
+bool login::erase_table( T& table )
+{
+    auto itr = table.begin();
+    bool erased = false;
+    while ( itr != table.end() ) {
+        itr = table.erase( itr );
+        erased = true;
+    }
+    return erased;
 }
 
 } // namespace eosn

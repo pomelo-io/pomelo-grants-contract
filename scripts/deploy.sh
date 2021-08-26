@@ -81,9 +81,9 @@ cleos transfer eosio user.noeosn "1000000.0000 EOS" ""
 cleos push action swap.defi setprice '[12, ["4,EOS", "eosio.token"], ["4,USDT", "tethertether"], 10]' -p swap.defi
 
 # set socials weights
-cleos push action login.eosn setsocial '["sms", 25]' -p login.eosn
-cleos push action login.eosn setsocial '["facebook", 25]' -p login.eosn
-cleos push action login.eosn setsocial '["twitter", 25]' -p login.eosn
-cleos push action login.eosn setsocial '["github", 25]' -p login.eosn
-cleos push action login.eosn setsocial '["passport", 25]' -p login.eosn
-cleos push action login.eosn setsocial '["eden", 50]' -p login.eosn
+cleos push action login.eosn configsocial '["sms", 25]' -p login.eosn
+cleos push action login.eosn configsocial '["facebook", 25]' -p login.eosn
+cleos push action login.eosn configsocial '["twitter", 25]' -p login.eosn
+cleos push action login.eosn configsocial '["github", 25]' -p login.eosn
+cleos push action login.eosn configsocial '["passport", 25]' -p login.eosn
+cleos push action login.eosn configsocial '["eden", 50]' -p login.eosn
