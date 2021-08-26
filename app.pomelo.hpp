@@ -646,9 +646,8 @@ private:
     extended_asset calculate_fee( const extended_asset ext_quantity );
 
     // tokens
-    extended_symbol get_token( const symbol_code symcode );
+    tokens_row get_token( const symbol_code symcode );
     bool is_token_enabled( const symbol_code symcode );
-    int64_t get_token_min_amount( const symbol_code symcode );
 
     // globals key/value
     // void set_key_value( const name key, const uint64_t value );

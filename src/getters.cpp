@@ -15,12 +15,10 @@ pomelo::globals_row pomelo::get_globals()
     return _globals.get();
 }
 
-extended_symbol pomelo::get_token( const symbol_code symcode )
+pomelo::tokens_row pomelo::get_token( const symbol_code symcode )
 {
     pomelo::tokens_table _tokens( get_self(), get_self().value );
-    auto itr = _tokens.find( symcode.raw() );
-    if ( itr == _tokens.end() ) return {};
-    return extended_symbol{ itr->sym, itr->contract };
+    return _tokens.get( symcode.raw(), "pomelo::get_token: [symcode] not supported" );
 }
 
 bool pomelo::is_token_enabled( const symbol_code symcode )
@@ -28,13 +26,6 @@ bool pomelo::is_token_enabled( const symbol_code symcode )
     pomelo::tokens_table _tokens( get_self(), get_self().value );
     auto itr = _tokens.find( symcode.raw() );
     return itr != _tokens.end();
-}
-
-int64_t pomelo::get_token_min_amount( const symbol_code symcode )
-{
-    pomelo::tokens_table _tokens( get_self(), get_self().value );
-    auto itr = _tokens.get( symcode.raw(), "pomelo::get_token_min_amount: [symcode] not found" );
-    return itr.min_amount;
 }
 
 double pomelo::calculate_value( const extended_asset ext_quantity )
@@ -45,26 +36,27 @@ double pomelo::calculate_value( const extended_asset ext_quantity )
         return value;
     }
 
-    //if local node - just divide by 10, i.e. 10 USDT => EOS = 1.0 value
+    const auto& token = get_token( ext_quantity.quantity.symbol.code() );
+
+    //if testnet - just divide by 10, i.e. 10 USDT => EOS = 1.0 value
     if (!is_account(defibox::code)) {
         return value / 10;
     }
 
-    // loop through all defibox pairs and find the one that works (alternatively: hardcode pairs)
-    double rate = 0;
     defibox::pairs _pairs( defibox::code, defibox::code.value );
-    for( const auto& row: _pairs ) {
-        if ( row.token0.contract == ext_quantity.contract && row.token0.symbol == ext_quantity.quantity.symbol
-            && row.token1.contract == VALUE_SYM.get_contract() && row.token1.symbol == VALUE_SYM.get_symbol() ) {
-            return value * row.price0_last;
-        }
-        if ( row.token1.contract == ext_quantity.contract && row.token1.symbol == ext_quantity.quantity.symbol
-            && row.token0.contract == VALUE_SYM.get_contract() && row.token0.symbol == VALUE_SYM.get_symbol() ) {
-            return value * row.price1_last;
-        }
+    const auto& pool = _pairs.get( token.pair_id, "pomelo::calculate_value: invalid [pair_id]");
+
+    if ( pool.token0.contract == ext_quantity.contract && pool.token0.symbol == ext_quantity.quantity.symbol
+        && pool.token1.contract == VALUE_SYM.get_contract() && pool.token1.symbol == VALUE_SYM.get_symbol() ) {
+        return value * pool.price0_last;
     }
-    check(false, "pomelo::calculate_value: can't convert amount to base symbol");
-    return value;
+    if ( pool.token1.contract == ext_quantity.contract && pool.token1.symbol == ext_quantity.quantity.symbol
+        && pool.token0.contract == VALUE_SYM.get_contract() && pool.token0.symbol == VALUE_SYM.get_symbol() ) {
+        return value * pool.price1_last;
+    }
+
+    check(false, "pomelo::calculate_value: invalid pool");
+    return 0;
 }
 
 name pomelo::get_user_id( const name account )

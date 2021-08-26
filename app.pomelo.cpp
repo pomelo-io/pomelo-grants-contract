@@ -16,7 +16,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
 
     const asset quantity = ext_quantity.quantity;
     const symbol_code symcode = quantity.symbol.code();
-    const int64_t min_amount = get_token_min_amount( symcode );
+    const int64_t min_amount = get_token( symcode ).min_amount;
 
     // validate incoming transfer
     check( quantity.amount >= min_amount, "pomelo::donate_project: [quantity=" + ext_quantity.quantity.to_string() + "] is less than [tokens.min_amount=" + to_string( min_amount ) + "]");
@@ -156,7 +156,7 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
         check( is_account(funding_account) || (project_type == "bounty"_n && funding_account.value == 0), "pomelo::set_project: [funding_account] does not exists" );
     }
     else {  // new project
-        if ( project_type == "bounty"_n ) check( funding_account.value == 0, "pomelo::set_project: [funding_account] must by empty for bounties" );
+        if ( project_type == "bounty"_n ) check( funding_account.value == 0, "pomelo::set_project: [funding_account] must be empty for bounties" );
         else check( is_account(funding_account), "pomelo::set_project: [funding_account] does not exists" );
     }
 
