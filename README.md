@@ -104,20 +104,16 @@ $ ./test.sh
 
 ## TABLE `globals`
 
-### params
-
-- `{name} key` - (primary key) key
-- `{uint64_t} value` - value
+- `{uint16_t} round_id` - round ID (0 = not active)
+- `{uint64_t} system_fee` - system fee (bips - 1/100 1%)
 
 ### example
 
 ```json
-[
-    { "key": "roundid", "value": 1 },
-    { "key": "status", "value": 1 },
-    { "key": "systemfee", "value": 500 },
-    { "key": "minamount", "value": 1000 }
-]
+{
+    "round_id": 1,
+    "system_fee": 500
+}
 ```
 
 ## TABLES `grants` and `bounties`
