@@ -547,11 +547,25 @@ public:
      * ### params
      *
      * - `{name} user_id` - Pomelo user_id
-     * - `{set<name>} socials` - socials for that user
+     * - `{name} social` - socials for that user
      *
      */
     [[eosio::on_notify("*::social")]]
-    void on_social( const name user_id, const set<name> socials );
+    void on_social( const name user_id, const name social );
+
+    /**
+     * ## SOCIAL NOTIFY HANDLER `on_social`
+     *
+     * Update boosts and matching for user when their socials change
+     *
+     * ### params
+     *
+     * - `{name} user_id` - Pomelo user_id
+     * - `{name} social` - socials for that user
+     *
+     */
+    [[eosio::on_notify("*::unsocial")]]
+    void on_unsocial( const name user_id, const optional<name> social );
 
     /**
      * ## ACTION `cleartable`
@@ -680,4 +694,6 @@ private:
 
     // update counters in status singleton
     void update_status( const uint32_t index, const uint32_t count );
+
+    void update_social( const name user_id );
 };

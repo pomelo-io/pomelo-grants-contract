@@ -34,8 +34,18 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
 }
 
 [[eosio::on_notify("*::social")]]
-void pomelo::on_social( const name user_id, const set<name> socials )
+void pomelo::on_social( const name user_id, const name social )
 {
+    update_social( user_id );
+}
+
+[[eosio::on_notify("*::unsocial")]]
+void pomelo::on_unsocial( const name user_id, const optional<name> social )
+{
+    update_social( user_id );
+}
+
+void pomelo::update_social( const name user_id ){
     const uint16_t round_id = get_globals().round_id;
 
     if ( round_id == 0 || get_first_receiver() != LOGIN_CONTRACT ) return;
@@ -85,5 +95,4 @@ void pomelo::on_social( const name user_id, const set<name> socials )
             row.updated_at = current_time_point();
         });
     }
-
 }
