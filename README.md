@@ -3,13 +3,19 @@
 ## Usage
 
 ```bash
-#init config and set status
-cleos push action app.pomelo init '[]' -p app.pomelo
-cleos push action app.pomelo setconfig '[status, 1]' -p app.pomelo
+# init config with 0 round and 0 fee
+cleos push action app.pomelo setconfig '[0, 0]' -p app.pomelo
+
+# set accounts to notify
+cleos push action login.eosn setnotifiers '[[app.pomelo]]' -p login.eosn
+
+# set tokens
+cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 0]' -p app.pomelo
+cleos push action app.pomelo token '["4,USDT", "tethertether", 10000, 12]' -p app.pomelo
 
 # create matching round and start it
-cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00"]' -p app.pomelo
-cleos push action app.pomelo setconfig '[roundid, 1]' -p app.pomelo
+cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00", "Round 1", [["10000 EOS", "eosio.token"]]]' -p app.pomelo
+cleos push action app.pomelo setconfig '[1, 500]' -p app.pomelo
 
 # create Pomelo user for grant manager and link it to EOS account
 cleos push action login.eosn create '["author.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
@@ -17,16 +23,21 @@ cleos push action login.eosn create '["fund.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqc
 
 # create matching user, link to EOS account and set socials for matching boost
 cleos push action login.eosn create '["user.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
-cleos push action login.eosn social '["user.eosn", ["github", "twitter", "facebook", "passport", "sms"]]' -p login.eosn -p user.eosn
-cleos push action login.eosn link '["user.eosn", ["user1"]]' -p login.eosn -p user.eosn
+cleos push action login.eosn social '["user.eosn", "github"]' -p login.eosn -p user.eosn
+cleos push action login.eosn social '["user.eosn", "twitter"]' -p login.eosn -p user.eosn
+cleos push action login.eosn unsocial '["user.eosn", "twitter"]' -p login.eosn -p user.eosn
+cleos push action login.eosn link '["user.eosn", "user1", "SIG_K1_KjnbJ2m22HtuRW7u7ZLdoCx76aNMiADHJpATGh32uYeJLdSjhdpHA7tmd4pj1Ni3mSr5DPRHHaydpaggrb5RcBg2HDDn7G"]' -p user1
 
 # create grant, enable it and join round
-cleos push action app.pomelo setproject '["author.eosn", "grant", "grant1", "fund.eosn", [["4,EOS", "eosio.token"]]]' -p app.pomelo -p author.eosn
+cleos push action app.pomelo setproject '["author.eosn", "grant", "grant1", "fund.eosn", ["EOS", "USDT"]]' -p app.pomelo -p author.eosn
 cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo -p author.eosn
 cleos push action app.pomelo joinround '["grant1", 1]' -p app.pomelo -p author.eosn
 
-# fund grant1
+# fund grant
 cleos transfer user1 app.pomelo "10.0000 EOS" "grant:grant1"
+
+# fund bounty
+cleos transfer user1 app.pomelo "10.0000 EOS" "bounty:bounty1"
 
 # query transfer trx id
 cleos get table app.pomelo app.pomelo transfers | jq -r '.rows[0].trx_id'
@@ -312,7 +323,7 @@ $ ./test.sh
 - `{symbol} sym` - (primary key) symbol
 - `{name} contract` - token contract
 - `{uint64_t} min_amount` - min amount required when donating
-- `{uint64_t} pair_id` - Defibox swap pair ID
+- `{uint64_t} pair_id` - Defibox swap pair ID (0 for base token)
 
 ### example
 
@@ -329,8 +340,8 @@ $ ./test.sh
 
 ### params
 
-- `{uint16_t} [round_id=null]` - (optional) ongoing round (0=not active)
-- `{uint64_t} [system_fee=500]` - (optoinal) donation fee (500=5%)
+- `{uint16_t} round_id` - ongoing round (0=not active)
+- `{uint64_t} system_fee` - donation fee (500=5%)
 
 ### example
 
@@ -487,9 +498,10 @@ Set token information
 - `{symbol} sym` - (primary key) symbol
 - `{name} contract` - token contract
 - `{uint64_t} min_amount` - min amount required when donating
+- `{uint64_t} pair_id` - Defibox pair id for price discovery (0 for base token)
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000]' -p app.pomelo
+$ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 0]' -p app.pomelo
 ```
