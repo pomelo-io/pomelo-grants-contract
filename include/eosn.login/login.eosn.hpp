@@ -254,30 +254,22 @@ public:
      *
      * > Link user with EOS account
      *
-     * - **authority**: (`user_id` AND `account`) OR (`user_id` AND `sig`) **two signatures required**
+     * - **authority**: `account` AND `sig` **two signatures required**
      *
      * ### params
      *
      * - `{name} user_id` - user ID
      * - `{name} account` - account name
-     * - `{signature} [sig=null]` - (optional) EOSIO signature from `user_id` (request to backend)
+     * - `{signature} sig` - EOSIO signature from `user_id` (backend request)
      *
      * ### Example
      *
-     * > both `eosn` + `account` signatures
-     *
-     * ```bash
-     * $ cleos push action login.eosn link '["123.eosn", "myaccount", null]' -p 123.eosn -p myaccount
      * ```
-     *
-     * > only using `account` signature
-     *
-     * ```
-     * $ cleos push action login.eosn link '["123.eosn", "myaccount", "SIG_K1_K99CcsndK53Vt3uC7kbBkfUQ7sYYgeX7FEoMbrn5gS2zA1Pmj5ii4k6AtDCdsJRW8tMxL5UbfTqsXTDpxoSxv1eF43S4xY"]' -p myaccount
+     * $ cleos push action login.eosn link '["123.eosn", "myaccount", "SIG_K1_KB3uRPsg3VvngDjEsLiH9HLFqqkVGMy11tLW2BePCZEfXKRhcogc536EDj8Fib4igBfGpWDa2PjfnD9DxfHpwMBySrZuLY"]' -p myaccount
      * ```
      */
     [[eosio::action]]
-    void link( const name user_id, const name account, const signature sig);
+    void link( const name user_id, const name account, const signature sig );
 
     /**
      * ## ACTION `unlink`

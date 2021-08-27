@@ -107,12 +107,8 @@ void login::verify_sig(const name user_id, const name account, const signature& 
 [[eosio::action]]
 void login::link( const name user_id, const name account, const signature sig )
 {
-    // - **authority**: (`user_id` AND `account`) OR (`user_id` AND `sig`) **two signatures required**
-    check( has_auth( account) || is_auth( user_id ), "login::link: is not authorized");
-
-    // verrify `sig` is valid for `user_id`
-    verify_sig(user_id, account, sig);
-
+    require_auth( account );
+    verify_sig( user_id, account, sig );
     alert_notifiers();
 
     login::users_table _users( get_self(), get_self().value );
