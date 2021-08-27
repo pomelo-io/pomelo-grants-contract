@@ -30,11 +30,11 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     // calculate system fee
     const extended_asset fee = calculate_fee( ext_quantity );
     double value = calculate_value( ext_quantity - fee );
-    print("pomelo:donate_project:: project_id=", project_id, ", ext_quantity=", ext_quantity, ", value=", value, ", fee=", fee, "\n");
+    // print("pomelo:donate_project:: project_id=", project_id, ", ext_quantity=", ext_quantity, ", value=", value, ", fee=", fee, "\n");
 
     // track for matching bonus
+    const auto user_id = get_user_id( from );
     if ( project.type == "grant"_n ) {
-        const auto user_id = get_user_id( from );
         donate_grant( project_id, ext_quantity - fee, user_id, value );
     }
 

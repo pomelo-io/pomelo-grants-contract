@@ -62,10 +62,7 @@ double pomelo::calculate_value( const extended_asset ext_quantity )
 name pomelo::get_user_id( const name account )
 {
     eosn::login::accounts_table _accounts( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
-    const auto itr = _accounts.find(account.value);
-    // check( itr != _accounts.end(), "pomelo::get_user_id: [account=" + account.to_string() + "] is not linked with EOSN Login");
-    if ( itr == _accounts.end() ) return account;
-    return itr->user_id;
+    return _accounts.get(account.value, "pomelo::get_user_id: account is not linked to .eosn account").user_id;
 }
 
 bool pomelo::is_user( const name user_id )
