@@ -216,20 +216,21 @@ void pomelo::setconfig( const optional<uint16_t> round_id, const optional<uint64
 
 // @admin
 [[eosio::action]]
-void pomelo::cleartable( const name table_name, const uint64_t max_rows )
+void pomelo::cleartable( const name table_name, const optional<uint16_t> round_id, const optional<uint64_t> max_rows )
 {
     require_auth( get_self() );
-    uint64_t rows_to_clear = max_rows == 0 ? -1 : max_rows;
+    const uint64_t rows_to_clear = *max_rows == 0 ? -1 : *max_rows;
+    const uint64_t scope = round_id ? *round_id : get_self().value;
 
     // tables
-    pomelo::transfers_table transfers( get_self(), get_self().value );
-    pomelo::rounds_table rounds( get_self(), get_self().value );
-    pomelo::match_table match( get_self(), get_self().value );
-    pomelo::bounties_table bounties( get_self(), get_self().value );
-    pomelo::grants_table grants( get_self(), get_self().value );
-    pomelo::globals_table globals( get_self(), get_self().value );
-    pomelo::tokens_table tokens( get_self(), get_self().value );
-    pomelo::status_table status( get_self(), get_self().value );
+    pomelo::transfers_table transfers( get_self(), scope );
+    pomelo::rounds_table rounds( get_self(), scope );
+    pomelo::match_table match( get_self(), scope );
+    pomelo::bounties_table bounties( get_self(), scope );
+    pomelo::grants_table grants( get_self(), scope );
+    pomelo::globals_table globals( get_self(), scope );
+    pomelo::tokens_table tokens( get_self(), scope );
+    pomelo::status_table status( get_self(), scope );
 
     if (table_name == "transfers"_n) clear_table( transfers, rows_to_clear );
     else if (table_name == "rounds"_n) clear_table( rounds, rows_to_clear );

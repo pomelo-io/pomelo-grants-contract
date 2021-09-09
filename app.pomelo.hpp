@@ -249,7 +249,7 @@ public:
     /**
      * ## TABLE `match`
      *
-     * *scope*: `round_id`
+     * *scope*: `{uint16_t} round_id`
      *
      * - `{name} grant_id` - (primary key) grant ID
      * - `{uint16_t} round_id` - round ID
@@ -575,16 +575,17 @@ public:
      * ### params
      *
      * - `{name} table_name` - table name, i.e. "transfers"
-     * - `{uint64_t} max_rows` - max number of rows to clear, if 0 - clear all
+     * - `{uint16_t} [round_id]` - (optional) round ID
+     * - `{uint64_t} [max_rows]` - (optional) max number of rows to clear, if 0 - clear all
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo cleartable '["transfers", 500]' -p app.pomelo
+     * $ cleos push action app.pomelo cleartable '["transfers", 1, 500]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void cleartable( const name table_name, const uint64_t max_rows );
+    void cleartable( const name table_name, const optional<uint16_t> round_id, const optional<uint64_t> max_rows );
 
     /**
      * ## ACTION `removeuser`
