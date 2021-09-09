@@ -129,8 +129,8 @@ namespace pomelo {
             static asset get_balance( const name& token_contract_account, const name& owner, const symbol_code& sym_code )
             {
                 accounts accountstable( token_contract_account, owner.value );
-                const auto& ac = accountstable.get( sym_code.raw() );
-                return ac.balance;
+                const auto it = accountstable.find( sym_code.raw() );
+                return it == accountstable.end() ? asset{} : it->balance;
             }
 
             using create_action = eosio::action_wrapper<"create"_n, &playtoken::create>;
