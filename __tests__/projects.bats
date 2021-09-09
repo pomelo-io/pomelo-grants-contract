@@ -571,7 +571,7 @@
   result=$(cleos get table app.pomelo app.pomelo transfers -l 100 | jq -r '.rows | length')
   [ $result = "24" ]
 
-  run cleos push action app.pomelo cleartable '["transfers", 0]' -p app.pomelo
+  run cleos push action app.pomelo cleartable '["transfers", null, 0]' -p app.pomelo
   [ $status -eq 0 ]
 
   result=$(cleos get table app.pomelo app.pomelo transfers -l 1 | jq -r '.rows | length')
