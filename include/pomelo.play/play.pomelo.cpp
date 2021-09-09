@@ -186,10 +186,22 @@ void playtoken::faucet( const name owner, const symbol_code sym_code )
 
     // issue + transfer
     playtoken::issue_action issue( get_self(), { get_self(), "active"_n });
-    issue.send( get_self(), asset{ static_cast<int64_t>( amount ), supply.symbol }, "🍈 Pomelo play tokens" );
+    issue.send( get_self(), asset{ static_cast<int64_t>( amount ), supply.symbol }, "🍈 Pomelo PLAY tokens" );
 
-    playtoken::transfer_action transfer( get_self(), { get_self(), "active"_n });
-    transfer.send( get_self(), owner, asset{ static_cast<int64_t>( amount ), supply.symbol }, "🍈 Pomelo play tokens" );
+    if ( owner != get_self() ) {
+        playtoken::transfer_action transfer( get_self(), { get_self(), "active"_n });
+        transfer.send( get_self(), owner, asset{ static_cast<int64_t>( amount ), supply.symbol }, "🍈 Pomelo PLAY tokens" );
+    }
+}
+
+void playtoken::closesupply( const symbol_code symcode )
+{
+    require_auth( get_self() );
+
+    stats _stats( get_self(), symcode.raw() );
+    auto & stats = _stats.get( symcode.raw(), "symcode supply does not exist" );
+    check( stats.supply.amount == 0, "supply must be zero" );
+    _stats.erase( stats );
 }
 
 } /// namespace eosio

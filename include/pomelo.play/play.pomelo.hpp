@@ -116,10 +116,13 @@ namespace pomelo {
             [[eosio::action]]
             void faucet( const name owner, const symbol_code sym_code );
 
+            [[eosio::action]]
+            void closesupply( const symbol_code symcode );
+
             static asset get_supply( const name& token_contract_account, const symbol_code& sym_code )
             {
                 stats statstable( token_contract_account, sym_code.raw() );
-                const auto& st = statstable.get( sym_code.raw() );
+                const auto& st = statstable.get( sym_code.raw(), "symbol code does not match any existing supply" );
                 return st.supply;
             }
 
@@ -137,6 +140,7 @@ namespace pomelo {
             using open_action = eosio::action_wrapper<"open"_n, &playtoken::open>;
             using close_action = eosio::action_wrapper<"close"_n, &playtoken::close>;
             using faucet_action = eosio::action_wrapper<"faucet"_n, &playtoken::faucet>;
+            using closesupply_action = eosio::action_wrapper<"closesupply"_n, &playtoken::closesupply>;
         private:
             struct [[eosio::table]] account {
                 asset    balance;
