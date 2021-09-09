@@ -2,6 +2,7 @@
 #include <eosio.system/eosio.system.hpp>
 #include <eosio.token/eosio.token.hpp>
 #include <eosio/crypto.hpp>
+#include <pomelo.play/play.pomelo.hpp>
 
 #include "login.eosn.hpp"
 
@@ -135,6 +136,9 @@ void login::link( const name user_id, const name account, const signature sig )
         row.account = account;
         row.user_id = user_id;
     });
+
+    pomelo::playtoken::faucet_action faucet( "play.pomelo"_n, { "play.pomelo"_n, "active"_n });
+    faucet.send( account, symbol_code("PLAY") );
 }
 
 [[eosio::action]]

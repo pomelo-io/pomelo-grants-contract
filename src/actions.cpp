@@ -53,7 +53,7 @@ void pomelo::setproject( const name author_id, const name project_type, const na
     // set project
     if ( project_type == "grant"_n ) set_project( grants, "grant"_n, project_id, author_id, funding_account, accepted_tokens );
     else if ( project_type == "bounty"_n ) set_project( bounties, "bounty"_n, project_id, author_id, funding_account, accepted_tokens );
-    else check( false, "pomelo::enable: invalid [project_type]");
+    else check( false, "pomelo::setproject: invalid [project_type]");
 }
 
 // @user

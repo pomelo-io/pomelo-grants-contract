@@ -10,6 +10,7 @@ cleos create account eosio eosn EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5G
 cleos create account eosio login.eosn EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio swap.defi EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio eosio.token EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+cleos create account eosio play.pomelo EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio tethertether EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio fake.token EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio user1 EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
@@ -40,18 +41,21 @@ cleos set contract tethertether ./include/eosio.token eosio.token.wasm eosio.tok
 cleos set contract fake.token ./include/eosio.token eosio.token.wasm eosio.token.abi
 cleos set contract login.eosn ./include/eosn.login login.eosn.wasm login.eosn.abi
 cleos set contract swap.defi ./include/swap.defi swap.defi.wasm swap.defi.abi
+cleos set contract play.pomelo ./include/pomelo.play play.pomelo.wasm play.pomelo.abi
 cleos set contract app.pomelo . app.pomelo.wasm app.pomelo.abi
 
 # @eosio.code permission
 cleos set account permission app.pomelo active --add-code
 cleos set account permission login.eosn active --add-code
 cleos set account permission eosn active login.eosn --add-code
+cleos set account permission play.pomelo active login.eosn --add-code
 
 # create tokens
 cleos push action eosio.token create '["eosio", "10000000000.0000 EOS"]' -p eosio.token
 cleos push action eosio.token issue '["eosio", "1000000000.0000 EOS", "init"]' -p eosio
 cleos push action tethertether create '["eosio", "100000000.0000 USDT"]' -p tethertether
 cleos push action tethertether issue '["eosio", "10000000.0000 USDT", "init"]' -p eosio
+cleos push action play.pomelo create '["play.pomelo", "10000000000.0000 PLAY"]' -p play.pomelo
 
 # create fake tokens
 cleos push action fake.token create '["eosio", "100000000.0000 EOS"]' -p fake.token

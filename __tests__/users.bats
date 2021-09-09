@@ -47,6 +47,8 @@
   [ $status -eq 0 ]
   result=$(cleos get table login.eosn login.eosn users | jq -r '.rows[0].accounts[0]')
   [ $result = "prjman1" ]
+  result=$(cleos get table play.pomelo prjman1 accounts  | jq -r '.rows | length')
+  [ $result = "1" ]
 
   run cleos push action login.eosn link '["prjman2.eosn", "prjman2", "SIG_K1_K4LEhA2WrPn9SAHHFTZoMJEqzvk52YViyJYgkvBg6f9VKX46RbdDVy6mhqTv6pUENRbQVPmtKwK7eU4PTqfDX8XH8nUn4i"]' -p prjman2
   [ $status -eq 0 ]
