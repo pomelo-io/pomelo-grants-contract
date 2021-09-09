@@ -40,6 +40,27 @@ void pomelo::deltoken( const symbol_code symcode )
     tokens.erase( itr );
 }
 
+// @admin
+[[eosio::action]]
+void pomelo::delproject( const name project_type, const name project_id )
+{
+    // authenticate
+    require_auth( get_self() );
+
+    pomelo::grants_table grants( get_self(), get_self().value );
+    pomelo::bounties_table bounties( get_self(), get_self().value );
+
+    if ( project_type == "grant"_n ) {
+        const auto & itr = grants.get( project_id.value, "pomelo::delproject: grants [project_id] project not found" );
+        grants.erase( itr );
+    } else if ( project_type == "bounty"_n ) {
+        const auto & itr = bounties.get( project_id.value, "pomelo::delproject: bounties [project_id] project not found" );
+        bounties.erase( itr );
+    } else {
+        check( false, "pomelo::delproject: invalid [project_type] must be 'grant' or 'bounty'" );
+    }
+}
+
 // @user
 [[eosio::action]]
 void pomelo::setproject( const name author_id, const name project_type, const name project_id, const name funding_account, const set<symbol_code> accepted_tokens )

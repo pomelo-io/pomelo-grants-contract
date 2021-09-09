@@ -443,6 +443,9 @@ public:
     [[eosio::action]]
     void setproject( const name author_id, const name project_type, const name project_id, const name funding_account, const set<symbol_code> accepted_tokens );
 
+    [[eosio::action]]
+    void delproject( const name project_type, const name project_id );
+
     /**
      * ## ACTION `enable`
      *
