@@ -3,55 +3,26 @@
 ## Usage
 
 ```bash
-# init config with 0 round and 0 fee
-cleos push action app.pomelo setconfig '[0, 0]' -p app.pomelo
-
-# set accounts to notify
-cleos push action login.eosn setnotifiers '[[app.pomelo]]' -p login.eosn
-
-# set tokens
+# configure app
+cleos push action app.pomelo setconfig '[1, 500]' -p app.pomelo
 cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 0]' -p app.pomelo
 cleos push action app.pomelo token '["4,USDT", "tethertether", 10000, 12]' -p app.pomelo
 
 # create matching round and start it
-cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00", "Round 1", [["10000 EOS", "eosio.token"]]]' -p app.pomelo
-cleos push action app.pomelo setconfig '[1, 500]' -p app.pomelo
+cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00", "Round 1", [["1000.0000 EOS", "eosio.token"]]]' -p app.pomelo
 
-# create Pomelo user for grant manager and link it to EOS account
-cleos push action login.eosn create '["author.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
-cleos push action login.eosn create '["fund.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
+# create grant and join round
+cleos push action app.pomelo setproject '["author.eosn", "grant", "grant1", "fund.eosn", ["EOS", "USDT"]]' -p author.eosn
+cleos push action app.pomelo joinround '["grant1", 1]' -p author.eosn
 
-# create matching user, link to EOS account and set socials for matching boost
-cleos push action login.eosn create '["user.eosn", ["EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"]]' -p login.eosn
-cleos push action login.eosn social '["user.eosn", "github"]' -p login.eosn -p user.eosn
-cleos push action login.eosn social '["user.eosn", "twitter"]' -p login.eosn -p user.eosn
-cleos push action login.eosn unsocial '["user.eosn", "twitter"]' -p login.eosn -p user.eosn
-cleos push action login.eosn link '["user.eosn", "user1", "SIG_K1_KjnbJ2m22HtuRW7u7ZLdoCx76aNMiADHJpATGh32uYeJLdSjhdpHA7tmd4pj1Ni3mSr5DPRHHaydpaggrb5RcBg2HDDn7G"]' -p user1
-
-# create grant, enable it and join round
-cleos push action app.pomelo setproject '["author.eosn", "grant", "grant1", "fund.eosn", ["EOS", "USDT"]]' -p app.pomelo -p author.eosn
-cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo -p author.eosn
-cleos push action app.pomelo joinround '["grant1", 1]' -p app.pomelo -p author.eosn
+# approve grant by admin
+cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo
 
 # fund grant
 cleos transfer user1 app.pomelo "10.0000 EOS" "grant:grant1"
 
 # fund bounty
 cleos transfer user1 app.pomelo "10.0000 EOS" "bounty:bounty1"
-
-# query transfer trx id
-cleos get table app.pomelo app.pomelo transfers | jq -r '.rows[0].trx_id'
-
-# query grant square of sums of all users contribution sqrts
-cleos get table app.pomelo 1 match -L grant1 | jq -r '.rows[0].square'
-# => 22.5 ( == (sqrt(10 + 5*0.25))^2 )
-
-# query sum of grant squares for that round
-cleos get table app.pomelo app.pomelo rounds -L 1 | jq -r '.rows[0].sum_square'
-# => 22.5 => grant1 receives 22.5/22.5 = 100% of matching funding
-
-# clear 100 rows from transfers table
-cleos push action app.pomelo cleartable '["transfers", 100]' -p app.pomelo
 ```
 
 ## Dependencies
