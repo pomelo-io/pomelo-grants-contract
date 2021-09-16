@@ -2,6 +2,21 @@
 
 ## Usage
 
+### `@user`
+```bash
+# create grant and join round
+cleos push action app.pomelo setproject '["author.eosn", "grant", "grant1", "fund.eosn", ["EOS", "USDT"]]' -p author.eosn
+cleos push action app.pomelo joinround '["grant1", 1]' -p author.eosn
+
+# fund grant
+cleos transfer user1 app.pomelo "10.0000 EOS" "grant:grant1"
+
+# fund bounty
+cleos transfer user1 app.pomelo "10.0000 EOS" "bounty:bounty1"
+```
+
+### `@admin`
+
 ```bash
 # configure app
 cleos push action app.pomelo setconfig '[1, 500]' -p app.pomelo
@@ -11,18 +26,8 @@ cleos push action app.pomelo token '["4,USDT", "tethertether", 10000, 12]' -p ap
 # create matching round and start it
 cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00", "Round 1", [["1000.0000 EOS", "eosio.token"]]]' -p app.pomelo
 
-# create grant and join round
-cleos push action app.pomelo setproject '["author.eosn", "grant", "grant1", "fund.eosn", ["EOS", "USDT"]]' -p author.eosn
-cleos push action app.pomelo joinround '["grant1", 1]' -p author.eosn
-
 # approve grant by admin
 cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo
-
-# fund grant
-cleos transfer user1 app.pomelo "10.0000 EOS" "grant:grant1"
-
-# fund bounty
-cleos transfer user1 app.pomelo "10.0000 EOS" "bounty:bounty1"
 ```
 
 ## Dependencies
