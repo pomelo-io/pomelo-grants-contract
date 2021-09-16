@@ -402,6 +402,7 @@ public:
      * ### params
      *
      * - `{name} user_id` - user ID
+     * - `{name} [login_contract="login.eosn"]` - (optional) EOSN login contract
      *
      * ### returns
      *
@@ -415,7 +416,7 @@ public:
      * //=> true
      * ```
      */
-    static bool is_auth( const name user_id, const name login_contract = "login.eosn"_n )
+    static bool is_auth( const name user_id, const name login_contract = LOGIN_CONTRACT )
     {
         login::users_table _users( login_contract, login_contract.value );
         auto users = _users.get( user_id.value, "login::is_auth: [user_id] does not exist");
@@ -436,6 +437,7 @@ public:
      * ### params
      *
      * - `{name} user_id` - user ID
+     * - `{name} [login_contract="login.eosn"]` - (optional) EOSN login contract
      *
      * ### returns
      *
@@ -448,9 +450,9 @@ public:
      * eosn::login::require_auth_user_id( user_id );
      * ```
      */
-    static void require_auth_user_id( const name user_id )
+    static void require_auth_user_id( const name user_id, const name login_contract = LOGIN_CONTRACT )
     {
-        check( is_auth( user_id ), "login::require_auth_user_id: [user_id] is not authorized" );
+        check( is_auth( user_id, login_contract ), "login::require_auth_user_id: [user_id] is not authorized" );
     }
 
     /**
@@ -461,6 +463,7 @@ public:
      * ### params
      *
      * - `{name} user_id` - user ID
+     * - `{name} [login_contract="login.eosn"]` - (optional) EOSN login contract
      *
      * ### returns
      *
@@ -474,7 +477,7 @@ public:
      * //=> 150
      * ```
      */
-    static uint32_t get_user_weight( const name user_id, const name login_contract = "login.eosn"_n )
+    static uint32_t get_user_weight( const name user_id, const name login_contract = LOGIN_CONTRACT )
     {
         login::users_table _users( login_contract, login_contract.value );
         login::socials_table _socials( login_contract, login_contract.value );
