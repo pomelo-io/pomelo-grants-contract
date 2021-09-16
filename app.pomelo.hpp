@@ -45,7 +45,8 @@ public:
      * ## TABLE `globals`
      *
      * - `{uint16_t} round_id` - round ID (0 = not active)
-     * - `{uint64_t} system_fee` - system fee (bips - 1/100 1%)
+     * - `{uint64_t} grant_fee` - grant fee (bips - 1/100 1%)
+     * - `{uint64_t} bounty_fee` - bounty fee (bips - 1/100 1%)
      * - `{name} login_contract` - EOSN Login contract
      * - `{name} fee_account` - fee
      *
@@ -54,7 +55,8 @@ public:
      * ```json
      * {
      *     "round_id": 1,
-     *     "system_fee": 500,
+     *     "grant_fee": 500,
+     *     "bounty_fee": 500,
      *     "login_contractt": "login.eosn",
      *     "fee_account": "fee.pomelo",
      * }
@@ -62,7 +64,8 @@ public:
      */
     struct [[eosio::table("globals")]] globals_row {
         uint16_t        round_id = 0;
-        uint64_t        system_fee = 500;
+        uint64_t        grant_fee = 500;
+        uint64_t        bounty_fee = 500;
         name            login_contract = "login.eosn"_n;
         name            fee_account = "fee.pomelo"_n;
     };
@@ -414,9 +417,10 @@ public:
      * ### params
      *
      * - `{uint16_t} round_id` - round ID (0 = not active)
-     * - `{uint64_t} system_fee` - system fee (bips - 1/100 1%)
+     * - `{uint64_t} grant_fee` - grant fee (bips - 1/100 1%)
+     * - `{uint64_t} bounty_fee` - bounty fee (bips - 1/100 1%)
      * - `{name} login_contract` - EOSN Login contract
-     * - `{name} fee_account` - fee
+     * - `{name} fee_account` - fee account
      *
      * ### example
      *
@@ -425,7 +429,7 @@ public:
      * ```
      */
     [[eosio::action]]
-    void setconfig( const optional<uint16_t> round_id, const optional<uint64_t> system_fee, const optional<name> login_contract, const optional<name> fee_account );
+    void setconfig( const optional<uint16_t> round_id, const optional<uint64_t> grant_fee, const optional<uint64_t> bounty_fee, const optional<name> login_contract, const optional<name> fee_account );
 
     /**
      * ## ACTION `setproject`

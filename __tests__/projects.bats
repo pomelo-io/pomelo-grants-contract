@@ -128,7 +128,7 @@
 
 @test "round #1: fund grant1 with 2 donations by 2 users" {
 
-  run cleos push action app.pomelo setconfig '[1, 0]' -p app.pomelo
+  run cleos push action app.pomelo setconfig '[1, 0, 0, null, null]' -p app.pomelo
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo globals | jq -r '.rows[0].round_id')
   [ $result = "1" ]
@@ -164,7 +164,7 @@
 
 @test "round #2: fund grant1 with 2 donations by 1 user" {
 
-  run cleos push action app.pomelo setconfig '[2, 0]' -p app.pomelo
+  run cleos push action app.pomelo setconfig '[2, 0, 0, null, null]' -p app.pomelo
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo globals | jq -r '.rows[0].round_id')
   [ $result = "2" ]
@@ -271,7 +271,7 @@
   run cleos push action app.pomelo joinround '["grant4", 3]' -p app.pomelo -p prjman4.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo setconfig '[3, 0]' -p app.pomelo
+  run cleos push action app.pomelo setconfig '[3, 0, 0, null, null]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos transfer user1 app.pomelo "80.0000 EOS" "grant:grant1"
@@ -550,7 +550,7 @@
 }
 
 @test "donate with a 5% fee" {
-  run cleos push action app.pomelo setconfig '[3, 500]' -p app.pomelo
+  run cleos push action app.pomelo setconfig '[3, 500, 0, null, null]' -p app.pomelo
   [ $status -eq 0 ]
 
   balance=$(cleos get currency balance eosio.token fee.pomelo EOS)
