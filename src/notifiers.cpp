@@ -48,7 +48,8 @@ void pomelo::on_unsocial( const name user_id, const optional<name> social )
 void pomelo::update_social( const name user_id ){
     const uint16_t round_id = get_globals().round_id;
 
-    if ( round_id == 0 || get_first_receiver() != LOGIN_CONTRACT ) return;
+    const name login_contract = get_globals().login_contract;
+    if ( round_id == 0 || get_first_receiver() != login_contract ) return;
 
     pomelo::rounds_table _rounds( get_self(), get_self().value );
     pomelo::match_table _match( get_self(), round_id );

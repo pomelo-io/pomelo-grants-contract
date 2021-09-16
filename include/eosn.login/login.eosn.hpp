@@ -415,9 +415,9 @@ public:
      * //=> true
      * ```
      */
-    static bool is_auth( const name user_id )
+    static bool is_auth( const name user_id, const name login_contract = "login.eosn"_n )
     {
-        login::users_table _users( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
+        login::users_table _users( login_contract, login_contract.value );
         auto users = _users.get( user_id.value, "login::is_auth: [user_id] does not exist");
 
         if ( has_auth( user_id ) ) return true;
@@ -474,10 +474,10 @@ public:
      * //=> 150
      * ```
      */
-    static uint32_t get_user_weight( const name user_id )
+    static uint32_t get_user_weight( const name user_id, const name login_contract = "login.eosn"_n )
     {
-        login::users_table _users( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
-        login::socials_table _socials( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
+        login::users_table _users( login_contract, login_contract.value );
+        login::socials_table _socials( login_contract, login_contract.value );
 
         auto user = _users.get( user_id.value, "login::get_user_weight: [user_id] does not exist" );
         check( user.status != "deleted"_n, "login::get_user_weight: user is deleted" );

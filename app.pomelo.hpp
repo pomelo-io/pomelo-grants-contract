@@ -11,8 +11,6 @@ using namespace std;
 // static values
 
 static constexpr extended_symbol VALUE_SYM = { symbol {"EOS", 4}, "eosio.token"_n };
-static constexpr name LOGIN_CONTRACT = "login.eosn"_n;
-static constexpr name FEE_ACCOUNT = "fee.pomelo"_n;
 static set<name> STATUS_TYPES = set<name>{"ok"_n, "testing"_n, "pending"_n, "disabled"_n};
 static constexpr uint32_t DAY = 86400;
 
@@ -48,19 +46,25 @@ public:
      *
      * - `{uint16_t} round_id` - round ID (0 = not active)
      * - `{uint64_t} system_fee` - system fee (bips - 1/100 1%)
+     * - `{name} login_contract` - EOSN Login contract
+     * - `{name} fee_account` - fee
      *
      * ### example
      *
      * ```json
      * {
      *     "round_id": 1,
-     *     "system_fee": 500
+     *     "system_fee": 500,
+     *     "login_contractt": "login.eosn",
+     *     "fee_account": "fee.pomelo",
      * }
      * ```
      */
     struct [[eosio::table("globals")]] globals_row {
         uint16_t        round_id = 0;
         uint64_t        system_fee = 500;
+        name            login_contract = "login.eosn"_n;
+        name            fee_account = "fee.pomelo"_n;
     };
     typedef eosio::singleton< "globals"_n, globals_row > globals_table;
 
@@ -183,7 +187,7 @@ public:
      * - `{name} from` - EOS account sender
      * - `{name} to` - EOS account receiver
      * - `{extended_asset} ext_quantity` - amount of tokens transfered
-     * - `{asset} fee` - fee charged and sent to `FEE_ACCOUNT`
+     * - `{asset} fee` - fee charged and sent to `global.fee_account`
      * - `{string} memo` - transfer memo
      * - `{name} user_id` - Pomelo user account ID
      * - `{uint16_t} round_id` - participating round ID
@@ -411,15 +415,17 @@ public:
      *
      * - `{uint16_t} round_id` - round ID (0 = not active)
      * - `{uint64_t} system_fee` - system fee (bips - 1/100 1%)
+     * - `{name} login_contract` - EOSN Login contract
+     * - `{name} fee_account` - fee
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo setconfig '[1, 500]' -p app.pomelo
+     * $ cleos push action app.pomelo setconfig '[1, 500, "login.eosn", "fee.pomelo"]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void setconfig( const optional<uint16_t> round_id, const optional<uint64_t> system_fee );
+    void setconfig( const optional<uint16_t> round_id, const optional<uint64_t> system_fee, const optional<name> login_contract, const optional<name> fee_account );
 
     /**
      * ## ACTION `setproject`

@@ -202,7 +202,7 @@ void pomelo::setround( const uint16_t round_id, const time_point_sec start_at, c
 
 // @admin
 [[eosio::action]]
-void pomelo::setconfig( const optional<uint16_t> round_id, const optional<uint64_t> system_fee )
+void pomelo::setconfig( const optional<uint16_t> round_id, const optional<uint64_t> system_fee, const optional<name> login_contract, const optional<name> fee_account )
 {
     require_auth( get_self() );
 
@@ -211,6 +211,8 @@ void pomelo::setconfig( const optional<uint16_t> round_id, const optional<uint64
 
     if ( round_id ) globals.round_id = *round_id;
     if ( system_fee ) globals.system_fee = *system_fee;
+    if ( login_contract ) globals.login_contract = *login_contract;
+    if ( fee_account ) globals.fee_account = *fee_account;
     _globals.set( globals, get_self() );
 }
 

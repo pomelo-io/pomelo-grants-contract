@@ -93,13 +93,17 @@ $ ./test.sh
 
 - `{uint16_t} round_id` - round ID (0 = not active)
 - `{uint64_t} system_fee` - system fee (bips - 1/100 1%)
+- `{name} login_contract` - EOSN Login contract
+- `{name} fee_account` - fee
 
 ### example
 
 ```json
 {
     "round_id": 1,
-    "system_fee": 500
+    "system_fee": 500,
+    "login_contractt": "login.eosn",
+    "fee_account": "fee.pomelo",
 }
 ```
 
@@ -162,7 +166,7 @@ $ ./test.sh
 - `{name} from` - EOS account sender
 - `{name} to` - EOS account receiver
 - `{extended_asset} ext_quantity` - amount of tokens transfered
-- `{asset} fee` - system fee charged
+- `{asset} fee` - fee charged and sent to `global.fee_account`
 - `{string} memo` - transfer memo
 - `{name} user_id` - Pomelo user account ID
 - `{uint16_t} round_id` - participating round ID
@@ -180,6 +184,7 @@ $ ./test.sh
     "from": "myaccount",
     "to": "pomelo",
     "ext_quantity": {"contract": "eosio.token", "quantity": "15.0000 EOS"},
+    "fee": "1.0000 EOS",
     "memo": "grant:grant1",
     "user_id": "user1.eosn",
     "round": 1,
@@ -316,13 +321,15 @@ $ ./test.sh
 
 ### params
 
-- `{uint16_t} round_id` - ongoing round (0=not active)
-- `{uint64_t} system_fee` - donation fee (500=5%)
+- `{uint16_t} round_id` - round ID (0 = not active)
+- `{uint64_t} system_fee` - system fee (bips - 1/100 1%)
+- `{name} login_contract` - EOSN Login contract
+- `{name} fee_account` - fee
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo setconfig '[1, 500]' -p app.pomelo
+$ cleos push action app.pomelo setconfig '[1, 500, "login.eosn", "fee.pomelo"]' -p app.pomelo
 ```
 
 ## ACTION `setproject`

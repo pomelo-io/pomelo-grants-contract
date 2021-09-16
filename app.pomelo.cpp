@@ -40,8 +40,9 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
 
     // transfer quantity to funding account & system fee
     transfer( get_self(), project.funding_account, ext_quantity - fee, "🍈 " + memo + " donated via Pomelo");
-    if ( is_account( FEE_ACCOUNT ) && fee.quantity.amount > 0 ) {
-        transfer( get_self(), FEE_ACCOUNT, fee, "🍈 " + memo + " fee ");
+    const name fee_account = get_globals().fee_account;
+    if ( is_account( fee_account ) && fee.quantity.amount > 0 ) {
+        transfer( get_self(), fee_account, fee, "🍈 " + memo + " fee ");
     }
 
     // save for logging
