@@ -50,15 +50,6 @@
   result=$(cleos get table play.pomelo prjman1 accounts  | jq -r '.rows | length')
   [ $result = "1" ]
 
-  run cleos push action login.eosn link '["prjman2.eosn", "prjman2", "SIG_K1_K4LEhA2WrPn9SAHHFTZoMJEqzvk52YViyJYgkvBg6f9VKX46RbdDVy6mhqTv6pUENRbQVPmtKwK7eU4PTqfDX8XH8nUn4i"]' -p prjman2
-  [ $status -eq 0 ]
-
-  run cleos push action login.eosn link '["prjman3.eosn", "prjman3", "SIG_K1_KiBpiqFpZN87fAAyC6qEAjKvVYqrvTboA9pPUL3ueihpUjLefnDA88MGTqVT3j54cjvbMwLTkoxp3HqffWYrcapRjGs1vz"]' -p prjman3
-  [ $status -eq 0 ]
-
-  run cleos push action login.eosn link '["prjman4.eosn", "prjman4", "SIG_K1_JvbYK4sf2eRCPiB1UMNJV6a2nZwTWQmEa4fay8PntsoniuYTAJBqpi9jze25XopHQ8g8WngieaTLVbWe9n1Hk2eTptE6s7"]' -p prjman4
-  [ $status -eq 0 ]
-
   run cleos push action login.eosn link '["user1.eosn", "user1", "SIG_K1_JzJsKRsfVsDJv52xz1DQakvmXQ2NeJr1kwGYrtt4ttN6Cudzm4wG5fmS1ak7JCVRJabM7sYGwk5gpX8TBq2EymQQ1LNUe3"]' -p user1
   [ $status -eq 0 ]
 
