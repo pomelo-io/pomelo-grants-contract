@@ -4,7 +4,7 @@ using namespace sx;
 
 extended_asset pomelo::calculate_fee( const extended_asset ext_quantity )
 {
-    const int64_t amount = ext_quantity.quantity.amount * get_globals().system_fee / 10000;
+    const int64_t amount = ext_quantity.quantity.amount * get_globals().grant_fee / 10000;
     return { amount, ext_quantity.get_extended_symbol() };
 }
 
@@ -61,13 +61,15 @@ double pomelo::calculate_value( const extended_asset ext_quantity )
 
 name pomelo::get_user_id( const name account )
 {
-    eosn::login::accounts_table _accounts( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
-    return _accounts.get(account.value, "pomelo::get_user_id: account is not linked to .eosn account").user_id;
+    const name login_contract = get_globals().login_contract;
+    eosn::login::accounts_table _accounts( login_contract, login_contract.value );
+    return _accounts.get(account.value, "pomelo::get_user_id: account is not linked to EOSN account").user_id;
 }
 
 bool pomelo::is_user( const name user_id )
 {
-    eosn::login::users_table users( LOGIN_CONTRACT, LOGIN_CONTRACT.value );
+    const name login_contract = get_globals().login_contract;
+    eosn::login::users_table users( login_contract, login_contract.value );
 
     return users.find(user_id.value) != users.end();
 }

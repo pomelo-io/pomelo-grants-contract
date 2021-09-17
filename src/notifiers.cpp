@@ -45,10 +45,12 @@ void pomelo::on_unsocial( const name user_id, const optional<name> social )
     update_social( user_id );
 }
 
-void pomelo::update_social( const name user_id ){
+void pomelo::update_social( const name user_id )
+{
     const uint16_t round_id = get_globals().round_id;
 
-    if ( round_id == 0 || get_first_receiver() != LOGIN_CONTRACT ) return;
+    const name login_contract = get_globals().login_contract;
+    if ( round_id == 0 || get_first_receiver() != login_contract ) return;
 
     pomelo::rounds_table _rounds( get_self(), get_self().value );
     pomelo::match_table _match( get_self(), round_id );
@@ -57,7 +59,7 @@ void pomelo::update_social( const name user_id ){
     const auto round_itr = _rounds.find( round_id );
     if (round_itr == _rounds.end() || get_index( round_itr->user_ids, user_id ) == -1) return;
 
-    const auto weight = eosn::login::get_user_weight( user_id );
+    const auto weight = eosn::login::get_user_weight( user_id, get_globals().login_contract );
     const double new_multiplier = static_cast<double>( weight ) / 100;
 
     const auto user_itr = _users.find( user_id.value );

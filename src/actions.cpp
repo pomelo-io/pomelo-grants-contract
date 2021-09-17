@@ -44,7 +44,7 @@ void pomelo::deltoken( const symbol_code symcode )
 [[eosio::action]]
 void pomelo::setproject( const name author_id, const name project_type, const name project_id, const name funding_account, const set<symbol_code> accepted_tokens )
 {
-    eosn::login::require_auth_user_id( author_id );
+    eosn::login::require_auth_user_id( author_id, get_globals().login_contract );
 
     // tables
     pomelo::grants_table grants( get_self(), get_self().value );
@@ -202,7 +202,7 @@ void pomelo::setround( const uint16_t round_id, const time_point_sec start_at, c
 
 // @admin
 [[eosio::action]]
-void pomelo::setconfig( const optional<uint16_t> round_id, const optional<uint64_t> system_fee )
+void pomelo::setconfig( const optional<uint16_t> round_id, const optional<uint64_t> grant_fee, const optional<uint64_t> bounty_fee, const optional<name> login_contract, const optional<name> fee_account )
 {
     require_auth( get_self() );
 
@@ -210,7 +210,10 @@ void pomelo::setconfig( const optional<uint16_t> round_id, const optional<uint64
     auto globals = _globals.get_or_default();
 
     if ( round_id ) globals.round_id = *round_id;
-    if ( system_fee ) globals.system_fee = *system_fee;
+    if ( grant_fee ) globals.grant_fee = *grant_fee;
+    if ( bounty_fee ) globals.bounty_fee = *bounty_fee;
+    if ( login_contract ) globals.login_contract = *login_contract;
+    if ( fee_account ) globals.fee_account = *fee_account;
     _globals.set( globals, get_self() );
 }
 

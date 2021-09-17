@@ -27,7 +27,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     check( project.funding_account != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [funding_account]");
     check( project.author_user_id != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [author_user_id]");
 
-    // calculate system fee
+    // calculate fee
     const extended_asset fee = calculate_fee( ext_quantity );
     double value = calculate_value( ext_quantity - fee );
     // print("pomelo:donate_project:: project_id=", project_id, ", ext_quantity=", ext_quantity, ", value=", value, ", fee=", fee, "\n");
@@ -40,8 +40,9 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
 
     // transfer quantity to funding account & system fee
     transfer( get_self(), project.funding_account, ext_quantity - fee, "🍈 " + memo + " donated via Pomelo");
-    if ( is_account( FEE_ACCOUNT ) && fee.quantity.amount > 0 ) {
-        transfer( get_self(), FEE_ACCOUNT, fee, "🍈 " + memo + " fee ");
+    const name fee_account = get_globals().fee_account;
+    if ( is_account( fee_account ) && fee.quantity.amount > 0 ) {
+        transfer( get_self(), fee_account, fee, "🍈 " + memo + " fee ");
     }
 
     // save for logging
@@ -61,7 +62,7 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
     check( is_token_enabled( symcode ), "pomelo::donate_grant: [token=" + symcode.to_string() + "] is currently disabled");
 
     // update project matching records
-    const auto weight = eosn::login::get_user_weight( user_id );
+    const auto weight = eosn::login::get_user_weight( user_id, get_globals().login_contract );
     const double multiplier = static_cast<double>( weight ) / 100;
     const auto boost = value * multiplier;  // boost based on socials and other boosters
 
