@@ -172,7 +172,7 @@ void playtoken::close( const name& owner, const symbol& symbol )
 
 void playtoken::faucet( const name owner, const symbol_code sym_code )
 {
-    check( has_auth( get_self() ) || has_auth( "login.eosn"_n ) || has_auth( "d.login.eosn"_n ) || has_auth( owner ), "faucet not authorized for [owner]" );
+    check( has_auth( get_self() ) || has_auth( owner ), "faucet not authorized for [owner]" );
 
     // only allowed on empty balance
     accounts acnts( get_self(), owner.value );

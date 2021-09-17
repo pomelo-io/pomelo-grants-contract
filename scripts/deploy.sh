@@ -47,7 +47,7 @@ cleos set contract app.pomelo . app.pomelo.wasm app.pomelo.abi
 # @eosio.code permission
 cleos set account permission app.pomelo active --add-code
 cleos set account permission login.eosn active --add-code
-cleos set account permission play.pomelo active --add-code
+cleos set account permission play.pomelo active login.eosn --add-code
 cleos set account permission eosn active login.eosn --add-code
 
 # create tokens

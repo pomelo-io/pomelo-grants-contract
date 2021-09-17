@@ -139,7 +139,7 @@ void login::link( const name user_id, const name account, const signature sig )
 
     const auto play_balance = pomelo::playtoken::get_balance("play.pomelo"_n, account, symbol_code("PLAY"));
     if( !play_balance.symbol.is_valid() ){  // if already issued before - quietly don't issue
-        pomelo::playtoken::faucet_action faucet( "play.pomelo"_n, { get_self(), "active"_n });
+        pomelo::playtoken::faucet_action faucet( "play.pomelo"_n, { "play.pomelo"_n, "active"_n });
         faucet.send( account, symbol_code("PLAY") );
     }
 }
