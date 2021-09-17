@@ -63,7 +63,7 @@ void pomelo::joinround( const name grant_id, const uint16_t round_id )
     // authenticate user
     pomelo::grants_table grants( get_self(), get_self().value );
     const auto grant = grants.get( grant_id.value, "pomelo::joinround: [grant_id] does not exist" );
-    eosn::login::require_auth_user_id( grant.author_user_id );
+    eosn::login::require_auth_user_id( grant.author_user_id, get_globals().login_contract );
 
     // join round
     pomelo::rounds_table rounds( get_self(), get_self().value );

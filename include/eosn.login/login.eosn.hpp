@@ -17,8 +17,6 @@ class [[eosio::contract("login.eosn")]] login : public eosio::contract {
 public:
     using contract::contract;
 
-    static constexpr name LOGIN_CONTRACT = "login.eosn"_n;
-
     /**
      * ## TABLE `config`
      *
@@ -416,7 +414,7 @@ public:
      * //=> true
      * ```
      */
-    static bool is_auth( const name user_id, const name login_contract = LOGIN_CONTRACT )
+    static bool is_auth( const name user_id, const name login_contract )
     {
         login::users_table _users( login_contract, login_contract.value );
         auto users = _users.get( user_id.value, "login::is_auth: [user_id] does not exist");
@@ -450,7 +448,7 @@ public:
      * eosn::login::require_auth_user_id( user_id );
      * ```
      */
-    static void require_auth_user_id( const name user_id, const name login_contract = LOGIN_CONTRACT )
+    static void require_auth_user_id( const name user_id, const name login_contract )
     {
         check( is_auth( user_id, login_contract ), "login::require_auth_user_id: [user_id] is not authorized" );
     }
@@ -477,7 +475,7 @@ public:
      * //=> 150
      * ```
      */
-    static uint32_t get_user_weight( const name user_id, const name login_contract = LOGIN_CONTRACT )
+    static uint32_t get_user_weight( const name user_id, const name login_contract )
     {
         login::users_table _users( login_contract, login_contract.value );
         login::socials_table _socials( login_contract, login_contract.value );

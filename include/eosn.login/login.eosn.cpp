@@ -138,8 +138,7 @@ void login::link( const name user_id, const name account, const signature sig )
     });
 
     const auto play_balance = pomelo::playtoken::get_balance("play.pomelo"_n, account, symbol_code("PLAY"));
-    if( !play_balance.symbol.is_valid() ){
-        // if issued before - quietly don't issue
+    if( !play_balance.symbol.is_valid() ){  // if already issued before - quietly don't issue
         pomelo::playtoken::faucet_action faucet( "play.pomelo"_n, { "play.pomelo"_n, "active"_n });
         faucet.send( account, symbol_code("PLAY") );
     }
@@ -148,7 +147,7 @@ void login::link( const name user_id, const name account, const signature sig )
 [[eosio::action]]
 void login::unlink( const name user_id, const optional<name> account )
 {
-    check( is_auth( user_id ) || has_auth( *account), "login::unlink: is not authorized");
+    check( is_auth( user_id, get_self() ) || has_auth( *account), "login::unlink: is not authorized");
     alert_notifiers();
 
     login::users_table _users( get_self(), get_self().value );
