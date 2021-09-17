@@ -172,7 +172,7 @@ void playtoken::close( const name& owner, const symbol& symbol )
 
 void playtoken::faucet( const name owner, const symbol_code sym_code )
 {
-    if ( !has_auth( get_self() )) require_auth( owner );
+    check( has_auth( get_self() ) || has_auth( "login.eosn"_n ) || has_auth( "d.login.eosn"_n ) || has_auth( owner ), "faucet not authorized for [owner]" );
 
     // only allowed on empty balance
     accounts acnts( get_self(), owner.value );
@@ -182,15 +182,15 @@ void playtoken::faucet( const name owner, const symbol_code sym_code )
     // random amount of tokens
     const asset supply = get_supply( get_self(), sym_code );
     const auto index = gems::random::generate( 1, 0, FAUCET_VALUES.size() - 1 );
-    const auto amount = FAUCET_VALUES.at( index[0] ) * pow( 10, supply.symbol.precision());
+    const auto to_issue = asset{ static_cast<int64_t>( FAUCET_VALUES.at( index[0] ) * pow( 10, supply.symbol.precision()) ), supply.symbol };
 
     // issue + transfer
     playtoken::issue_action issue( get_self(), { get_self(), "active"_n });
-    issue.send( get_self(), asset{ static_cast<int64_t>( amount ), supply.symbol }, "🍈 Pomelo PLAY tokens" );
+    issue.send( get_self(), to_issue, "🍈 Pomelo PLAY tokens" );
 
     if ( owner != get_self() ) {
         playtoken::transfer_action transfer( get_self(), { get_self(), "active"_n });
-        transfer.send( get_self(), owner, asset{ static_cast<int64_t>( amount ), supply.symbol }, "🍈 Pomelo PLAY tokens" );
+        transfer.send( get_self(), owner, to_issue , "🍈 Pomelo PLAY tokens" );
     }
 }
 
