@@ -26,9 +26,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     check( is_token_enabled( symcode ), "pomelo::donate_project: [token=" + symcode.to_string() + "] is disabled");
 
     // check sender is not self (prevent circular donations)
-    const name login_contract = get_globals().login_contract;
-    eosn::login::accounts_table _accounts( login_contract, login_contract.value );
-    const user_id = _users.find( from.value )->user_id;
+    const name user_id = get_user_id( from );
     check( project.author_user_id != user_id, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be linked to [author_user_id]");
     check( project.funding_account != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [funding_account]");
     check( project.author_user_id != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [author_user_id]");
@@ -39,7 +37,6 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     // print("pomelo:donate_project:: project_id=", project_id, ", ext_quantity=", ext_quantity, ", value=", value, ", fee=", fee, "\n");
 
     // track for matching bonus
-    const auto user_id = get_user_id( from );
     if ( project.type == "grant"_n ) {
         donate_grant( project_id, ext_quantity - fee, user_id, value );
     }
