@@ -56,6 +56,7 @@ cleos push action eosio.token issue '["eosio", "1000000000.0000 EOS", "init"]' -
 cleos push action tethertether create '["eosio", "100000000.0000 USDT"]' -p tethertether
 cleos push action tethertether issue '["eosio", "10000000.0000 USDT", "init"]' -p eosio
 cleos push action play.pomelo create '["play.pomelo", "10000000000.0000 PLAY"]' -p play.pomelo
+cleos push action play.pomelo issue '["play.pomelo", "1.0000 PLAY", "init"]' -p play.pomelo
 
 # create fake tokens
 cleos push action fake.token create '["eosio", "100000000.0000 EOS"]' -p fake.token
@@ -83,6 +84,7 @@ cleos transfer eosio user.noeosn "1000000.0000 EOS" ""
 
 # set price in defibox contract
 cleos push action swap.defi setprice '[12, ["4,EOS", "eosio.token"], ["4,USDT", "tethertether"], 10]' -p swap.defi
+cleos push action swap.defi setprice '[13, ["4,EOS", "eosio.token"], ["4,PLAY", "play.pomelo"], 1]' -p swap.defi
 
 # set socials weights
 cleos push action login.eosn configsocial '["sms", 25]' -p login.eosn

@@ -40,7 +40,11 @@
   echo "Output: $output"
   [ $status -eq 0 ]
 
+  run cleos push action app.pomelo token '["4,PLAY", "play.pomelo", 10000, 13]' -p app.pomelo
+  echo "Output: $output"
+  [ $status -eq 0 ]
+
   result=$(cleos get table app.pomelo app.pomelo tokens | jq -r '.rows | length')
-  [ $result = "2" ]
+  [ $result = "3" ]
 
 }
