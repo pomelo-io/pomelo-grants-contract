@@ -45,6 +45,7 @@ double pomelo::calculate_value( const extended_asset ext_quantity )
 
     defibox::pairs _pairs( defibox::code, defibox::code.value );
     const auto& pool = _pairs.get( token.pair_id, "pomelo::calculate_value: invalid [pair_id]");
+    check( pool.price0_last, "pomelo::calculate_value: bad price");
 
     if ( pool.token0.contract == ext_quantity.contract && pool.token0.symbol == ext_quantity.quantity.symbol
         && pool.token1.contract == VALUE_SYM.get_contract() && pool.token1.symbol == VALUE_SYM.get_symbol() ) {
