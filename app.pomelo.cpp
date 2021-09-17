@@ -24,6 +24,12 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     check( project.accepted_tokens.count(symcode), "pomelo::donate_project: not acceptable tokens for this project");
     check( project.funding_account.value, "pomelo::donate_project: [funding_account] is not set");
     check( is_token_enabled( symcode ), "pomelo::donate_project: [token=" + symcode.to_string() + "] is disabled");
+
+    // check sender is not self (prevent circular donations)
+    const name login_contract = get_globals().login_contract;
+    eosn::login::accounts_table _accounts( login_contract, login_contract.value );
+    const user_id = _users.find( from.value )->user_id;
+    check( project.author_user_id != user_id, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be linked to [author_user_id]");
     check( project.funding_account != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [funding_account]");
     check( project.author_user_id != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [author_user_id]");
 
