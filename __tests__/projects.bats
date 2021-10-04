@@ -94,7 +94,7 @@
 
 @test "create and test rounds" {
 
-  run cleos push action app.pomelo setround '[1, "2021-08-25T20:00:00", "2021-09-25T20:00:00", "This is round 1 of Pomelo!", [["10000 EOS", "eosio.token"]]]' -p app.pomelo
+  run cleos push action app.pomelo setround '[1, "2021-08-25T20:00:00", "2022-09-25T20:00:00", "This is round 1 of Pomelo!", [["10000 EOS", "eosio.token"]]]' -p app.pomelo
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].round')
   [ $result = "1" ]
@@ -244,7 +244,7 @@
 
 @test "round #3: 4 projects, 6 users: spreadsheet simulation" {
 
-  run cleos push action app.pomelo setround '[3, "2021-05-20T20:00:00", "2021-09-25T20:00:00", "This is round 3 of Pomelo!", [["100000 EOS", "eosio.token"]]]' -p app.pomelo
+  run cleos push action app.pomelo setround '[3, "2021-05-20T20:00:00", "2022-09-25T20:00:00", "This is round 3 of Pomelo!", [["100000 EOS", "eosio.token"]]]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo setproject '["prjman3.eosn", "grant", "grant3", "prjgrant3", ["EOS"]]' -p app.pomelo -p prjman3.eosn
