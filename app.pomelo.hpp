@@ -10,7 +10,7 @@ using namespace std;
 
 // static values
 
-static constexpr extended_symbol VALUE_SYM = { symbol {"EOS", 4}, "eosio.token"_n };
+static constexpr extended_symbol VALUE_SYM = { symbol {"USDT", 4}, "tethertether"_n };
 static set<name> STATUS_TYPES = set<name>{"ok"_n, "testing"_n, "pending"_n, "disabled"_n};
 static constexpr uint32_t DAY = 86400;
 
@@ -79,7 +79,7 @@ public:
      * - `{symbol} sym` - (primary key) symbol
      * - `{name} contract` - token contract
      * - `{uint64_t} min_amount` - min amount required when donating
-     * - `{uint64_t} pair_id` - Defibox swap pair ID
+     * - `{uint64_t} oracle_id` - Defibox Oracle ID
      *
      * ### example
      *
@@ -88,7 +88,7 @@ public:
      *     "sym": "4,EOS",
      *     "contract": "eosio.token",
      *     "min_amount": 10000,
-     *     "pair_id": 12
+     *     "oracle_id": 1
      * }
      * ```
      */
@@ -96,7 +96,7 @@ public:
         symbol              sym;
         name                contract;
         uint64_t            min_amount;
-        uint64_t            pair_id;
+        uint64_t            oracle_id;
 
         uint64_t primary_key() const { return sym.code().raw(); }
     };
@@ -646,16 +646,16 @@ public:
      * - `{symbol} sym` - (primary key) symbol
      * - `{name} contract` - token contract
      * - `{uint64_t} min_amount` - min amount required when donating
-     * - `{uint64_t} pair_id` - Defibox swap pair ID
+     * - `{uint64_t} oracle_id` - Defibox oracle ID
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 12]' -p app.pomelo
+     * $ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 1]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void token( const symbol sym, const name contract, const uint64_t min_amount, const uint64_t pair_id );
+    void token( const symbol sym, const name contract, const uint64_t min_amount, const uint64_t oracle_id );
 
     [[eosio::action]]
     void deltoken( const symbol_code symcode );

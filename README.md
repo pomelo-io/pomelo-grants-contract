@@ -306,7 +306,7 @@ $ ./test.sh
 - `{symbol} sym` - (primary key) symbol
 - `{name} contract` - token contract
 - `{uint64_t} min_amount` - min amount required when donating
-- `{uint64_t} pair_id` - Defibox swap pair ID (0 for base token)
+- `{uint64_t} oracle_id` - Defibox oracle ID (0 for base token)
 
 ### example
 
@@ -315,7 +315,7 @@ $ ./test.sh
     "sym": "4,EOS",
     "contract": "eosio.token",
     "min_amount": 10000,
-    "pair_id": 12
+    "oracle_id": 1
 }
 ```
 
@@ -483,10 +483,10 @@ Set token information
 - `{symbol} sym` - (primary key) symbol
 - `{name} contract` - token contract
 - `{uint64_t} min_amount` - min amount required when donating
-- `{uint64_t} pair_id` - Defibox pair id for price discovery (0 for base token)
+- `{uint64_t} oracle_id` - Defibox oracle id for price discovery (0 for base token)
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 0]' -p app.pomelo
+$ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 1]' -p app.pomelo
 ```

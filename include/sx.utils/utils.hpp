@@ -1,6 +1,8 @@
 #pragma once
 
 #include <eosio/asset.hpp>
+#include <eosio/eosio.hpp>
+#include <eosio/crypto.hpp>
 #include <math.h>
 
 namespace sx {
@@ -15,6 +17,13 @@ namespace utils {
 
     using std::string;
     using std::vector;
+
+    struct OraclizedAsset {
+        extended_asset tokens;
+        double value;
+        double ratioed;
+    };
+
 
     /**
      * ## STATIC `asset_to_double`
@@ -144,10 +153,11 @@ namespace utils {
         return tokens;
     }
 
+
     /**
      * ## STATIC `parse_name`
      *
-     * Parse string for name. Return default name if invalid. Caller can check validity with name::value.
+     * Parse string for account name. Return default name if invalid. Caller can check validity with name::value.
      *
      * ### params
      *
@@ -166,15 +176,15 @@ namespace utils {
      */
     static name parse_name(const string& str) {
 
-        if(str.length()==0 || str.length()>13) return {};
-        int i=-1;
-        for (const auto c: str ) {
-            i++;
-            if( islower(c) || (isdigit(c) && c<='6') || c=='.') {
-                if(i==0 && !islower(c) ) return {};
-                if(i==12 && (c<'a' || c>'j')) return {};
+        if(str.length() == 0 || str.length() > 12) return {};
+        int i=0;
+        for(const auto c: str) {
+            if((c >= 'a' && c <= 'z') || ( c >= '0' && c <= '5') || c == '.') {
+                if(i == 0 && ( c >= '0' && c <= '5') ) return {};   //can't start with a digit
+                if(i == 11 && c == '.') return {};                  //can't end with a .
             }
             else return {};
+            i++;
         }
         return name{str};
     }
@@ -200,7 +210,6 @@ namespace utils {
      */
     static symbol_code parse_symbol_code(const string& str) {
         if(str.size() > 7) return {};
-
         for (const auto c: str ) {
             if( c < 'A' || c > 'Z') return {};
         }
@@ -236,17 +245,15 @@ namespace utils {
 
         int precision = 0;
         for (const auto c: tokens[0]){
-            if(!isdigit(c)) return {};
-            precision = precision*10 + (c-'0');
+            if(c < '0' || c > '9') return {};
+            precision = precision * 10 + (c-'0');
         }
         if (precision < 0 || precision > 16) return {};
 
         const symbol_code symcode = parse_symbol_code(tokens[1]);
         if(!symcode.is_valid()) return {};
 
-        const symbol sym = symbol{symcode, static_cast<uint8_t>(precision)};
-
-        return sym.is_valid() ? sym : symbol{};
+        return symbol{symcode, static_cast<uint8_t>(precision)};
     }
 
     /**
@@ -291,17 +298,16 @@ namespace utils {
                 seen_dot = true;
                 continue;
             }
-            if( !isdigit(c)) return {};
+            if( c < '0' || c > '9') return {};
             digits++;
             if(seen_dot) precision++;
-            amount = amount*10 + (c-'0');
+            amount = amount * 10 + (c-'0');
         }
         if(precision > 16 || (seen_dot && precision==0)) return {};
 
         asset out = asset {neg ? -amount : amount, symbol{sym_code, precision}};
-        if(!out.is_valid()) return {};
 
-        return out;
+        return out.is_valid() ? out : asset {};
     }
 
     /**
@@ -366,73 +372,117 @@ namespace utils {
 
         const name contract = parse_name(ext_tokens[1]);
         const asset quantity = parse_asset(ext_tokens[0]);
-        if (!quantity.is_valid()) return {};
+        if(!quantity.is_valid()) return {};
 
         return extended_asset {quantity, contract};
     }
 
     /**
-     * ## STATIC `is_digit`
+     * ## STATIC `get_balance`
      *
-     * True/False if string is digit
+     * Get account balance without failing to avoid assert errors for accounts with unopened balance.
+     * eosio.token::get_balance alternative
      *
      * ### params
      *
-     * - `{string} str` - string to parse
+     * - `{extended_symbol} ext_sym` - extended symbol to query
+     * - `{name} owner` - account to query balance for
      *
      * ### returns
      *
-     * - `{bool}` - true/false if digit
+     * - `{extended_asset}` - account balance, `extended_asset{}` if no opened account
      *
      * ### example
      *
      * ```c++
-     * sx::utils::is_digit("123");
-     * // => true
-     *
-     * sx::utils::is_digit("abc");
-     * // => false
+     * const extended_symbol ext_sym { symbol{"USDT", 4}, "tethertether"_n };
+     * const auto balance = sx::utils::get_balance(ext_sym).quantity;
+     * eosio::check(balance.is_valid(), "Balance not opened");
+
      * ```
      */
-    bool is_digit( const string str )
+    static extended_asset get_balance( const extended_symbol ext_sym, const name owner )
     {
-        if ( !str.size() ) return false;
-        for ( const auto c: str ) {
-            if ( !isdigit(c) ) return false;
-        }
-        return true;
+        //eosio.token accounts table - private in eosio.token contract
+        struct [[eosio::table]] account {
+            asset    balance;
+            uint64_t primary_key()const { return balance.symbol.code().raw(); }
+        };
+        typedef eosio::multi_index< "accounts"_n, account > accounts_table;
+
+        accounts_table _accounts( ext_sym.get_contract(), owner.value );
+        auto it = _accounts.find( ext_sym.get_symbol().code().raw() );
+        if(it == _accounts.end()) return { 0, ext_sym };
+        eosio::check( ext_sym.get_symbol() == it->balance.symbol, "SX.Utils: extended symbol mismatch balance");
+
+        return { it->balance.amount, ext_sym };
     }
 
     /**
-     * ## STATIC `is_alpha`
+     * ## STATIC `get_supply`
      *
-     * True/False if string is alphabetic
+     * Get token supply without failing to avoid assert errors for non-existing tokens.
+     * eosio.token::get_supply alternative
      *
      * ### params
      *
-     * - `{string} str` - string to parse
+     * - `{extended_symbol} ext_sym` - extended symbol to query
      *
      * ### returns
      *
-     * - `{bool}` - true/false if alphabetic
+     * - `{asset}` - token supply, `asset{}` if token doesn't exist
      *
      * ### example
      *
      * ```c++
-     * sx::utils::is_alpha("123");
-     * // => true
-     *
-     * sx::utils::is_alpha("abc");
-     * // => false
+     * const extended_symbol ext_sym { symbol{"USDT", 4}, "tethertether"_n };
+     * const auto supply = sx::utils::get_supply(ext_sym);
+     * eosio::check(balance.is_valid(), "Token doesn't exist on this contract");
      * ```
      */
-    bool is_alpha( const string str )
+    static asset get_supply( const extended_symbol ext_sym)
     {
-        if ( !str.size() ) return false;
-        for ( const auto c: str ) {
-            if ( !isalpha(c) ) return false;
-        }
-        return true;
+        struct [[eosio::table]] currency_stats {
+            asset    supply;
+            asset    max_supply;
+            name     issuer;
+
+            uint64_t primary_key()const { return supply.symbol.code().raw(); }
+        };
+        typedef eosio::multi_index< "stat"_n, currency_stats > stats;
+
+        stats _stat(ext_sym.get_contract(), ext_sym.get_symbol().code().raw() );
+        const auto it = _stat.begin();
+
+        return it != _stat.end() ? it->supply : asset {};
     }
+
+    /**
+     * ## STATIC `get_hashed_nonce`
+     *
+     * Basic get hashed nonce
+     *
+     * ### params
+     *
+     * - `{uint64_t} nonce` - nonce
+     *
+     * ### returns
+     *
+     * - `{uint64_t}` - hashed nonce number
+     *
+     * ### example
+     *
+     * ```c++
+     * const auto rnd = sx::utils::get_hashed_nonce(12345);
+     * ```
+     */
+    static uint64_t get_hashed_nonce( uint64_t nonce ){
+
+        const auto sha = eosio::sha256( (const char*) &nonce, sizeof( nonce )); // generate hash for uniform distribution
+        const uint64_t rnd = *((uint64_t *) &sha );             // take 8 first bytes
+
+        return rnd;
+    }
+
 };
 }

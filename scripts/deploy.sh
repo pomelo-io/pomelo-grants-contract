@@ -8,7 +8,7 @@ cleos create account eosio app.pomelo EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuG
 cleos create account eosio fee.pomelo EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio eosn EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio login.eosn EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
-cleos create account eosio swap.defi EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+cleos create account eosio oracle.defi EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio eosio.token EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio play.pomelo EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
 cleos create account eosio tethertether EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
@@ -40,7 +40,7 @@ cleos set contract eosio.token ./include/eosio.token eosio.token.wasm eosio.toke
 cleos set contract tethertether ./include/eosio.token eosio.token.wasm eosio.token.abi
 cleos set contract fake.token ./include/eosio.token eosio.token.wasm eosio.token.abi
 cleos set contract login.eosn ./include/eosn.login login.eosn.wasm login.eosn.abi
-cleos set contract swap.defi ./include/swap.defi swap.defi.wasm swap.defi.abi
+cleos set contract oracle.defi ./include/oracle.defi oracle.defi.wasm oracle.defi.abi
 cleos set contract play.pomelo ./include/pomelo.play play.pomelo.wasm play.pomelo.abi
 cleos set contract app.pomelo . app.pomelo.wasm app.pomelo.abi
 
@@ -83,8 +83,7 @@ cleos transfer eosio user13 "1000000.0000 USDT" "" --contract tethertether
 cleos transfer eosio user.noeosn "1000000.0000 EOS" ""
 
 # set price in defibox contract
-cleos push action swap.defi setprice '[12, ["4,EOS", "eosio.token"], ["4,USDT", "tethertether"], 10]' -p swap.defi
-cleos push action swap.defi setprice '[13, ["4,EOS", "eosio.token"], ["4,PLAY", "play.pomelo"], 1]' -p swap.defi
+cleos push action oracle.defi setprice '[1, ["4,EOS", "eosio.token"], 4, 100000]' -p oracle.defi
 
 # set socials weights
 cleos push action login.eosn configsocial '["sms", 25]' -p login.eosn

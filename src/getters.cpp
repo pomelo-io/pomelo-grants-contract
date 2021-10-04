@@ -1,4 +1,4 @@
-#include <sx.defibox/defibox.hpp>
+#include <sx.defilend/defilend.hpp>
 
 using namespace sx;
 
@@ -30,34 +30,9 @@ bool pomelo::is_token_enabled( const symbol_code symcode )
 
 double pomelo::calculate_value( const extended_asset ext_quantity )
 {
-    const double value = ext_quantity.quantity.amount / pow( 10, ext_quantity.quantity.symbol.precision());
-
-    if ( ext_quantity.get_extended_symbol() == VALUE_SYM ) {
-        return value;
-    }
-
     const auto& token = get_token( ext_quantity.quantity.symbol.code() );
-
-    //if testnet - just divide by 10, i.e. 10 USDT => EOS = 1.0 value
-    if (!is_account(defibox::code)) {
-        return value / 10;
-    }
-
-    defibox::pairs _pairs( defibox::code, defibox::code.value );
-    const auto& pool = _pairs.get( token.pair_id, "pomelo::calculate_value: invalid [pair_id]");
-    check( pool.price0_last, "pomelo::calculate_value: bad price");
-
-    if ( pool.token0.contract == ext_quantity.contract && pool.token0.symbol == ext_quantity.quantity.symbol
-        && pool.token1.contract == VALUE_SYM.get_contract() && pool.token1.symbol == VALUE_SYM.get_symbol() ) {
-        return value * pool.price0_last;
-    }
-    if ( pool.token1.contract == ext_quantity.contract && pool.token1.symbol == ext_quantity.quantity.symbol
-        && pool.token0.contract == VALUE_SYM.get_contract() && pool.token0.symbol == VALUE_SYM.get_symbol() ) {
-        return value * pool.price1_last;
-    }
-
-    check(false, "pomelo::calculate_value: invalid pool");
-    return 0;
+    check(token.contract == ext_quantity.contract || ext_quantity.contract == "play.pomelo"_n, "pomelo::calculate_value: invalid token");
+    return defilend::get_value( ext_quantity, token.oracle_id );
 }
 
 name pomelo::get_user_id( const name account )

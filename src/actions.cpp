@@ -1,8 +1,8 @@
-#include <sx.defibox/defibox.hpp>
+#include <sx.defilend/defilend.hpp>
 
 // @admin
 [[eosio::action]]
-void pomelo::token( const symbol sym, const name contract, const uint64_t min_amount, const uint64_t pair_id )
+void pomelo::token( const symbol sym, const name contract, const uint64_t min_amount, const uint64_t oracle_id )
 {
     // authenticate
     require_auth( get_self() );
@@ -13,14 +13,15 @@ void pomelo::token( const symbol sym, const name contract, const uint64_t min_am
     check( supply.symbol == sym, "pomelo::token: [sym] symbol does not match with token supply");
     check( supply.amount, "pomelo::token: [sym] has no supply");
 
-    // check if Defibox pair ID exists
-    if ( is_account( defibox::code ) && extended_symbol{ sym, contract } != VALUE_SYM ) defibox::get_reserves( pair_id, sym );
+    // check if Oracle exists; if not it will assert fail
+    if ( is_account( defilend::oracle_code ) && extended_symbol{ sym, contract } != VALUE_SYM )
+        defilend::get_value( {10000, extended_symbol{ sym, contract }}, oracle_id );
 
     const auto insert = [&]( auto & row ) {
         row.sym = sym;
         row.contract = contract;
         row.min_amount = min_amount;
-        row.pair_id = pair_id;
+        row.oracle_id = oracle_id;
     };
 
     const auto itr = tokens.find( sym.code().raw() );

@@ -32,15 +32,15 @@
 
 @test "set token" {
 
-  run cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 0]' -p app.pomelo
+  run cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 1]' -p app.pomelo
   echo "Output: $output"
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo token '["4,USDT", "tethertether", 10000, 12]' -p app.pomelo
+  run cleos push action app.pomelo token '["4,USDT", "tethertether", 10000, 0]' -p app.pomelo
   echo "Output: $output"
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo token '["4,PLAY", "play.pomelo", 10000, 13]' -p app.pomelo
+  run cleos push action app.pomelo token '["4,PLAY", "play.pomelo", 10000, 1]' -p app.pomelo
   echo "Output: $output"
   [ $status -eq 0 ]
 
