@@ -180,7 +180,7 @@ namespace utils {
         int i=0;
         for(const auto c: str) {
             if((c >= 'a' && c <= 'z') || ( c >= '0' && c <= '5') || c == '.') {
-                if(i == 0 && ( c >= '0' && c <= '5') ) return {};   //can't start with a digit
+                //if(i == 0 && ( c >= '0' && c <= '5') ) return {};   //can't start with a digit
                 if(i == 11 && c == '.') return {};                  //can't end with a .
             }
             else return {};
