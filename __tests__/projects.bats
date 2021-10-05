@@ -8,6 +8,20 @@
   [[ "$output" =~ "pomelo::donate_project: project not found" ]]
 }
 
+@test "donate to grant with invalid name" {
+  run cleos transfer user1 app.pomelo "1000.0000 EOS" "grant:grant9"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "pomelo::on_transfer: invalid project id" ]]
+
+  run cleos transfer user1 app.pomelo "1000.0000 EOS" "grant:grant132323."
+  [ $status -eq 1 ]
+  [[ "$output" =~ "pomelo::on_transfer: invalid project id" ]]
+
+  run cleos transfer user1 app.pomelo "1000.0000 EOS" "grant:grant1234212vsddsas"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "pomelo::on_transfer: invalid project id" ]]
+}
+
 
 @test "create grant1" {
 
