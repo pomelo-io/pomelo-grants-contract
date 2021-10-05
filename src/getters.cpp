@@ -1,4 +1,4 @@
-#include <sx.defilend/defilend.hpp>
+#include <oracle.defi/oracle.defi.cpp>
 
 using namespace sx;
 
@@ -32,7 +32,7 @@ double pomelo::calculate_value( const extended_asset ext_quantity )
 {
     const auto& token = get_token( ext_quantity.quantity.symbol.code() );
     check(token.contract == ext_quantity.contract || ext_quantity.contract == "play.pomelo"_n, "pomelo::calculate_value: invalid token");
-    return defilend::get_value( ext_quantity, token.oracle_id );
+    return oracledefi::get_value( ext_quantity, token.oracle_id );
 }
 
 name pomelo::get_user_id( const name account )

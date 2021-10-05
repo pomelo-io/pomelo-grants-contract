@@ -1,4 +1,4 @@
-#include <sx.defilend/defilend.hpp>
+#include <oracle.defi/oracle.defi.cpp>
 
 // @admin
 [[eosio::action]]
@@ -14,8 +14,8 @@ void pomelo::token( const symbol sym, const name contract, const uint64_t min_am
     check( supply.amount, "pomelo::token: [sym] has no supply");
 
     // check if Oracle exists; if not it will assert fail
-    if ( is_account( defilend::oracle_code ) && extended_symbol{ sym, contract } != VALUE_SYM )
-        defilend::get_value( {10000, extended_symbol{ sym, contract }}, oracle_id );
+    if ( is_account( oracle_code ) && extended_symbol{ sym, contract } != VALUE_SYM )
+        oracledefi::get_value( {10000, extended_symbol{ sym, contract }}, oracle_id );
 
     const auto insert = [&]( auto & row ) {
         row.sym = sym;
