@@ -34,7 +34,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     // calculate fee
     const extended_asset fee = calculate_fee( ext_quantity );
     double value = calculate_value( ext_quantity - fee );
-    // print("pomelo:donate_project:: project_id=", project_id, ", ext_quantity=", ext_quantity, ", value=", value, ", fee=", fee, "\n");
+    print("\n", ext_quantity - fee, " == ", value);
 
     // track for matching bonus
     if ( project.type == "grant"_n ) {

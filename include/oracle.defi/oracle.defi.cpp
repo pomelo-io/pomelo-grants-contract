@@ -55,6 +55,7 @@ public:
 
         prices prices_tbl( oracle_code, oracle_code.value);
         const auto row = prices_tbl.get(oracle_id, "defilend: no oracle");
+        print("\nUsing ", row.avg_price, " rate");
 
         return static_cast<double>(in.quantity.amount) / pow(10, in.quantity.symbol.precision()) * (static_cast<double>(row.avg_price) / pow(10, row.precision));
     }
