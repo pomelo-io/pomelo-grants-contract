@@ -235,6 +235,7 @@ void pomelo::cleartable( const name table_name, const optional<uint16_t> round_i
     pomelo::globals_table globals( get_self(), scope );
     pomelo::tokens_table tokens( get_self(), scope );
     pomelo::status_table status( get_self(), scope );
+    pomelo::users_table users( get_self(), scope );
 
     if (table_name == "transfers"_n) clear_table( transfers, rows_to_clear );
     else if (table_name == "rounds"_n) clear_table( rounds, rows_to_clear );
@@ -242,9 +243,9 @@ void pomelo::cleartable( const name table_name, const optional<uint16_t> round_i
     else if (table_name == "bounties"_n) clear_table( bounties, rows_to_clear );
     else if (table_name == "grants"_n) clear_table( grants, rows_to_clear );
     else if (table_name == "tokens"_n) clear_table( tokens, rows_to_clear );
+    else if (table_name == "users"_n) clear_table( users, rows_to_clear );
     else if (table_name == "globals"_n) globals.remove();
     else if (table_name == "status"_n) status.remove();
-    // else if (table_name == "global"_n) global.remove();
     else check(false, "pomelo::cleartable: [table_name] unknown table to clear" );
 }
 
