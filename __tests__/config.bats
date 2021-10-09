@@ -14,7 +14,7 @@
   echo "Output: $output"
   [ $status -eq 0 ]
 
-  result=$(cleos get table app.pomelo app.pomelo globals | jq -r '.rows[0].round_id')
+  result=$(cleos get table app.pomelo app.pomelo globals | jq -r '.rows[0].season_id')
   [ $result = "0" ]
 
 }

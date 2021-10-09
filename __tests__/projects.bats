@@ -43,12 +43,12 @@
   run cleos transfer user1 app.pomelo "200.0000 USDT" "grant:grant1" --contract tethertether
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::get_token: [symcode] not supported" ]]
+  [[ "$output" =~ "not acceptable tokens for this project" ]]
 
   run cleos transfer user1 app.pomelo "300.0000 EOS" "grant:grant1"
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "[round_id] is not active" ]]
+  [[ "$output" =~ "is not active" ]]
 
   run cleos push action app.pomelo setproject '["prjaaa.eosn", "grant", "grant2", "prjgrant2", ["USDT"]]' -p app.pomelo
   echo "Output: $output"
@@ -94,7 +94,7 @@
 
   run cleos transfer user1 app.pomelo "100.0000 USDT" "bounty:bounty1" --contract tethertether
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::get_token: [symcode] not supported" ]]
+  [[ "$output" =~ "not acceptable tokens for this project" ]]
 
   run cleos transfer user1 app.pomelo "500.0000 EOS" "bounty:bounty1"
   [ $status -eq 0 ]
@@ -105,15 +105,25 @@
 
 }
 
+@test "set season with non-existing round" {
+  run cleos push action app.pomelo setseason '[1, [111], "Season 1", 100000]' -p app.pomelo
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[round_id] doesn't exist" ]]
+}
 
 @test "create and test rounds" {
 
-  run cleos push action app.pomelo setround '[1, "2021-08-25T20:00:00", "2022-09-25T20:00:00", "This is round 1 of Pomelo!", [["10000 EOS", "eosio.token"]]]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[1, [], "Season 1", 100000]' -p app.pomelo
   [ $status -eq 0 ]
-  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].round')
+  result=$(cleos get table app.pomelo app.pomelo seasons | jq -r '.rows[0].season_id')
   [ $result = "1" ]
 
-  run cleos push action app.pomelo joinround '["grant1", 1]' -p app.pomelo -p prjman1.eosn
+  run cleos push action app.pomelo setround '[101, "2021-08-25T20:00:00", "2022-09-25T20:00:00", "This is round 1 of Pomelo!", 50000]' -p app.pomelo
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].round')
+  [ $result = "101" ]
+
+  run cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].grant_ids[0]')
   [ $result = "grant1" ]
@@ -128,12 +138,12 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "[round_id] is not active" ]]
 
-  run cleos push action app.pomelo setround '[2, "2021-08-20T10:00:00", "2021-10-28T10:00:00", "This is round 2 of Pomelo!", [["50000 EOS", "eosio.token"]]]' -p app.pomelo
+  run cleos push action app.pomelo setround '[102, "2021-08-20T10:00:00", "2021-10-28T10:00:00", "This is round 2 of Pomelo!", 50000]' -p app.pomelo
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].round')
-  [ $result = "2" ]
+  [ $result = "102" ]
 
-  run cleos push action app.pomelo joinround '["grant1", 2]' -p app.pomelo -p prjman1.eosn
+  run cleos push action app.pomelo joinround '["grant1", 102]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].grant_ids[0]')
   [ $result = "grant1" ]
@@ -144,8 +154,13 @@
 
   run cleos push action app.pomelo setconfig '[1, 0, 0, null, null]' -p app.pomelo
   [ $status -eq 0 ]
-  result=$(cleos get table app.pomelo app.pomelo globals | jq -r '.rows[0].round_id')
+  result=$(cleos get table app.pomelo app.pomelo globals | jq -r '.rows[0].season_id')
   [ $result = "1" ]
+
+  run cleos push action app.pomelo setseason '[1, [101], "Season 1", 100000]' -p app.pomelo
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo seasons | jq -r '.rows[0].round_ids[0]')
+  [ $result = "101" ]
 
   run cleos transfer user1 app.pomelo "10.0000 EOS" "grant:grant1"
   echo "Output: $output"
@@ -168,20 +183,30 @@
   grant_balance=$(cleos get currency balance eosio.token prjgrant1 EOS)
   [ "$grant_balance" = "30.0000 EOS" ]
 
-  result=$(cleos get table app.pomelo 1 match | jq -r '.rows[0].square')
+  result=$(cleos get table app.pomelo 101 match | jq -r '.rows[0].square')
   [ $result = "1044.61524227066342974" ]
 
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].sum_square')
   [ $result = "1044.61524227066342974" ]
 
 }
+@test "add grant to two active rounds " {
+
+  run cleos push action app.pomelo setseason '[1, [101,102], null, null]' -p app.pomelo
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo seasons | jq -r '.rows[0].round_ids[1]')
+  [ $result = "102" ]
+
+  run cleos transfer user1 app.pomelo "50.0000 EOS" "grant:grant1"
+  echo "Output: $output"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[grant_id] exist in multiple active rounds" ]]
+}
 
 @test "round #2: fund grant1 with 2 donations by 1 user" {
 
-  run cleos push action app.pomelo setconfig '[2, 0, 0, null, null]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[1, [102], null, null]' -p app.pomelo
   [ $status -eq 0 ]
-  result=$(cleos get table app.pomelo app.pomelo globals | jq -r '.rows[0].round_id')
-  [ $result = "2" ]
 
   run cleos transfer user1 app.pomelo "50.0000 EOS" "grant:grant1"
   echo "Output: $output"
@@ -205,7 +230,7 @@
   grant_balance=$(cleos get currency balance eosio.token prjgrant1 EOS)
   [ "$grant_balance" = "85.0000 EOS" ]
 
-  result=$(cleos get table app.pomelo 2 match | jq -r '.rows[0].square')
+  result=$(cleos get table app.pomelo 102 match | jq -r '.rows[0].square')
   [ $result = "1237.49999999999977263" ]
 
 }
@@ -219,7 +244,7 @@
   run cleos push action app.pomelo enable '["grant", "grant2", "ok"]' -p app.pomelo -p prjman2.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo joinround '["grant2", 2]' -p app.pomelo -p prjman2.eosn
+  run cleos push action app.pomelo joinround '["grant2", 102]' -p app.pomelo -p prjman2.eosn
   [ $status -eq 0 ]
 
   run cleos transfer user1 app.pomelo "1.0000 USDT" "grant:grant2" --contract tethertether
@@ -246,19 +271,19 @@
   run cleos transfer user13 app.pomelo "1.0000 USDT" "grant:grant2" --contract tethertether
   [ $status -eq 0 ]
 
-  result=$(cleos get table app.pomelo 2 match | jq -r '.rows[1].square')
+  result=$(cleos get table app.pomelo 102 match | jq -r '.rows[1].square')
   [ $result = "104.71793703910751105" ]
 
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].sum_square')
   [ $result = "1342.21793703910725526" ]
 
-  result=$(cleos get table app.pomelo 2 users | jq -r '.rows[1].contributions[0] | .id + "-" + .value')
+  result=$(cleos get table app.pomelo 102 users | jq -r '.rows[1].contributions[0] | .id + "-" + .value')
   [ $result = "grant2-1.25000000000000000" ]
 }
 
 @test "round #3: 4 projects, 6 users: spreadsheet simulation" {
 
-  run cleos push action app.pomelo setround '[3, "2021-05-20T20:00:00", "2022-09-25T20:00:00", "This is round 3 of Pomelo!", [["100000 EOS", "eosio.token"]]]' -p app.pomelo
+  run cleos push action app.pomelo setround '[103, "2021-05-20T20:00:00", "2022-09-25T20:00:00", "This is round 3 of Pomelo!", 100000]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo setproject '["prjman3.eosn", "grant", "grant3", "prjgrant3", ["EOS"]]' -p app.pomelo -p prjman3.eosn
@@ -273,19 +298,22 @@
   run cleos push action app.pomelo enable '["grant", "grant4", "ok"]' -p app.pomelo -p prjman4.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo joinround '["grant1", 3]' -p app.pomelo -p prjman1.eosn
+  run cleos push action app.pomelo joinround '["grant1", 103]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo joinround '["grant2", 3]' -p app.pomelo -p prjman2.eosn
+  run cleos push action app.pomelo joinround '["grant2", 103]' -p app.pomelo -p prjman2.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo joinround '["grant3", 3]' -p app.pomelo -p prjman3.eosn
+  run cleos push action app.pomelo joinround '["grant3", 103]' -p app.pomelo -p prjman3.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo joinround '["grant4", 3]' -p app.pomelo -p prjman4.eosn
+  run cleos push action app.pomelo joinround '["grant4", 103]' -p app.pomelo -p prjman4.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo setconfig '[3, 0, 0, null, null]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[1, [103], null, null]' -p app.pomelo
+  [ $status -eq 0 ]
+
+  run cleos push action app.pomelo setconfig '[1, 0, 0, null, null]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos transfer user1 app.pomelo "80.0000 EOS" "grant:grant1"
@@ -315,28 +343,28 @@
   run cleos transfer user11 app.pomelo "1000.0000 EOS" "grant:grant4"
   [ $status -eq 0 ]
 
-  result=$(cleos get table app.pomelo 3 match -L grant1 | jq -r '.rows[0].square')
+  result=$(cleos get table app.pomelo 103 match -L grant1 | jq -r '.rows[0].square')
   [ $result = "24746.34091915152021102" ]
 
-  result=$(cleos get table app.pomelo 3 match -L grant2 | jq -r '.rows[0].square')
+  result=$(cleos get table app.pomelo 103 match -L grant2 | jq -r '.rows[0].square')
   [ $result = "4193.16767251549754292" ]
 
-  result=$(cleos get table app.pomelo 3 match -L grant3 | jq -r '.rows[0].square')
+  result=$(cleos get table app.pomelo 103 match -L grant3 | jq -r '.rows[0].square')
   [ $result = "36124.99999999999272404" ]
 
-  result=$(cleos get table app.pomelo 3 match -L grant4 | jq -r '.rows[0].square')
+  result=$(cleos get table app.pomelo 103 match -L grant4 | jq -r '.rows[0].square')
   [ $result = "12500.00000000000000000" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 3 | jq -r '.rows[0].sum_square')
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 103 | jq -r '.rows[0].sum_square')
   [ $result = "77564.50859166700684000" ]
 
-  result=$(cleos get table app.pomelo 3 users -L user5.eosn | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
+  result=$(cleos get table app.pomelo 103 users -L user5.eosn | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
   [ $result = "grant3-4500.00000000000000000" ]
 }
 
 @test "change socials triggering matching update for grants in current round" {
 
-  result=$(cleos get table app.pomelo 3 users -L user11.eosn | jq -r '.rows[0].boost')
+  result=$(cleos get table app.pomelo 103 users -L user11.eosn | jq -r '.rows[0].boost')
   [ $result = "5000.00000000000000000" ]
 
   result=$(cleos get table login.eosn login.eosn users -L user11.eosn | jq -r '.rows[0].socials | length')
@@ -348,22 +376,22 @@
   result=$(cleos get table login.eosn login.eosn users -L user11.eosn | jq -r '.rows[0].socials | length')
   [ $result = "2" ]
 
-  result=$(cleos get table app.pomelo 3 match -L grant3 | jq -r '.rows[0].square')
+  result=$(cleos get table app.pomelo 103 match -L grant3 | jq -r '.rows[0].square')
   [ $result = "40295.28951268081436865" ]
 
-  result=$(cleos get table app.pomelo 3 match -L grant4 | jq -r '.rows[0].square')
+  result=$(cleos get table app.pomelo 103 match -L grant4 | jq -r '.rows[0].square')
   [ $result = "15000.00000000000181899" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 3 | jq -r '.rows[0].sum_square')
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 103 | jq -r '.rows[0].sum_square')
   [ $result = "84234.79810434783576056" ]
 
-  result=$(cleos get table app.pomelo 3 users -L user11.eosn | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
+  result=$(cleos get table app.pomelo 103 users -L user11.eosn | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
   [ $result = "grant3-15000.00000000000000000" ]
 
-  result=$(cleos get table app.pomelo 3 users -L user11.eosn | jq -r '.rows[0].contributions[1] | .id + "-" + .value')
+  result=$(cleos get table app.pomelo 103 users -L user11.eosn | jq -r '.rows[0].contributions[1] | .id + "-" + .value')
   [ $result = "grant4-15000.00000000000000000" ]
 
-  result=$(cleos get table app.pomelo 3 users -L user11.eosn | jq -r '.rows[0].boost')
+  result=$(cleos get table app.pomelo 103 users -L user11.eosn | jq -r '.rows[0].boost')
   [ $result = "10000.00000000000000000" ]
 
   run cleos push action login.eosn unsocial '["user11.eosn", "sms"]' -p login.eosn -p user11.eosn
@@ -372,22 +400,22 @@
   run cleos push action login.eosn unsocial '["user11.eosn", "github"]' -p login.eosn -p user11.eosn
   [ $status -eq 0 ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 3 | jq -r '.rows[0].sum_square')
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 103 | jq -r '.rows[0].sum_square')
   [ $result = "70716.98443416555528529" ]
 
-  result=$(cleos get table app.pomelo 3 match -L grant4 | jq -r '.rows[0].square')
+  result=$(cleos get table app.pomelo 103 match -L grant4 | jq -r '.rows[0].square')
   [ $result = "10000.00000000000000000" ]
 
-  result=$(cleos get table app.pomelo 3 match -L grant3 | jq -r '.rows[0].square')
+  result=$(cleos get table app.pomelo 103 match -L grant3 | jq -r '.rows[0].square')
   [ $result = "31777.47584249851934146" ]
 
-  result=$(cleos get table app.pomelo 3 users -L user11.eosn | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
+  result=$(cleos get table app.pomelo 103 users -L user11.eosn | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
   [ $result = "grant3-10000.00000000000000000" ]
 
-  result=$(cleos get table app.pomelo 3 users -L user11.eosn | jq -r '.rows[0].contributions[1] | .id + "-" + .value')
+  result=$(cleos get table app.pomelo 103 users -L user11.eosn | jq -r '.rows[0].contributions[1] | .id + "-" + .value')
   [ $result = "grant4-10000.00000000000000000" ]
 
-  result=$(cleos get table app.pomelo 3 users -L user11.eosn | jq -r '.rows[0].boost')
+  result=$(cleos get table app.pomelo 103 users -L user11.eosn | jq -r '.rows[0].boost')
   [ $result = "0.00000000000000000" ]
 }
 
@@ -396,7 +424,7 @@
   run cleos push action app.pomelo setproject '["prjman1.eosn", "grant", "grant5", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo joinround '["grant5", 3]' -p app.pomelo -p prjman1.eosn
+  run cleos push action app.pomelo joinround '["grant5", 103]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo enable '["grant", "grant5", "disabled"]' -p app.pomelo -p prjman1.eosn
@@ -413,135 +441,135 @@
 @test "fund grant by a user without EOSN login" {
   run cleos transfer user.noeosn app.pomelo "30.0000 EOS" "grant:grant5"
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::get_user_id: account is not linked" ]]
+  [[ "$output" =~ "pomelo::get_user_id: account is not linked to EOSN account" ]]
 
   run cleos transfer user.noeosn app.pomelo "30.0000 EOS" "bounty:bounty1"
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::get_user_id: account is not linked" ]]
+  [[ "$output" =~ "pomelo::get_user_id: account is not linked to EOSN account" ]]
 }
 
 
 @test "unjoin grant1 from round 3" {
-  result=$(cleos get table app.pomelo 3 match -l 1 | jq -r '.rows[0].grant_id')
+  result=$(cleos get table app.pomelo 103 match -l 1 | jq -r '.rows[0].grant_id')
   [ $result = "grant1" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 3 -l 1 | jq -r '.rows[0].grant_ids | length')
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 103 -l 1 | jq -r '.rows[0].grant_ids | length')
   [ $result = "5" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 3 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" +.sum_square')
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 103 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" +.sum_square')
   [ $result = "28300.00000000000000000-7725.00000000000000000-70716.98443416555528529" ]
 
-  result=$(cleos get table app.pomelo 3 users -l 1 | jq -r '.rows[0].contributions[0].id')
+  result=$(cleos get table app.pomelo 103 users -l 1 | jq -r '.rows[0].contributions[0].id')
   [ $result = "grant1" ]
 
-  result=$(cleos get table app.pomelo 3 users -l 1 | jq -r '.rows[0].value')
+  result=$(cleos get table app.pomelo 103 users -l 1 | jq -r '.rows[0].value')
   [ $result = "1800.00000000000000000" ]
 
-  result=$(cleos get table app.pomelo 3 users -L user3.eosn -l 1 | jq -r '.rows[0].user_id')
+  result=$(cleos get table app.pomelo 103 users -L user3.eosn -l 1 | jq -r '.rows[0].user_id')
   [ $result = "user3.eosn" ]
 
-  run cleos push action app.pomelo unjoinround '["grant1", 3]' -p app.pomelo
+  run cleos push action app.pomelo unjoinround '["grant1", 103]' -p app.pomelo
   [ $status -eq 0 ]
 
-  result=$(cleos get table app.pomelo 3 match -l 1 | jq -r '.rows[0].grant_id')
+  result=$(cleos get table app.pomelo 103 match -l 1 | jq -r '.rows[0].grant_id')
   [ $result = "grant2" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 3 -l 1 | jq -r '.rows[0].grant_ids' | jq length)
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 103 -l 1 | jq -r '.rows[0].grant_ids' | jq length)
   [ $result = "4" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 3 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .sum_square')
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 103 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .sum_square')
   [ $result = "23300.00000000000000000-3875.00000000000000000-45970.64351501401688438" ]
 
-  result=$(cleos get table app.pomelo 3 users -l 1 | jq -r '.rows[0].contributions[0].id')
+  result=$(cleos get table app.pomelo 103 users -l 1 | jq -r '.rows[0].contributions[0].id')
   [ $result = "grant2" ]
 
-  result=$(cleos get table app.pomelo 3 users -l 1 | jq -r '.rows[0].value')
+  result=$(cleos get table app.pomelo 103 users -l 1 | jq -r '.rows[0].value')
   [ $result = "1000.00000000000000000" ]
 
-  result=$(cleos get table app.pomelo 3 users -L user3.eosn -l 1 | jq -r '.rows[0].user_id')
+  result=$(cleos get table app.pomelo 103 users -L user3.eosn -l 1 | jq -r '.rows[0].user_id')
   [ $result = "user4.eosn" ]
 }
 
 @test "remove user11.eosn from round 3" {
-  result=$(cleos get table app.pomelo 3 match | jq -r '.rows' | jq length)
+  result=$(cleos get table app.pomelo 103 match | jq -r '.rows' | jq length)
   [ $result = "3" ]
 
-  result=$(cleos get table app.pomelo 3 match -L grant3 -l 1 | jq -r '.rows[0].sum_value')
+  result=$(cleos get table app.pomelo 103 match -L grant3 -l 1 | jq -r '.rows[0].sum_value')
   [ $result = "12100.00000000000000000" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 3 -l 1 | jq -r '.rows[0].user_ids' | jq length)
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 103 -l 1 | jq -r '.rows[0].user_ids' | jq length)
   [ $result = "6" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 3 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" +  .sum_square')
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 103 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" +  .sum_square')
   [ $result = "23300.00000000000000000-3875.00000000000000000-45970.64351501401688438" ]
 
-  result=$(cleos get table app.pomelo 3 users -L user11.eosn -l 1 | jq -r '.rows[0].user_id')
+  result=$(cleos get table app.pomelo 103 users -L user11.eosn -l 1 | jq -r '.rows[0].user_id')
   [ $result = "user11.eosn" ]
 
-  run cleos push action app.pomelo removeuser '["user11.eosn", 3]' -p app.pomelo
+  run cleos push action app.pomelo removeuser '["user11.eosn", 103]' -p app.pomelo
   [ $status -eq 0 ]
 
-  result=$(cleos get table app.pomelo 3 match | jq -r '.rows' | jq length)
+  result=$(cleos get table app.pomelo 103 match | jq -r '.rows' | jq length)
   [ $result = "2" ]
 
-  result=$(cleos get table app.pomelo 3 match -L grant3 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_sqrt')
+  result=$(cleos get table app.pomelo 103 match -L grant3 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_sqrt')
   [ $result = "2100.00000000000000000-78.26237921249261831" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 3 -l 1 | jq -r '.rows[0].user_ids' | jq length)
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 103 -l 1 | jq -r '.rows[0].user_ids' | jq length)
   [ $result = "5" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 3 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .sum_square')
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 103 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .sum_square')
   [ $result = "3300.00000000000000000-3875.00000000000000000-10318.16767251549390494" ]
 
-  result=$(cleos get table app.pomelo 3 users -L user11.eosn -l 1 | jq -r '.rows[0].user_id')
+  result=$(cleos get table app.pomelo 103 users -L user11.eosn -l 1 | jq -r '.rows[0].user_id')
   [ $result = "user2.eosn" ]
 }
 
 @test "collapse 8 users into 1 on round 2" {
 
-  result=$(cleos get table app.pomelo 2 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
+  result=$(cleos get table app.pomelo 102 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
   [ $result = "grant1-1237.50000000000000000" ]
 
-  result=$(cleos get table app.pomelo 2 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[1] | .id + "-" + .value')
+  result=$(cleos get table app.pomelo 102 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[1] | .id + "-" + .value')
   [ $result = "grant2-2.25000000000000000" ]
 
-  result=$(cleos get table app.pomelo 2 users | jq -r '.rows' |  jq length)
+  result=$(cleos get table app.pomelo 102 users | jq -r '.rows' |  jq length)
   [ $result = "8" ]
 
-  result=$(cleos get table app.pomelo 2 match -L grant2 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .square')
+  result=$(cleos get table app.pomelo 102 match -L grant2 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .square')
   [ $result = "8.00000000000000000-5.25000000000000000-104.71793703910751105" ]
 
-  result=$(cleos get table app.pomelo 2 match -L grant1 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + "-" + .square')
+  result=$(cleos get table app.pomelo 102 match -L grant1 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + "-" + .square')
   [ $result = "550.00000000000000000687.50000000000000000-1237.49999999999977263" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 2 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .sum_square')
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 102 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .sum_square')
   [ $result = "558.00000000000000000-692.75000000000000000-1342.21793703910725526" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 2 -l 1 | jq -r '.rows[0].user_ids' | jq length)
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 102 -l 1 | jq -r '.rows[0].user_ids' | jq length)
   [ $result = "8" ]
 
-  run cleos push action app.pomelo collapse '[["user2.eosn","user3.eosn","user4.eosn","user5.eosn","user11.eosn","user12.eosn","user13.eosn"], "user1.eosn", 2]' -p app.pomelo
+  run cleos push action app.pomelo collapse '[["user2.eosn","user3.eosn","user4.eosn","user5.eosn","user11.eosn","user12.eosn","user13.eosn"], "user1.eosn", 102]' -p app.pomelo
   [ $status -eq 0 ]
 
-  result=$(cleos get table app.pomelo 2 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
+  result=$(cleos get table app.pomelo 102 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
   [ $result = "grant1-1237.50000000000000000" ]
 
-  result=$(cleos get table app.pomelo 2 users | jq -r '.rows' |  jq length)
+  result=$(cleos get table app.pomelo 102 users | jq -r '.rows' |  jq length)
   [ $result = "1" ]
 
-  result=$(cleos get table app.pomelo 2 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[1] | .id + "-" + .value')
+  result=$(cleos get table app.pomelo 102 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[1] | .id + "-" + .value')
   [ $result = "grant2-18.00000000000000000" ]
 
-  result=$(cleos get table app.pomelo 2 match -L grant2 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + "-" + .square')
+  result=$(cleos get table app.pomelo 102 match -L grant2 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + "-" + .square')
   [ $result = "8.0000000000000000010.00000000000000000-17.99999999999998934" ]
 
-  result=$(cleos get table app.pomelo 2 match -L grant1 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + "-" + .square')
+  result=$(cleos get table app.pomelo 102 match -L grant1 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + "-" + .square')
   [ $result = "550.00000000000000000687.50000000000000000-1237.49999999999977263" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 2 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .sum_square')
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 102 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .sum_square')
   [ $result = "558.00000000000000000-697.50000000000000000-1255.49999999999977263" ]
 
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 2 -l 1 | jq -r '.rows[0].user_ids' | jq length)
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 102 -l 1 | jq -r '.rows[0].user_ids' | jq length)
   [ $result = "1" ]
 
 }
@@ -549,22 +577,22 @@
 @test "donate less than minamount" {
   run cleos transfer user1 app.pomelo "0.9000 USDT" "grant:grant2" --contract tethertether
   [ $status -eq 1 ]
-  [[ "$output" =~ "is less than [tokens.min_amount" ]]
+  [[ "$output" =~ "[quantity=0.9000 USDT] is less than [tokens.min_amount=10000]" ]]
 
   run cleos transfer user1 app.pomelo "0.0999 EOS" "grant:grant3"
   [ $status -eq 1 ]
-  [[ "$output" =~ "is less than [tokens.min_amount" ]]
+  [[ "$output" =~ "[quantity=0.0999 EOS] is less than [tokens.min_amount=10000]" ]]
 
   run cleos push action app.pomelo token '["4,EOS", "eosio.token", 1001, 1]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos transfer user1 app.pomelo "0.1000 EOS" "grant:grant3"
   [ $status -eq 1 ]
-  [[ "$output" =~ "is less than [tokens.min_amount" ]]
+  [[ "$output" =~ "[quantity=0.1000 EOS] is less than [tokens.min_amount=1001]" ]]
 }
 
 @test "donate with a 5% fee" {
-  run cleos push action app.pomelo setconfig '[3, 500, 0, null, null]' -p app.pomelo
+  run cleos push action app.pomelo setconfig '[1, 500, 0, null, null]' -p app.pomelo
   [ $status -eq 0 ]
 
   balance=$(cleos get currency balance eosio.token fee.pomelo EOS)

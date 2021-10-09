@@ -76,9 +76,11 @@ $ ./test.sh
 - [TABLES `grants` & `bounties`](#tables-grants-and-bounties)
 - [TABLE `transfers`](#table-transfers)
 - [TABLE `match`](#table-match)
+- [TABLE `seasons`](#table-seasons)
 - [TABLE `rounds`](#table-rounds)
 - [TABLE `tokens`](#table-tokens)
 - [ACTION `setconfig`](#action-setconfig)
+- [ACTION `setseason`](#action-setseason)
 - [ACTION `setproject`](#action-setproject)
 - [ACTION `enable`](#action-enable)
 - [ACTION `setround`](#action-setround)
@@ -257,18 +259,38 @@ $ ./test.sh
     "contributions": [{"id": "grant1", "value": 24.0}, {"id": "grant2", "value": 10.0}],
     "updated_at": "2020-12-06T00:00:00"
 }
+
+```
+## TABLE `seasons`
+
+### params
+
+- `{uint16_t} season_id` - (primary key)
+- `{vector<uint16_t>} round_ids` - round ids in this season
+- `{string} description` - grant text description
+- `{double} match_value` - estimated total matching pool value for this season
+
+### example
+
+```json
+{
+    "season_id": 1,
+    "round_ids": [101, 102],
+    "description": "Season #1",
+    "match_value": 100000,
+}
 ```
 
 ## TABLE `rounds`
 
 ### params
 
-- `{uint64_t} round` - (primary key) matching rounds
+- `{uint64_t} round_id` - (primary key) matching rounds
 - `{string} description` - grant text description
 - `{set<name>} grant_ids` - grants IDs participating
 - `{set<name>} user_ids` - user IDs participating
 - `{vector<extended_asset>} donated_tokens` - donated tokens
-- `{vector<extended_asset>} match_tokens` - matching pool tokens
+- `{double} match_value` - total value of the matching pool
 - `{double} sum_value` - total value donated this round
 - `{double} sum_boost` - total boost received this round
 - `{double} sum_square` - square of total sqrt sum
@@ -282,12 +304,12 @@ $ ./test.sh
 
 ```json
 {
-    "round": 1,
+    "round_id": 1,
     "description": "Grant Round #1",
     "grant_ids": ["grant1"],
     "user_ids": ["user1.eosn"],
     "donated_tokens": [{"contract": "eosio.token", "quantity": "100.0000 EOS"}],
-    "match_tokens": [{"contract": "eosio.token", "quantity": "1000.0000 EOS"}],
+    "match_value": 100000,
     "sum_value": 12345,
     "sum_boost": 3231,
     "sum_square": 423451.1233,
@@ -323,16 +345,31 @@ $ ./test.sh
 
 ### params
 
-- `{uint16_t} round_id` - round ID (0 = not active)
-- `{uint64_t} grant_fee` - grant fee (bips - 1/100 1%)
-- `{uint64_t} bounty_fee` - bounty fee (bips - 1/100 1%)
-- `{name} login_contract` - EOSN Login contract
-- `{name} fee_account` - fee account
+- `{uint16_t} season_id` - season ID (0 = not active)
+- `{optional<uint64_t>} grant_fee` - grant fee (bips - 1/100 1%)
+- `{optional<uint64_t>} bounty_fee` - bounty fee (bips - 1/100 1%)
+- `{optional<name>} login_contract` - EOSN Login contract
+- `{optional<name>} fee_account` - fee account
 
 ### example
 
 ```bash
 $ cleos push action app.pomelo setconfig '[1, 500, 500, "login.eosn", "fee.pomelo"]' -p app.pomelo
+```
+
+## ACTION `setseason`
+
+### params
+
+- `{uint16_t} season_id` - season ID
+- `{vector<uint16_t>} round_ids` - round ids in this season
+- `{optional<string>} description` - season description
+- `{optional<value>} match_value` - estimated total matching pool value for this season
+
+### example
+
+```bash
+$ cleos push action app.pomelo setseason '[1, [101,102], "Season #1", 100000]' -p app.pomelo
 ```
 
 ## ACTION `setproject`
@@ -381,12 +418,12 @@ Create/update round
 - `{time_point_sec} start_at` - round start time
 - `{time_point_sec} end_at` - round end time
 - `{string} description` - grant description
-- `{vector<extended_asset>} match_tokens` - matching pool tokens
+- `{double} match_value` - matching pool value
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Grant Round #1", [["1000.0000 EOS", "eosio.token"]]]' -p app.pomelo
+$ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Grant Round #1", 100000]' -p app.pomelo
 ```
 
 ## ACTION `joinround`
