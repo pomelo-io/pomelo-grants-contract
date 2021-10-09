@@ -29,6 +29,33 @@ void pomelo::token( const symbol sym, const name contract, const uint64_t min_am
     else tokens.modify( itr, get_self(), insert );
 }
 
+[[eosio::action]]
+void pomelo::setseason( const uint16_t season_id, const vector<uint16_t> round_ids, const optional<string> description, const optional<double> match_value )
+{
+    require_auth( get_self() );
+    pomelo::seasons_table seasons( get_self(), get_self().value );
+    const auto itr = seasons.find( season_id );
+
+    //check that round_ids exist in rounds table
+    pomelo::rounds_table rounds( get_self(), get_self().value );
+    for( const auto round_id: round_ids){
+        rounds.get( round_id, "pomelo::setseason: [round_id] doesn't exist");
+    }
+
+    const auto insert = [&]( auto & row ) {
+        row.season_id = season_id;
+        if(description) row.description = *description;
+        if(round_ids.size()) row.round_ids = round_ids;
+        if(match_value) row.match_value = *match_value;
+    };
+
+    // erase if all parameters are undefined
+    if( !description && !round_ids.size() && !match_value ) seasons.erase(itr);
+    else if ( itr == seasons.end() ) seasons.emplace( get_self(), insert );
+    else seasons.modify( itr, get_self(), insert );
+}
+
+
 // @admin
 [[eosio::action]]
 void pomelo::deltoken( const symbol_code symcode )
@@ -173,7 +200,7 @@ void pomelo::enable_project( T& table, const name project_id, const name status 
 
 // @admin
 [[eosio::action]]
-void pomelo::setround( const uint16_t round_id, const time_point_sec start_at, const time_point_sec end_at, const string description, const vector<extended_asset> match_tokens )
+void pomelo::setround( const uint16_t round_id, const time_point_sec start_at, const time_point_sec end_at, const string description, const double match_value)
 {
     require_auth( get_self() );
 
@@ -183,16 +210,13 @@ void pomelo::setround( const uint16_t round_id, const time_point_sec start_at, c
     // validate input
     check( end_at >= start_at, "pomelo::setround: [end_at] must be after [start_at]");
     check( end_at.sec_since_epoch() - start_at.sec_since_epoch() >= DAY * 7, "pomelo::setround: minimum period must be at least 7 days");
-    for ( const extended_asset match_token : match_tokens ) {
-        check( is_token_enabled( match_token.quantity.symbol.code() ), "pomelo::setround: [match_token=" + match_token.quantity.to_string() +"] token is not available" );
-    }
 
     const auto insert = [&]( auto & row ) {
         row.round = round_id;
         row.description = description;
         row.start_at = start_at;
         row.end_at = end_at;
-        row.match_tokens = match_tokens;
+        row.match_value = match_value;
         row.updated_at = current_time_point();
         if( itr == rounds.end() ) row.created_at = current_time_point();
     };
@@ -203,14 +227,14 @@ void pomelo::setround( const uint16_t round_id, const time_point_sec start_at, c
 
 // @admin
 [[eosio::action]]
-void pomelo::setconfig( const optional<uint16_t> round_id, const optional<uint64_t> grant_fee, const optional<uint64_t> bounty_fee, const optional<name> login_contract, const optional<name> fee_account )
+void pomelo::setconfig( const optional<uint16_t> season_id, const optional<uint64_t> grant_fee, const optional<uint64_t> bounty_fee, const optional<name> login_contract, const optional<name> fee_account )
 {
     require_auth( get_self() );
 
     pomelo::globals_table _globals( get_self(), get_self().value );
     auto globals = _globals.get_or_default();
 
-    if ( round_id ) globals.round_id = *round_id;
+    if ( season_id ) globals.season_id = *season_id;
     if ( grant_fee ) globals.grant_fee = *grant_fee;
     if ( bounty_fee ) globals.bounty_fee = *bounty_fee;
     if ( login_contract ) globals.login_contract = *login_contract;
@@ -236,6 +260,7 @@ void pomelo::cleartable( const name table_name, const optional<uint16_t> round_i
     pomelo::tokens_table tokens( get_self(), scope );
     pomelo::status_table status( get_self(), scope );
     pomelo::users_table users( get_self(), scope );
+    pomelo::seasons_table seasons( get_self(), scope );
 
     if (table_name == "transfers"_n) clear_table( transfers, rows_to_clear );
     else if (table_name == "rounds"_n) clear_table( rounds, rows_to_clear );
@@ -244,6 +269,7 @@ void pomelo::cleartable( const name table_name, const optional<uint16_t> round_i
     else if (table_name == "grants"_n) clear_table( grants, rows_to_clear );
     else if (table_name == "tokens"_n) clear_table( tokens, rows_to_clear );
     else if (table_name == "users"_n) clear_table( users, rows_to_clear );
+    else if (table_name == "seasons"_n) clear_table( seasons, rows_to_clear );
     else if (table_name == "globals"_n) globals.remove();
     else if (table_name == "status"_n) status.remove();
     else check(false, "pomelo::cleartable: [table_name] unknown table to clear" );

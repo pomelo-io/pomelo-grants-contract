@@ -61,3 +61,23 @@ void pomelo::validate_round( const uint16_t round_id )
     check(rounds.start_at.sec_since_epoch() <= now, "pomelo::validate_round: [round_id] has not started");
     check(now <= rounds.end_at.sec_since_epoch(), "pomelo::validate_round: [round_id] has expired");
 }
+
+uint16_t pomelo::get_active_round( const name grant_id )
+{
+    const auto season_id = get_globals().season_id;
+    if( season_id == 0) return 0;
+
+    pomelo::seasons_table _seasons( get_self(), get_self().value );
+    pomelo::rounds_table _rounds( get_self(), get_self().value );
+
+    uint16_t active_round_id = 0;
+    const auto& season = _seasons.get( season_id, "pomelo::get_active_round: [season_id] not found");
+    for( const auto round_id: season.round_ids ){
+        const auto round = _rounds.get( round_id, "pomelo::get_active_round: [round_id] not found");
+        if( get_index( round.grant_ids, grant_id ) != -1){
+            check(active_round_id == 0, "pomelo::get_active_round: [grant_id] exist in multiple active rounds");
+            active_round_id = round_id;
+        }
+    }
+    return active_round_id;
+}

@@ -54,7 +54,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
 
 void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity, const name user_id, const double value )
 {
-    const uint16_t round_id = get_globals().round_id;
+    const auto round_id = get_active_round( grant_id );
     validate_round( round_id );
 
     // get round
@@ -129,7 +129,7 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
 void pomelo::save_transfer( const name from, const name to, const extended_asset ext_quantity, const asset fee, const string& memo, const name project_type, const name project_id, const double value )
 {
     const auto user_id = get_user_id( from );
-    const auto round_id = get_globals().round_id;
+    const auto round_id = get_active_round( project_id );
 
     pomelo::transfers_table transfers( get_self(), get_self().value );
     transfers.emplace( get_self(), [&]( auto & row ) {
