@@ -106,14 +106,14 @@
 }
 
 @test "set season with non-existing round" {
-  run cleos push action app.pomelo setseason '[1, [111], "Season 1", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[1, "2021-08-25T20:00:00", "2022-08-25T20:00:00", [111], "Season 1", 100000]' -p app.pomelo
   [ $status -eq 1 ]
   [[ "$output" =~ "[round_id] doesn't exist" ]]
 }
 
 @test "create and test rounds" {
 
-  run cleos push action app.pomelo setseason '[1, [], "Season 1", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[1, "2021-08-25T20:00:00", "2022-08-25T20:00:00", [], "Season 1", 100000]' -p app.pomelo
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo seasons | jq -r '.rows[0].season_id')
   [ $result = "1" ]
@@ -157,7 +157,7 @@
   result=$(cleos get table app.pomelo app.pomelo globals | jq -r '.rows[0].season_id')
   [ $result = "1" ]
 
-  run cleos push action app.pomelo setseason '[1, [101], "Season 1", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[1, null, null, [101], "Season 1", 100000]' -p app.pomelo
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo seasons | jq -r '.rows[0].round_ids[0]')
   [ $result = "101" ]
@@ -192,7 +192,7 @@
 }
 @test "add grant to two active rounds " {
 
-  run cleos push action app.pomelo setseason '[1, [101,102], null, null]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[1, null, null, [101,102], null, null]' -p app.pomelo
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo seasons | jq -r '.rows[0].round_ids[1]')
   [ $result = "102" ]
@@ -205,7 +205,7 @@
 
 @test "round #2: fund grant1 with 2 donations by 1 user" {
 
-  run cleos push action app.pomelo setseason '[1, [102], null, null]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[1, null, null, [102], null, null]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos transfer user1 app.pomelo "50.0000 EOS" "grant:grant1"
@@ -310,7 +310,7 @@
   run cleos push action app.pomelo joinround '["grant4", 103]' -p app.pomelo -p prjman4.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo setseason '[1, [103], null, null]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[1, null, null, [103], null, null]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo setconfig '[1, 0, 0, null, null]' -p app.pomelo

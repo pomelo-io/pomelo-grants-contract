@@ -77,16 +77,22 @@ public:
      * ### params
      *
      * - `{uint16_t} season_id` - (primary key) season_id
+     * - `{string} description` - season description
      * - `{vector<uint16_t>} round_ids` - round ids participating in this season
      * - `{double} match_value` - total matching pool value for this season
+     * - `{time_point_sec} start_at` - start at time
+     * - `{time_point_sec} end_at` - end at time
      *
      * ### example
      *
      * ```json
      * {
      *      "season_id": 1,
+     *      "description": "Season #1",
      *      "round_ids": [101, 102, 103],
-     *      "match_value": 100000
+     *      "match_value": 100000,
+     *      "start_at": "2020-12-06T00:00:00",
+     *      "end_at": "2020-12-12T00:00:00",
      * }
      * ```
      */
@@ -95,6 +101,8 @@ public:
         string              description;
         vector<uint16_t>    round_ids;
         double              match_value;
+        time_point_sec      start_at;
+        time_point_sec      end_at;
 
         uint64_t primary_key() const { return season_id; }
     };
@@ -469,17 +477,19 @@ public:
      *
      * - `{uint16_t} season_id` - season ID (0 = not active)
      * - `{vector<uint16_t>} round_ids` - round ids
+     * - `{time_point_sec} start_at` - start at time
+     * - `{time_point_sec} end_at` - end at time
      * - `{optional<string>} description` - season description
      * - `{optional<double>} match_value` - match value (for information purposes)
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo setseason '[1, [101, 102], "Season 1", 500]' -p app.pomelo
+     * $ cleos push action app.pomelo setseason '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", [101, 102], "Season 1", 500]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void setseason( const uint16_t season_id, const vector<uint16_t> round_ids, const optional<string> description, const optional<double> match_value );
+    void setseason( const uint16_t season_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const vector<uint16_t> round_ids, const optional<string> description, const optional<double> match_value );
 
     /**
      * ## ACTION `setproject`

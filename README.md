@@ -269,6 +269,8 @@ $ ./test.sh
 - `{vector<uint16_t>} round_ids` - round ids in this season
 - `{string} description` - grant text description
 - `{double} match_value` - estimated total matching pool value for this season
+- `{time_point_sec} start_at` - start at time
+- `{time_point_sec} end_at` - end at time
 
 ### example
 
@@ -278,6 +280,8 @@ $ ./test.sh
     "round_ids": [101, 102],
     "description": "Season #1",
     "match_value": 100000,
+    "start_at": "2020-12-06T00:00:00",
+    "end_at": "2020-12-12T00:00:00",
 }
 ```
 
@@ -363,13 +367,15 @@ $ cleos push action app.pomelo setconfig '[1, 500, 500, "login.eosn", "fee.pomel
 
 - `{uint16_t} season_id` - season ID
 - `{vector<uint16_t>} round_ids` - round ids in this season
+- `{time_point_sec} start_at` - start at time
+- `{time_point_sec} end_at` - end at time
 - `{optional<string>} description` - season description
 - `{optional<value>} match_value` - estimated total matching pool value for this season
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo setseason '[1, [101,102], "Season #1", 100000]' -p app.pomelo
+$ cleos push action app.pomelo setseason '[1, "2021-08-20T10:00:00", "2021-10-28T10:00:00", [101,102], "Season #1", 100000]' -p app.pomelo
 ```
 
 ## ACTION `setproject`

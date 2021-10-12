@@ -30,7 +30,7 @@ void pomelo::token( const symbol sym, const name contract, const uint64_t min_am
 }
 
 [[eosio::action]]
-void pomelo::setseason( const uint16_t season_id, const vector<uint16_t> round_ids, const optional<string> description, const optional<double> match_value )
+void pomelo::setseason( const uint16_t season_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const vector<uint16_t> round_ids, const optional<string> description, const optional<double> match_value )
 {
     require_auth( get_self() );
     pomelo::seasons_table seasons( get_self(), get_self().value );
@@ -47,10 +47,12 @@ void pomelo::setseason( const uint16_t season_id, const vector<uint16_t> round_i
         if(description) row.description = *description;
         if(round_ids.size()) row.round_ids = round_ids;
         if(match_value) row.match_value = *match_value;
+        if(start_at) row.start_at = *start_at;
+        if(end_at) row.end_at = *end_at;
     };
 
     // erase if all parameters are undefined
-    if( !description && !round_ids.size() && !match_value ) seasons.erase(itr);
+    if( !description && !round_ids.size() && !match_value && !start_at && !end_at) seasons.erase(itr);
     else if ( itr == seasons.end() ) seasons.emplace( get_self(), insert );
     else seasons.modify( itr, get_self(), insert );
 }
