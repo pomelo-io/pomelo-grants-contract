@@ -5,8 +5,8 @@
 ### `@user`
 ```bash
 # create grant and join round
-cleos push action app.pomelo setproject '["author.eosn", "grant", "grant1", "fund.eosn", ["EOS", "USDT"]]' -p author.eosn
-cleos push action app.pomelo joinround '["grant1", 1]' -p author.eosn
+cleos push action app.pomelo setproject '["author.eosn", "grant", "grant1", "fundingacc", ["EOS", "USDT"]]' -p author.eosn
+cleos push action app.pomelo joinround '["grant1", 101]' -p author.eosn
 
 # fund grant
 cleos transfer user1 app.pomelo "10.0000 EOS" "grant:grant1"
@@ -20,11 +20,13 @@ cleos transfer user1 app.pomelo "10.0000 EOS" "bounty:bounty1"
 ```bash
 # configure app
 cleos push action app.pomelo setconfig '[1, 500]' -p app.pomelo
-cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 0]' -p app.pomelo
-cleos push action app.pomelo token '["4,USDT", "tethertether", 10000, 12]' -p app.pomelo
+cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 1]' -p app.pomelo
+cleos push action app.pomelo token '["4,USDT", "tethertether", 10000, 0]' -p app.pomelo
 
-# create matching round and start it
-cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00", "Round 1", [["1000.0000 EOS", "eosio.token"]]]' -p app.pomelo
+# create matching round and season add it to season and start it
+cleos push action app.pomelo setround '[101, "2021-05-19T20:00:00", "2021-08-19T20:00:00", "Round 101", 100000]' -p app.pomelo
+cleos push action app.pomelo setseason '[1, "2021-05-19T20:00:00", "2021-08-19T20:00:00", [101], "Season 1", 100000]' -p app.pomelo
+
 
 # approve grant by admin
 cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo
@@ -33,7 +35,6 @@ cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo
 ## Dependencies
 
 - [eosn.login](https://github.com/pomelo-io/eosn.login)
-- [sx.defibox](https://github.com/stableex/sx.defibox)
 - [sx.utils](https://github.com/stableex/sx.utils)
 - [eosio.token](https://github.com/EOSIO/eosio.contracts)
 
