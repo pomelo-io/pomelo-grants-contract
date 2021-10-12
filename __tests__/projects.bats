@@ -111,6 +111,16 @@
   [[ "$output" =~ "[round_id] doesn't exist" ]]
 }
 
+@test "set bad round" {
+  run cleos push action app.pomelo setround '[123, null, null, "Bad round", 100000]' -p app.pomelo
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[end_at] must be after [start_at]" ]]
+
+  run cleos push action app.pomelo setround '[123, "2021-08-25T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
+  [ $status -eq 1 ]
+  [[ "$output" =~ "minimum period must be at least 7 days" ]]
+}
+
 @test "create and test rounds" {
 
   run cleos push action app.pomelo setseason '[1, "2021-08-25T20:00:00", "2022-08-25T20:00:00", [], "Season 1", 100000]' -p app.pomelo
@@ -138,7 +148,7 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "[round_id] is not active" ]]
 
-  run cleos push action app.pomelo setround '[102, "2021-08-20T10:00:00", "2021-10-28T10:00:00", "This is round 2 of Pomelo!", 50000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[102, "2021-08-20T10:00:00", "2022-10-28T10:00:00", "This is round 2 of Pomelo!", 50000]' -p app.pomelo
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].round')
   [ $result = "102" ]
@@ -147,6 +157,21 @@
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].grant_ids[0]')
   [ $result = "grant1" ]
+
+}
+
+@test "update round #2" {
+
+  run cleos push action app.pomelo setround '[102, "2023-08-20T10:00:00", null, "Bad round 2", 100000]' -p app.pomelo
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[end_at] must be after [start_at]" ]]
+
+  run cleos push action app.pomelo setround '[102, null, null, "This is round 2 of Pomelo (revised)!", 100000]' -p app.pomelo
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].round')
+  [ $result = "102" ]
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].match_value')
+  [ $result = "100000.00000000000000000" ]
 
 }
 

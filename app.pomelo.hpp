@@ -477,8 +477,8 @@ public:
      *
      * - `{uint16_t} season_id` - season ID (0 = not active)
      * - `{vector<uint16_t>} round_ids` - round ids
-     * - `{time_point_sec} start_at` - start at time
-     * - `{time_point_sec} end_at` - end at time
+     * - `{optional<time_point_sec>} start_at` - start at time
+     * - `{optional<time_point_sec>} end_at` - end at time
      * - `{optional<string>} description` - season description
      * - `{optional<double>} match_value` - match value (for information purposes)
      *
@@ -536,15 +536,15 @@ public:
     /**
      * ## ACTION `setround`
      *
-     * Create/update round
+     * Create/update round. If a parameter is null - don't change it
      *
      * ### params
      *
      * - `{uint16_t} round_id` - round id
-     * - `{time_point_sec} start_at` - round start time
-     * - `{time_point_sec} end_at` - round end time
-     * - `{string} description` - grant description
-     * - `{double} match_value` - total value of the matching pool
+     * - `{optional<time_point_sec>} start_at` - round start time
+     * - `{optional<time_point_sec>} end_at` - round end time
+     * - `{optional<string>} description` - grant description
+     * - `{optional<double>} match_value` - total value of the matching pool
      *
      * ### example
      *
@@ -553,7 +553,7 @@ public:
      * ```
      */
     [[eosio::action]]
-    void setround( const uint16_t round_id, const time_point_sec start_at, const time_point_sec end_at, const string description, const double match_value );
+    void setround( const uint16_t round_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const optional<string> description, const optional<double> match_value );
 
     /**
      * ## ACTION `joinround`

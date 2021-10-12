@@ -202,25 +202,25 @@ void pomelo::enable_project( T& table, const name project_id, const name status 
 
 // @admin
 [[eosio::action]]
-void pomelo::setround( const uint16_t round_id, const time_point_sec start_at, const time_point_sec end_at, const string description, const double match_value)
+void pomelo::setround( const uint16_t round_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const optional<string> description, const optional<double> match_value )
 {
     require_auth( get_self() );
 
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto itr = rounds.find( round_id );
 
-    // validate input
-    check( end_at >= start_at, "pomelo::setround: [end_at] must be after [start_at]");
-    check( end_at.sec_since_epoch() - start_at.sec_since_epoch() >= DAY * 7, "pomelo::setround: minimum period must be at least 7 days");
-
     const auto insert = [&]( auto & row ) {
         row.round = round_id;
-        row.description = description;
-        row.start_at = start_at;
-        row.end_at = end_at;
-        row.match_value = match_value;
+        if(description) row.description = *description;
+        if(start_at) row.start_at = *start_at;
+        if(end_at) row.end_at = *end_at;
+        if(match_value) row.match_value = *match_value;
         row.updated_at = current_time_point();
         if( itr == rounds.end() ) row.created_at = current_time_point();
+
+        // validate input
+        check( row.end_at > row.start_at, "pomelo::setround: [end_at] must be after [start_at]");
+        check( row.end_at.sec_since_epoch() - row.start_at.sec_since_epoch() >= DAY * 7, "pomelo::setround: minimum period must be at least 7 days");
     };
 
     if ( itr == rounds.end() ) rounds.emplace( get_self(), insert );
