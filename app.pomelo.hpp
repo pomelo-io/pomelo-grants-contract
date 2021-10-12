@@ -152,7 +152,6 @@ public:
      * - `{name} status = "pending" - status (`pending/ok/disabled`)
      * - `{time_point_sec} created_at` - created at time
      * - `{time_point_sec} updated_at` - updated at time
-     * - `{time_point_sec} deleted_at` - deleted at time
      *
      * *Multi-indexes*
      * - `{uint64_t} byname` - by `id`
@@ -172,7 +171,6 @@ public:
      *     "status": "ok",
      *     "created_at": "2020-12-06T00:00:00",
      *     "updated_at": "2020-12-06T00:00:00",
-     *     "deleted_at": "1970-01-01T00:00:00"
      * }
      * ```
      */
@@ -185,7 +183,6 @@ public:
         name                    status = "pending"_n;
         time_point_sec          created_at;
         time_point_sec          updated_at;
-        time_point_sec          deleted_at;
 
         uint64_t primary_key() const { return id.value; }
         uint64_t byauthor() const { return author_user_id.value; };
@@ -405,7 +402,6 @@ public:
      * - `{time_point_sec} end_at` - end at time
      * - `{time_point_sec} created_at` - created at time
      * - `{time_point_sec} updated_at` - updated at time
-     * - `{time_point_sec} deleted_at` - deleted at time
      *
      * ### example
      *
@@ -424,7 +420,6 @@ public:
      *     "end_at": "2020-12-12T00:00:00",
      *     "created_at": "2020-12-06T00:00:00",
      *     "updated_at": "2020-12-06T00:00:00",
-     *     "deleted_at": "1970-01-01T00:00:00"
      * }
      * ```
      */
@@ -442,7 +437,6 @@ public:
         time_point_sec          end_at;
         time_point_sec          created_at;
         time_point_sec          updated_at;
-        time_point_sec          deleted_at;
 
         uint64_t primary_key() const { return round; };
     };

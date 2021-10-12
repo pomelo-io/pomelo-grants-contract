@@ -132,7 +132,6 @@ $ ./test.sh
 - `{name} [status="pending"]` - status (`pending/ok/disabled`)
 - `{time_point_sec} created_at` - created at time
 - `{time_point_sec} updated_at` - updated at time
-- `{time_point_sec} deleted_at` - deleted at time
 
 ### example
 
@@ -146,7 +145,6 @@ $ ./test.sh
     "status": "ok",
     "created_at": "2020-12-06T00:00:00",
     "updated_at": "2020-12-06T00:00:00",
-    "deleted_at": "1970-01-01T00:00:00"
 }
 ```
 
@@ -303,7 +301,6 @@ $ ./test.sh
 - `{time_point_sec} end_at` - end at time
 - `{time_point_sec} created_at` - created at time
 - `{time_point_sec} updated_at` - updated at time
-- `{time_point_sec} deleted_at` - deleted at time
 
 ### example
 
@@ -322,7 +319,6 @@ $ ./test.sh
     "end_at": "2020-12-12T00:00:00",
     "created_at": "2020-12-06T00:00:00",
     "updated_at": "2020-12-06T00:00:00",
-    "deleted_at": "1970-01-01T00:00:00"
 }
 ```
 
