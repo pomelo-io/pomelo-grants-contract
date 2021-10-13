@@ -364,8 +364,8 @@ $ cleos push action app.pomelo setconfig '[1, 500, 500, "login.eosn", "fee.pomel
 
 - `{uint16_t} season_id` - season ID
 - `{vector<uint16_t>} round_ids` - round ids in this season
-- `{time_point_sec} start_at` - start at time
-- `{time_point_sec} end_at` - end at time
+- `{optional<time_point_sec>} start_at` - start at time
+- `{optional<time_point_sec>} end_at` - end at time
 - `{optional<string>} description` - season description
 - `{optional<value>} match_value` - estimated total matching pool value for this season
 
@@ -403,12 +403,12 @@ Enable/disable grant or bounty
 
 - `{name} project_type` - project type `grant/bounty`
 - `{name} project_id` - project ID
-- `{name} status` - project status (0=pending, 1=ok, 2=disabled)
+- `{name} status` - project status ("pending", "ok", "disabled")
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo enable '["grant", "grant1", 1]' -p app.pomelo
+$ cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo
 ```
 
 ## ACTION `setround`
