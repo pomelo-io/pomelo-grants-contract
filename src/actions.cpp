@@ -81,8 +81,14 @@ void pomelo::setproject( const name author_id, const name project_type, const na
     pomelo::bounties_table bounties( get_self(), get_self().value );
 
     // set project
-    if ( project_type == "grant"_n ) set_project( grants, "grant"_n, project_id, author_id, funding_account, accepted_tokens );
-    else if ( project_type == "bounty"_n ) set_project( bounties, "bounty"_n, project_id, author_id, funding_account, accepted_tokens );
+    if ( project_type == "grant"_n ) {
+        set_project( grants, "grant"_n, project_id, author_id, funding_account, accepted_tokens );
+        check( bounties.find(project_id.value) == bounties.end(), "pomelo::setproject: Bounty with [project_id] already exists" );
+    }
+    else if ( project_type == "bounty"_n ) {
+        set_project( bounties, "bounty"_n, project_id, author_id, funding_account, accepted_tokens );
+        check( grants.find(project_id.value) == grants.end(), "pomelo::setproject: Grant with [project_id] already exists" );
+    }
     else check( false, "pomelo::setproject: invalid [project_type]");
 }
 

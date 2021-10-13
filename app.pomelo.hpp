@@ -521,7 +521,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo enable '["grant", "grant1", 1]' -p app.pomelo
+     * $ cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo
      * ```
      */
     [[eosio::action]]

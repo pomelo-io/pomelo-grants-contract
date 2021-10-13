@@ -57,6 +57,21 @@
 
 }
 
+@test "create bounty with existing grant name" {
+
+  run cleos push action app.pomelo setproject '["prjman1.eosn", "bounty", "grant1", "", ["EOS"]]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 1 ]
+  [[ "$output" =~ "Grant with [project_id] already exists" ]]
+
+}
+
+@test "attempt to change author id" {
+
+  run cleos push action app.pomelo setproject '["prjman2.eosn", "grant", "grant1", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman2.eosn
+  [ $status -eq 1 ]
+  [[ "$output" =~ "project [author_id] cannot be modifed" ]]
+
+}
 
 @test "create bounty1 and fund it" {
 
