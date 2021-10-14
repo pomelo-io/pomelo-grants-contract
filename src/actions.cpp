@@ -100,12 +100,15 @@ void pomelo::joinround( const name grant_id, const uint16_t round_id )
     pomelo::grants_table grants( get_self(), get_self().value );
     const auto grant = grants.get( grant_id.value, "pomelo::joinround: [grant_id] does not exist" );
     eosn::login::require_auth_user_id( grant.author_user_id, get_globals().login_contract );
+    const auto now = current_time_point().sec_since_epoch();
 
     // join round
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto round_itr = rounds.find( round_id );
     check( round_itr != rounds.end(),  "pomelo::joinround: [round_id] does not exist" );
     check( get_index(round_itr->grant_ids, grant_id ) == -1, "pomelo::joinround: grant already exists in this round");
+    check( round_itr->submission_start_at.sec_since_epoch() <= now, "pomelo::joinround: [round_id] submission period has not started");
+    check( now <= round_itr->submission_end_at.sec_since_epoch(), "pomelo::joinround: [round_id] submission period has ended");
 
     rounds.modify( round_itr, get_self(), [&]( auto & row ) {
         row.grant_ids.push_back(grant_id);
@@ -208,7 +211,13 @@ void pomelo::enable_project( T& table, const name project_id, const name status 
 
 // @admin
 [[eosio::action]]
-void pomelo::setround( const uint16_t round_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const optional<string> description, const optional<double> match_value )
+void pomelo::setround(  const uint16_t round_id,
+                        const optional<time_point_sec> start_at,
+                        const optional<time_point_sec> end_at,
+                        const optional<time_point_sec> submission_start_at,
+                        const optional<time_point_sec> submission_end_at,
+                        const optional<string> description,
+                        const optional<double> match_value )
 {
     require_auth( get_self() );
 
@@ -220,13 +229,19 @@ void pomelo::setround( const uint16_t round_id, const optional<time_point_sec> s
         if(description) row.description = *description;
         if(start_at) row.start_at = *start_at;
         if(end_at) row.end_at = *end_at;
+        if(submission_start_at) row.submission_start_at = *submission_start_at;
+        if(submission_end_at) row.submission_end_at = *submission_end_at;
         if(match_value) row.match_value = *match_value;
         row.updated_at = current_time_point();
         if( itr == rounds.end() ) row.created_at = current_time_point();
 
         // validate input
         check( row.end_at > row.start_at, "pomelo::setround: [end_at] must be after [start_at]");
-        check( row.end_at.sec_since_epoch() - row.start_at.sec_since_epoch() >= DAY * 7, "pomelo::setround: minimum period must be at least 7 days");
+        check( row.end_at.sec_since_epoch() - row.start_at.sec_since_epoch() >= DAY * 7, "pomelo::setround: active minimum period must be at least 7 days");
+        check( row.submission_end_at > row.submission_start_at, "pomelo::setround: [submission_end_at] must be after [submission_start_at]");
+        check( row.submission_end_at.sec_since_epoch() - row.submission_start_at.sec_since_epoch() >= DAY * 7, "pomelo::setround: submission minimum period must be at least 7 days");
+        check( row.submission_start_at <= row.start_at, "pomelo::setround: [submission_start_at] must be before [start_at]");
+        check( row.submission_end_at <= row.end_at, "pomelo::setround: [submission_end_at] must be before [end_at]");
     };
 
     if ( itr == rounds.end() ) rounds.emplace( get_self(), insert );

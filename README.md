@@ -299,6 +299,8 @@ $ ./test.sh
 - `{double} sum_square` - square of total sqrt sum
 - `{time_point_sec} start_at` - start at time
 - `{time_point_sec} end_at` - end at time
+- `{time_point_sec} submission_start_at` - submission start time
+- `{time_point_sec} submission_end_at` - submission end time
 - `{time_point_sec} created_at` - created at time
 - `{time_point_sec} updated_at` - updated at time
 
@@ -317,6 +319,8 @@ $ ./test.sh
     "sum_square": 423451.1233,
     "start_at": "2020-12-06T00:00:00",
     "end_at": "2020-12-12T00:00:00",
+    "submission_start_at": "2020-12-06T00:00:00",
+    "submission_end_at": "2020-12-12T00:00:00",
     "created_at": "2020-12-06T00:00:00",
     "updated_at": "2020-12-06T00:00:00",
 }
@@ -413,20 +417,22 @@ $ cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo
 
 ## ACTION `setround`
 
-Create/update round
+Create/update round. If parameter not set - don't modify it
 
 ### params
 
 - `{uint16_t} round_id` - round id
-- `{time_point_sec} start_at` - round start time
-- `{time_point_sec} end_at` - round end time
-- `{string} description` - grant description
-- `{double} match_value` - matching pool value
+- `{optional<time_point_sec>} start_at` - round start time
+- `{optional<time_point_sec>} end_at` - round end time
+- `{optional<time_point_sec>} submission_start_at` - round submission start time
+- `{optional<time_point_sec>} submission_end_at` - round submission end time
+- `{optional<string>} description` - grant description
+- `{optional<double>} match_value` - matching pool value
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Grant Round #1", 100000]' -p app.pomelo
+$ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Grant Round #1", 100000]' -p app.pomelo
 ```
 
 ## ACTION `joinround`

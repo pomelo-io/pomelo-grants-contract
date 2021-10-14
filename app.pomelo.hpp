@@ -400,6 +400,8 @@ public:
      * - `{double} sum_square` - square of total sqrt sum
      * - `{time_point_sec} start_at` - start at time
      * - `{time_point_sec} end_at` - end at time
+     * - `{time_point_sec} submission_start_at` - submission start time
+     * - `{time_point_sec} submission_end_at` - submission end time
      * - `{time_point_sec} created_at` - created at time
      * - `{time_point_sec} updated_at` - updated at time
      *
@@ -418,6 +420,8 @@ public:
      *     "sum_square": 423451.1233,
      *     "start_at": "2020-12-06T00:00:00",
      *     "end_at": "2020-12-12T00:00:00",
+     *     "submission_start_at": "2020-11-06T00:00:00",
+     *     "submission_end_at": "2020-12-06T00:00:00",
      *     "created_at": "2020-12-06T00:00:00",
      *     "updated_at": "2020-12-06T00:00:00",
      * }
@@ -435,6 +439,8 @@ public:
         double                  sum_square;
         time_point_sec          start_at;
         time_point_sec          end_at;
+        time_point_sec          submission_start_at;
+        time_point_sec          submission_end_at;
         time_point_sec          created_at;
         time_point_sec          updated_at;
 
@@ -537,17 +543,19 @@ public:
      * - `{uint16_t} round_id` - round id
      * - `{optional<time_point_sec>} start_at` - round start time
      * - `{optional<time_point_sec>} end_at` - round end time
+     * - `{optional<time_point_sec>} submission_start_at` - round submission start time
+     * - `{optional<time_point_sec>} submission_end_at` - round submission end time
      * - `{optional<string>} description` - grant description
      * - `{optional<double>} match_value` - total value of the matching pool
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Grant Round #1", 100000]' -p app.pomelo
+     * $ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Grant Round #1", 100000]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void setround( const uint16_t round_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const optional<string> description, const optional<double> match_value );
+    void setround( const uint16_t round_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const optional<time_point_sec> submission_start_at, const optional<time_point_sec> submission_end_at, const optional<string> description, const optional<double> match_value );
 
     /**
      * ## ACTION `joinround`
