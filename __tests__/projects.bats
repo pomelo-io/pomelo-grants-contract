@@ -127,13 +127,45 @@
 }
 
 @test "set bad round" {
-  run cleos push action app.pomelo setround '[123, null, null, "Bad round", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[123, null, null, null, null, "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
   [[ "$output" =~ "[end_at] must be after [start_at]" ]]
 
-  run cleos push action app.pomelo setround '[123, "2021-08-25T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[123, "2021-08-25T20:00:00", "2021-08-29T20:00:00", "2021-08-20T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
-  [[ "$output" =~ "minimum period must be at least 7 days" ]]
+  [[ "$output" =~ "active minimum period must be at least 7 days" ]]
+
+  run cleos push action app.pomelo setround '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-25T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
+  [ $status -eq 1 ]
+  [[ "$output" =~ "submission minimum period must be at least 7 days" ]]
+
+  run cleos push action app.pomelo setround '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-21T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[submission_start_at] must be before [start_at]" ]]
+
+  run cleos push action app.pomelo setround '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-20T20:00:00", "2021-08-29T21:00:00", "Bad round", 100000]' -p app.pomelo
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[submission_end_at] must be before [end_at]" ]]
+}
+
+
+@test "join round outside of submission period" {
+  run cleos push action app.pomelo setround '[101, "2022-08-25T20:00:00", "2022-09-25T20:00:00", "2022-08-25T20:00:00", "2022-09-25T20:00:00", "This is round 1 of Pomelo!", 50000]' -p app.pomelo
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].round')
+  [ $result = "101" ]
+
+  run cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[round_id] submission period has not started" ]]
+
+  run cleos push action app.pomelo setround '[101, "2020-08-25T20:00:00", "2020-09-25T20:00:00", "2020-08-25T20:00:00", "2020-09-25T20:00:00", "This is round 1 of Pomelo!", 50000]' -p app.pomelo
+  [ $status -eq 0 ]
+
+  run cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[round_id] submission period has ended" ]]
+
 }
 
 @test "create and test rounds" {
@@ -143,7 +175,7 @@
   result=$(cleos get table app.pomelo app.pomelo seasons | jq -r '.rows[0].season_id')
   [ $result = "1" ]
 
-  run cleos push action app.pomelo setround '[101, "2021-08-25T20:00:00", "2022-09-25T20:00:00", "This is round 1 of Pomelo!", 50000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[101, "2021-08-25T20:00:00", "2022-09-25T20:00:00", "2021-08-25T20:00:00", "2022-09-25T20:00:00", "This is round 1 of Pomelo!", 50000]' -p app.pomelo
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].round')
   [ $result = "101" ]
@@ -163,7 +195,7 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "[round_id] is not active" ]]
 
-  run cleos push action app.pomelo setround '[102, "2021-08-20T10:00:00", "2022-10-28T10:00:00", "This is round 2 of Pomelo!", 50000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[102, "2021-08-20T10:00:00", "2022-10-28T10:00:00", "2021-08-20T10:00:00", "2022-10-28T10:00:00", "This is round 2 of Pomelo!", 50000]' -p app.pomelo
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].round')
   [ $result = "102" ]
@@ -175,13 +207,14 @@
 
 }
 
+
 @test "update round #2" {
 
-  run cleos push action app.pomelo setround '[102, "2023-08-20T10:00:00", null, "Bad round 2", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[102, "2023-08-20T10:00:00", null, null, null, "Bad round 2", 100000]' -p app.pomelo
   [ $status -eq 1 ]
   [[ "$output" =~ "[end_at] must be after [start_at]" ]]
 
-  run cleos push action app.pomelo setround '[102, null, null, "This is round 2 of Pomelo (revised)!", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[102, null, null, null, null, "This is round 2 of Pomelo (revised)!", 100000]' -p app.pomelo
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].round')
   [ $result = "102" ]
@@ -323,7 +356,7 @@
 
 @test "round #3: 4 projects, 6 users: spreadsheet simulation" {
 
-  run cleos push action app.pomelo setround '[103, "2021-05-20T20:00:00", "2022-09-25T20:00:00", "This is round 3 of Pomelo!", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[103, "2021-05-20T20:00:00", "2022-09-25T20:00:00", "2021-05-20T20:00:00", "2022-09-25T20:00:00", "This is round 3 of Pomelo!", 100000]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo setproject '["prjman3.eosn", "grant", "grant3", "prjgrant3", ["EOS"]]' -p app.pomelo -p prjman3.eosn
