@@ -110,6 +110,8 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
 
     // update round
     rounds.modify( round_itr, get_self(), [&]( auto & row ) {
+        // TO-DO refactor adding extended asset into dedicated method
+        // row.donated_tokens = sum_extended_asset( row.donated_tokens, ext_quantity );
         bool added = false;
         for ( extended_asset & donated_token : row.donated_tokens ) {
             if ( donated_token.get_extended_symbol() == ext_quantity.get_extended_symbol() ) {
@@ -122,6 +124,24 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
         row.sum_value += value;
         row.sum_boost += boost;
         row.sum_square += new_square - old_square;
+        row.updated_at = current_time_point();
+    });
+
+    // update season
+    pomelo::seasons_table seasons( get_self(), get_self().value );
+    auto & season = seasons.get(round_itr->season_id, "pomelo::donate_grant: [season_id] does not exists");
+    seasons.modify( season, get_self(), [&]( auto & row ) {
+        // TO-DO refactor adding extended asset into dedicated method
+        // row.donated_tokens = sum_extended_asset( row.donated_tokens, ext_quantity );
+        bool added = false;
+        for ( extended_asset & donated_token : row.donated_tokens ) {
+            if ( donated_token.get_extended_symbol() == ext_quantity.get_extended_symbol() ) {
+                donated_token += ext_quantity;
+                added = true;
+            }
+        }
+        if (!added) row.donated_tokens.push_back(ext_quantity);
+        if( get_index(row.user_ids, user_id) == -1) row.user_ids.push_back(user_id);
         row.updated_at = current_time_point();
     });
 }
@@ -183,7 +203,6 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
     else projects.modify( itr, get_self(), insert );
 }
 
-
 int pomelo::get_index(const vector<name>& vec, name value)
 {
     for(int i = 0; i < vec.size(); i++){
@@ -192,11 +211,18 @@ int pomelo::get_index(const vector<name>& vec, name value)
     return -1;
 }
 
-
 int pomelo::get_index(const vector<contribution_t>& vec, name id)
 {
     for(int i = 0; i < vec.size(); i++){
         if(vec[i].id == id ) return i;
+    }
+    return -1;
+}
+
+int pomelo::get_index(const vector<uint16_t>& vec, uint16_t value)
+{
+    for(int i = 0; i < vec.size(); i++){
+        if(vec[i] == value ) return i;
     }
     return -1;
 }

@@ -30,29 +30,34 @@ void pomelo::token( const symbol sym, const name contract, const uint64_t min_am
 }
 
 [[eosio::action]]
-void pomelo::setseason( const uint16_t season_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const vector<uint16_t> round_ids, const optional<string> description, const optional<double> match_value )
+void pomelo::setseason( const uint16_t season_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const optional<time_point_sec> submission_start_at, const optional<time_point_sec> submission_end_at, const optional<string> description, const optional<double> match_value )
 {
     require_auth( get_self() );
     pomelo::seasons_table seasons( get_self(), get_self().value );
     const auto itr = seasons.find( season_id );
 
-    //check that round_ids exist in rounds table
-    pomelo::rounds_table rounds( get_self(), get_self().value );
-    for( const auto round_id: round_ids){
-        rounds.get( round_id, "pomelo::setseason: [round_id] doesn't exist");
-    }
-
     const auto insert = [&]( auto & row ) {
         row.season_id = season_id;
         if(description) row.description = *description;
-        if(round_ids.size()) row.round_ids = round_ids;
         if(match_value) row.match_value = *match_value;
         if(start_at) row.start_at = *start_at;
         if(end_at) row.end_at = *end_at;
+        if(submission_start_at) row.submission_start_at = *submission_start_at;
+        if(submission_end_at) row.submission_end_at = *submission_end_at;
+        row.updated_at = current_time_point();
+        if( !row.created_at.sec_since_epoch() ) row.created_at = current_time_point();
+
+        // validate times
+        check( row.end_at > row.start_at, "pomelo::setseason: [end_at] must be after [start_at]");
+        check( row.end_at.sec_since_epoch() - row.start_at.sec_since_epoch() >= DAY * 7, "pomelo::setseason: active minimum period must be at least 7 days");
+        check( row.submission_end_at > row.submission_start_at, "pomelo::setseason: [submission_end_at] must be after [submission_start_at]");
+        check( row.submission_end_at.sec_since_epoch() - row.submission_start_at.sec_since_epoch() >= DAY * 7, "pomelo::setseason: submission minimum period must be at least 7 days");
+        check( row.submission_start_at <= row.start_at, "pomelo::setseason: [submission_start_at] must be before [start_at]");
+        check( row.submission_end_at <= row.end_at, "pomelo::setseason: [submission_end_at] must be before [end_at]");
     };
 
     // erase if all parameters are undefined
-    if( !description && !round_ids.size() && !match_value && !start_at && !end_at) seasons.erase(itr);
+    if( !description && !match_value && !start_at && !end_at) seasons.erase(itr);
     else if ( itr == seasons.end() ) seasons.emplace( get_self(), insert );
     else seasons.modify( itr, get_self(), insert );
 }
@@ -104,13 +109,20 @@ void pomelo::joinround( const name grant_id, const uint16_t round_id )
 
     // join round
     pomelo::rounds_table rounds( get_self(), get_self().value );
-    const auto round_itr = rounds.find( round_id );
-    check( round_itr != rounds.end(),  "pomelo::joinround: [round_id] does not exist" );
-    check( get_index(round_itr->grant_ids, grant_id ) == -1, "pomelo::joinround: grant already exists in this round");
-    check( round_itr->submission_start_at.sec_since_epoch() <= now, "pomelo::joinround: [round_id] submission period has not started");
-    check( now <= round_itr->submission_end_at.sec_since_epoch(), "pomelo::joinround: [round_id] submission period has ended");
+    pomelo::seasons_table seasons( get_self(), get_self().value );
+    const auto & round = rounds.get( round_id, "pomelo::joinround: [round_id] does not exist");
+    const auto & season = seasons.get( round.season_id, "pomelo::joinround: [round.season_id] does not exist");
+    check( get_index(round.grant_ids, grant_id ) == -1, "pomelo::joinround: grant already exists in this round");
+    check( get_index(season.grant_ids, grant_id ) == -1, "pomelo::joinround: grant already exists in this season");
+    check( season.submission_start_at.sec_since_epoch() <= now, "pomelo::joinround: [round_id] submission period has not started");
+    check( now <= season.submission_end_at.sec_since_epoch(), "pomelo::joinround: [round_id] submission period has ended");
 
-    rounds.modify( round_itr, get_self(), [&]( auto & row ) {
+    rounds.modify( round, get_self(), [&]( auto & row ) {
+        row.grant_ids.push_back(grant_id);
+        row.updated_at = current_time_point();
+    });
+
+    seasons.modify( season, get_self(), [&]( auto & row ) {
         row.grant_ids.push_back(grant_id);
         row.updated_at = current_time_point();
     });
@@ -212,38 +224,34 @@ void pomelo::enable_project( T& table, const name project_id, const name status 
 // @admin
 [[eosio::action]]
 void pomelo::setround(  const uint16_t round_id,
-                        const optional<time_point_sec> start_at,
-                        const optional<time_point_sec> end_at,
-                        const optional<time_point_sec> submission_start_at,
-                        const optional<time_point_sec> submission_end_at,
+                        const uint16_t season_id,
                         const optional<string> description,
                         const optional<double> match_value )
 {
     require_auth( get_self() );
 
     pomelo::rounds_table rounds( get_self(), get_self().value );
-    const auto itr = rounds.find( round_id );
+    pomelo::seasons_table seasons( get_self(), get_self().value );
+
+    // add round to season
+    const auto & season = seasons.get(season_id, "pomelo::setround: [season_id] does not exists");
+
+    if ( get_index(season.round_ids, round_id) == -1 ) {
+        seasons.modify( season, get_self(), [&]( auto & row ) {
+            row.round_ids.push_back(round_id);
+            check( row.start_at >= current_time_point(), "pomelo::setround: [current_time_point] must be before [start_at]");
+        });
+    }
 
     const auto insert = [&]( auto & row ) {
         row.round = round_id;
         if(description) row.description = *description;
-        if(start_at) row.start_at = *start_at;
-        if(end_at) row.end_at = *end_at;
-        if(submission_start_at) row.submission_start_at = *submission_start_at;
-        if(submission_end_at) row.submission_end_at = *submission_end_at;
         if(match_value) row.match_value = *match_value;
         row.updated_at = current_time_point();
-        if( itr == rounds.end() ) row.created_at = current_time_point();
-
-        // validate input
-        check( row.end_at > row.start_at, "pomelo::setround: [end_at] must be after [start_at]");
-        check( row.end_at.sec_since_epoch() - row.start_at.sec_since_epoch() >= DAY * 7, "pomelo::setround: active minimum period must be at least 7 days");
-        check( row.submission_end_at > row.submission_start_at, "pomelo::setround: [submission_end_at] must be after [submission_start_at]");
-        check( row.submission_end_at.sec_since_epoch() - row.submission_start_at.sec_since_epoch() >= DAY * 7, "pomelo::setround: submission minimum period must be at least 7 days");
-        check( row.submission_start_at <= row.start_at, "pomelo::setround: [submission_start_at] must be before [start_at]");
-        check( row.submission_end_at <= row.end_at, "pomelo::setround: [submission_end_at] must be before [end_at]");
+        if( !row.created_at.sec_since_epoch() ) row.created_at = current_time_point();
     };
 
+    const auto itr = rounds.find( round_id );
     if ( itr == rounds.end() ) rounds.emplace( get_self(), insert );
     else rounds.modify( itr, get_self(), insert );
 }
