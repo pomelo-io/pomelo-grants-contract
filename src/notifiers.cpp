@@ -66,10 +66,10 @@ void pomelo::update_social( const name user_id )
         pomelo::users_table _users( get_self(), round_id );
 
         const auto round_itr = _rounds.find( round_id );
-        if (round_itr == _rounds.end() || get_index( round_itr->user_ids, user_id ) == -1) return;
+        if (round_itr == _rounds.end() || get_index( round_itr->user_ids, user_id ) == -1) continue;
 
         const auto user_itr = _users.find( user_id.value );
-        if (user_itr == _users.end() || user_itr->multiplier == new_multiplier) return;
+        if (user_itr == _users.end() || user_itr->multiplier == new_multiplier) continue;
 
         const auto old_multiplier = user_itr->multiplier;
         for (int i = 0; i < user_itr->contributions.size(); i++) {
