@@ -116,19 +116,19 @@ void pomelo::joinround( const name grant_id, const uint16_t round_id )
     const auto & round = rounds.get( round_id, "pomelo::joinround: [round_id] does not exist");
     const auto & season = seasons.get( round.season_id, "pomelo::joinround: [round.season_id] does not exist");
     check( get_index(round.grant_ids, grant_id ) == -1, "pomelo::joinround: grant already exists in this round");
-    check( get_index(season.grant_ids, grant_id ) == -1, "pomelo::joinround: grant already exists in this season");
     check( season.submission_start_at.sec_since_epoch() <= now, "pomelo::joinround: [round_id] submission period has not started");
     check( now <= season.submission_end_at.sec_since_epoch(), "pomelo::joinround: [round_id] submission period has ended");
+
+    for(const auto ex_round_id: season.round_ids){
+        const auto round = rounds.get(ex_round_id, "pomelo::joinround: bad existing round in a season");
+        check( get_index(round.grant_ids, grant_id ) == -1, "pomelo::joinround: grant already exists in this season");
+    }
 
     rounds.modify( round, get_self(), [&]( auto & row ) {
         row.grant_ids.push_back(grant_id);
         row.updated_at = current_time_point();
     });
 
-    seasons.modify( season, get_self(), [&]( auto & row ) {
-        row.grant_ids.push_back(grant_id);
-        row.updated_at = current_time_point();
-    });
 }
 
 // @admin

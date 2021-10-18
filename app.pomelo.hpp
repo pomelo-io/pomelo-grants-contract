@@ -114,9 +114,6 @@ public:
         uint16_t            season_id;
         string              description;
         vector<uint16_t>    round_ids;
-        vector<name>        grant_ids;
-        vector<name>        user_ids;
-        vector<extended_asset>  donated_tokens;
         double              match_value;
         time_point_sec      start_at;
         time_point_sec      end_at;
@@ -474,7 +471,7 @@ public:
      *
      * ### params
      *
-     * - `{uint16_t} round_id` - round ID (0 = not active)
+     * - `{uint16_t} season_id` - season ID (0 = not active)
      * - `{uint64_t} grant_fee` - grant fee (bips - 1/100 1%)
      * - `{uint64_t} bounty_fee` - bounty fee (bips - 1/100 1%)
      * - `{name} login_contract` - EOSN Login contract
@@ -487,7 +484,7 @@ public:
      * ```
      */
     [[eosio::action]]
-    void setconfig( const optional<uint16_t> round_id, const optional<uint64_t> grant_fee, const optional<uint64_t> bounty_fee, const optional<name> login_contract, const optional<name> fee_account );
+    void setconfig( const optional<uint16_t> season_id, const optional<uint64_t> grant_fee, const optional<uint64_t> bounty_fee, const optional<name> login_contract, const optional<name> fee_account );
 
     /**
      * ## ACTION `setseason`

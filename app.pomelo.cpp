@@ -126,24 +126,6 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
         row.sum_square += new_square - old_square;
         row.updated_at = current_time_point();
     });
-
-    // update season
-    pomelo::seasons_table seasons( get_self(), get_self().value );
-    auto & season = seasons.get(round_itr->season_id, "pomelo::donate_grant: [season_id] does not exists");
-    seasons.modify( season, get_self(), [&]( auto & row ) {
-        // TO-DO refactor adding extended asset into dedicated method
-        // row.donated_tokens = sum_extended_asset( row.donated_tokens, ext_quantity );
-        bool added = false;
-        for ( extended_asset & donated_token : row.donated_tokens ) {
-            if ( donated_token.get_extended_symbol() == ext_quantity.get_extended_symbol() ) {
-                donated_token += ext_quantity;
-                added = true;
-            }
-        }
-        if (!added) row.donated_tokens.push_back(ext_quantity);
-        if( get_index(row.user_ids, user_id) == -1) row.user_ids.push_back(user_id);
-        row.updated_at = current_time_point();
-    });
 }
 
 void pomelo::save_transfer( const name from, const name to, const extended_asset ext_quantity, const asset fee, const string& memo, const name project_type, const name project_id, const double value )
