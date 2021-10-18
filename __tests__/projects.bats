@@ -125,13 +125,13 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "[end_at] must be after [start_at]" ]]
 
-  run cleos push action app.pomelo setseason '[123, "2021-08-25T20:00:00", "2021-08-29T20:00:00", "2021-08-20T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[123, "2021-08-25T20:00:00", "2021-08-26T10:00:00", "2021-08-20T20:00:00", "2021-08-25T20:00:00", "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
-  [[ "$output" =~ "active minimum period must be at least 7 days" ]]
+  [[ "$output" =~ "active minimum period must be at least" ]]
 
-  run cleos push action app.pomelo setseason '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-25T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-20T20:00:00", "2021-08-21T10:00:00", "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
-  [[ "$output" =~ "submission minimum period must be at least 7 days" ]]
+  [[ "$output" =~ "submission minimum period must be at least" ]]
 
   run cleos push action app.pomelo setseason '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-21T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
