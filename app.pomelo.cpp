@@ -150,6 +150,7 @@ void pomelo::save_transfer( const name from, const name to, const extended_asset
 {
     const auto user_id = get_user_id( from );
     const auto round_id = get_active_round( project_id );
+    const auto season_id = get_globals().season_id;
 
     pomelo::transfers_table transfers( get_self(), get_self().value );
     transfers.emplace( get_self(), [&]( auto & row ) {
@@ -160,6 +161,7 @@ void pomelo::save_transfer( const name from, const name to, const extended_asset
         row.fee = fee;
         row.memo = memo;
         row.user_id = user_id;
+        row.season_id = season_id;
         row.round_id = round_id;
         row.project_type = project_type;
         row.project_id = project_id;

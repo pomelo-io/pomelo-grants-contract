@@ -244,7 +244,7 @@ void pomelo::setround(  const uint16_t round_id,
     }
 
     const auto insert = [&]( auto & row ) {
-        row.round = round_id;
+        row.round_id = round_id;
         if(description) row.description = *description;
         if(match_value) row.match_value = *match_value;
         row.updated_at = current_time_point();
