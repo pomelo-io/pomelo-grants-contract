@@ -158,10 +158,11 @@ $ ./test.sh
 |--------------- |------------------|------------|
 | `byfrom`       | 2                | i64        |
 | `byuser`       | 3                | i64        |
-| `byround`      | 4                | i64        |
-| `bygrant`      | 5                | i64        |
-| `byvalue`      | 6                | i64        |
-| `bycreated`    | 7                | i64        |
+| `byseason`     | 4                | i64        |
+| `byround`      | 5                | i64        |
+| `bygrant`      | 6                | i64        |
+| `byvalue`      | 7                | i64        |
+| `bycreated`    | 8                | i64        |
 
 ### params
 
@@ -172,6 +173,7 @@ $ ./test.sh
 - `{asset} fee` - fee charged and sent to `global.fee_account`
 - `{string} memo` - transfer memo
 - `{name} user_id` - Pomelo user account ID
+- `{uint16_t} season_id` - participating season ID
 - `{uint16_t} round_id` - participating round ID
 - `{name} project_type` - project type ("grant" / "bounty")
 - `{name} project_id` - project ID
@@ -190,7 +192,8 @@ $ ./test.sh
     "fee": "1.0000 EOS",
     "memo": "grant:grant1",
     "user_id": "user1.eosn",
-    "round": 1,
+    "season_id": 1,
+    "round_id": 101,
     "project_type": "grant",
     "project_id": "grant1",
     "value": 100.0,
@@ -303,7 +306,7 @@ $ ./test.sh
 
 ### params
 
-- `{uint64_t} round` - (primary key) matching rounds
+- `{uint64_t} round_id` - (primary key) matching rounds
 - `{string} description` - grant text description
 - `{uint16_t} season_id` - season ID
 - `{set<name>} grant_ids` - grants IDs participating
@@ -320,7 +323,7 @@ $ ./test.sh
 
 ```json
 {
-    "round": 101,
+    "round_id": 101,
     "description": "Grant Round #1",
     "season_id": 1,
     "grant_ids": ["grant1"],

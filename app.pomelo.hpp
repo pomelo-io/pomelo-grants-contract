@@ -234,10 +234,11 @@ public:
      * |--------------- |------------------|------------|
      * | `byfrom`       | 2                | i64        |
      * | `byuser`       | 3                | i64        |
-     * | `byround`      | 4                | i64        |
-     * | `bygrant`      | 5                | i64        |
-     * | `byvalue`      | 6                | i64        |
-     * | `bycreated`    | 7                | i64        |
+     * | `byseason`     | 4                | i64        |
+     * | `byround`      | 5                | i64        |
+     * | `bygrant`      | 6                | i64        |
+     * | `byvalue`      | 7                | i64        |
+     * | `bycreated`    | 8                | i64        |
      *
      * ### params
      *
@@ -248,7 +249,8 @@ public:
      * - `{asset} fee` - fee charged and sent to `global.fee_account`
      * - `{string} memo` - transfer memo
      * - `{name} user_id` - Pomelo user account ID
-     * - `{uint16_t} season_id` - season ID (0 if outside season)
+     * - `{uint16_t} season_id` - participating season ID
+     * - `{uint16_t} round_id` - participating round ID
      * - `{name} project_type` - project type ("grant" / "bounty")
      * - `{name} project_id` - project ID
      * - `{double} value` - valuation at time of received
@@ -267,6 +269,7 @@ public:
      *     "memo": "grant:grant1",
      *     "user_id": "user1.eosn",
      *     "season_id": 1,
+     *     "round_id": 101,
      *     "project_type": "grant",
      *     "project_id": "grant1",
      *     "value": 100.0,
@@ -283,6 +286,7 @@ public:
         asset                   fee;
         string                  memo;
         name                    user_id;
+        uint16_t                season_id;
         uint16_t                round_id;
         name                    project_type;
         name                    project_id;
@@ -293,6 +297,7 @@ public:
         uint64_t primary_key() const { return transfer_id; };
         uint64_t byfrom() const { return from.value; };
         uint64_t byuser() const { return user_id.value; };
+        uint64_t byseason() const { return season_id; };
         uint64_t byround() const { return round_id; };
         uint64_t byproject() const { return project_id.value; };
         uint64_t byvalue() const { return static_cast<uint64_t> ( value * VALUE_SYM.get_symbol().precision() ); };
@@ -302,6 +307,7 @@ public:
     typedef eosio::multi_index< "transfers"_n, transfers_row,
         indexed_by< "byfrom"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byfrom> >,
         indexed_by< "byuser"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byuser> >,
+        indexed_by< "byseason"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byseason> >,
         indexed_by< "byround"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byround> >,
         indexed_by< "byproject"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byproject> >,
         indexed_by< "byvalue"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byvalue> >,
@@ -410,7 +416,7 @@ public:
      *
      * ### params
      *
-     * - `{uint64_t} round` - (primary key) matching rounds
+     * - `{uint16_t} round_id` - (primary key) matching rounds
      * - `{string} description` - grant text description
      * - `{uint16_t} season_id` - season ID
      * - `{set<name>} grant_ids` - grants IDs participating
@@ -427,7 +433,7 @@ public:
      *
      * ```json
      * {
-     *     "round": 101,
+     *     "round_id": 101,
      *     "description": "Grant Round #1",
      *     "season_id": 1,
      *     "grant_ids": ["grant1"],
@@ -443,7 +449,7 @@ public:
      * ```
      */
     struct [[eosio::table("rounds")]] rounds_row {
-        uint64_t                round;
+        uint16_t                round_id;
         string                  description;
         uint16_t                season_id;
         vector<name>            grant_ids;
@@ -456,7 +462,7 @@ public:
         time_point_sec          created_at;
         time_point_sec          updated_at;
 
-        uint64_t primary_key() const { return round; };
+        uint64_t primary_key() const { return round_id; };
         uint64_t byseason() const { return season_id; };
     };
     typedef eosio::multi_index< "rounds"_n, rounds_row,
