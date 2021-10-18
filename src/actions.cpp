@@ -145,15 +145,15 @@ void pomelo::unjoinround( const name grant_id, const uint16_t round_id )
     // remove from match table
     pomelo::match_table _match( get_self(), round_id );
     const auto match_itr = _match.find( grant_id.value );
-    if(match_itr == _match.end()) return;   //no donations yet made to this project during this round
-    _match.erase( match_itr );
-
-    // recalculate matchings for this round
     double sum_value = 0, sum_boost = 0, sum_square = 0;
-    for (const auto& grant: _match) {
-        sum_value += grant.sum_value;
-        sum_boost += grant.sum_boost;
-        sum_square += grant.square;
+    if(match_itr != _match.end()){
+        // recalculate matchings for this round
+        _match.erase( match_itr );
+        for (const auto& grant: _match) {
+            sum_value += grant.sum_value;
+            sum_boost += grant.sum_boost;
+            sum_square += grant.square;
+        }
     }
 
     // remove from rounds table

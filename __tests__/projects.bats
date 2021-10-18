@@ -120,64 +120,73 @@
 
 }
 
-@test "set season with non-existing round" {
-  run cleos push action app.pomelo setseason '[1, "2021-08-25T20:00:00", "2022-08-25T20:00:00", [111], "Season 1", 100000]' -p app.pomelo
-  [ $status -eq 1 ]
-  [[ "$output" =~ "[round_id] doesn't exist" ]]
-}
-
-@test "set bad round" {
-  run cleos push action app.pomelo setround '[123, null, null, null, null, "Bad round", 100000]' -p app.pomelo
+@test "set bad season" {
+  run cleos push action app.pomelo setseason '[123, null, null, null, null, "Bad season", 100000]' -p app.pomelo
   [ $status -eq 1 ]
   [[ "$output" =~ "[end_at] must be after [start_at]" ]]
 
-  run cleos push action app.pomelo setround '[123, "2021-08-25T20:00:00", "2021-08-29T20:00:00", "2021-08-20T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[123, "2021-08-25T20:00:00", "2021-08-29T20:00:00", "2021-08-20T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
   [[ "$output" =~ "active minimum period must be at least 7 days" ]]
 
-  run cleos push action app.pomelo setround '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-25T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-25T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
   [[ "$output" =~ "submission minimum period must be at least 7 days" ]]
 
-  run cleos push action app.pomelo setround '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-21T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-21T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
   [[ "$output" =~ "[submission_start_at] must be before [start_at]" ]]
 
-  run cleos push action app.pomelo setround '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-20T20:00:00", "2021-08-29T21:00:00", "Bad round", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-20T20:00:00", "2021-08-29T21:00:00", "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
   [[ "$output" =~ "[submission_end_at] must be before [end_at]" ]]
+
+  run cleos push action app.pomelo setseason '[0, "2022-08-25T20:00:00", "2022-09-25T20:00:00", "2022-08-25T20:00:00", "2022-09-25T20:00:00", "This is season 1 of Pomelo!", 50000]' -p app.pomelo
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[season_id] must be positive" ]]
 }
 
+@test "create seasons" {
+  run cleos push action app.pomelo setseason '[1, "2021-09-25T20:00:00", "2022-09-25T20:00:00", "2021-08-25T20:00:00", "2021-09-26T20:00:00", "Season 1", 100000]' -p app.pomelo
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo seasons | jq -r '.rows[0].season_id')
+  [ $result = "1" ]
+
+  run cleos push action app.pomelo setseason '[2, "2021-09-25T20:00:00", "2022-09-25T20:00:00", "2021-09-25T20:00:00", "2022-09-25T20:00:00", "Season 2", 100000]' -p app.pomelo
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo seasons | jq -r '.rows[1].season_id')
+  [ $result = "2" ]
+}
 
 @test "join round outside of submission period" {
-  run cleos push action app.pomelo setround '[101, "2022-08-25T20:00:00", "2022-09-25T20:00:00", "2022-08-25T20:00:00", "2022-09-25T20:00:00", "This is round 1 of Pomelo!", 50000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[101, 1, "This is round 1 of Pomelo!", 50000]' -p app.pomelo
   [ $status -eq 0 ]
-  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].round')
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].round_id')
   [ $result = "101" ]
-
-  run cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo -p prjman1.eosn
-  [ $status -eq 1 ]
-  [[ "$output" =~ "[round_id] submission period has not started" ]]
-
-  run cleos push action app.pomelo setround '[101, "2020-08-25T20:00:00", "2020-09-25T20:00:00", "2020-08-25T20:00:00", "2020-09-25T20:00:00", "This is round 1 of Pomelo!", 50000]' -p app.pomelo
-  [ $status -eq 0 ]
 
   run cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 1 ]
   [[ "$output" =~ "[round_id] submission period has ended" ]]
 
+  run cleos push action app.pomelo setseason '[1, "2022-08-25T20:00:00", "2022-09-25T20:00:00", "2022-08-25T20:00:00", "2022-09-25T20:00:00", "Season 1", 100000]' -p app.pomelo
+  [ $status -eq 0 ]
+
+  run cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[round_id] submission period has not started" ]]
+
 }
 
 @test "create and test rounds" {
 
-  run cleos push action app.pomelo setseason '[1, "2021-08-25T20:00:00", "2022-08-25T20:00:00", [], "Season 1", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setseason '[1, "2021-09-25T20:00:00", "2022-09-25T20:00:00", "2021-09-25T20:00:00", "2022-09-25T20:00:00", "Season 1", 100000]' -p app.pomelo
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo seasons | jq -r '.rows[0].season_id')
   [ $result = "1" ]
 
-  run cleos push action app.pomelo setround '[101, "2021-08-25T20:00:00", "2022-09-25T20:00:00", "2021-08-25T20:00:00", "2022-09-25T20:00:00", "This is round 1 of Pomelo!", 50000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[101, 1, "This is round 1 of Pomelo!", 100000]' -p app.pomelo
   [ $status -eq 0 ]
-  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].round')
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].round_id')
   [ $result = "101" ]
 
   run cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo -p prjman1.eosn
@@ -195,28 +204,32 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "[round_id] is not active" ]]
 
-  run cleos push action app.pomelo setround '[102, "2021-08-20T10:00:00", "2022-10-28T10:00:00", "2021-08-20T10:00:00", "2022-10-28T10:00:00", "This is round 2 of Pomelo!", 50000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[102, 1, "This is round 2 of Pomelo!", 50000]' -p app.pomelo
   [ $status -eq 0 ]
-  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].round')
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].round_id')
   [ $result = "102" ]
-
-  run cleos push action app.pomelo joinround '["grant1", 102]' -p app.pomelo -p prjman1.eosn
-  [ $status -eq 0 ]
-  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].grant_ids[0]')
-  [ $result = "grant1" ]
 
 }
 
+@test "add grant to another round in this season" {
+
+  run cleos push action app.pomelo joinround '["grant1", 102]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 1 ]
+  [[ "$output" =~ "grant already exists in this season" ]]
+
+}
+
+@test "add round to 2 seasons" {
+  run cleos push action app.pomelo setround '[101, 2, "This is round 2 of Pomelo!", 50000]' -p app.pomelo
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[round_id] already exists in another season" ]]
+}
 
 @test "update round #2" {
 
-  run cleos push action app.pomelo setround '[102, "2023-08-20T10:00:00", null, null, null, "Bad round 2", 100000]' -p app.pomelo
-  [ $status -eq 1 ]
-  [[ "$output" =~ "[end_at] must be after [start_at]" ]]
-
-  run cleos push action app.pomelo setround '[102, null, null, null, null, "This is round 2 of Pomelo (revised)!", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[102, 1, "This is round 2 of Pomelo (revised)!", 100000]' -p app.pomelo
   [ $status -eq 0 ]
-  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].round')
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].round_id')
   [ $result = "102" ]
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].match_value')
   [ $result = "100000.00000000000000000" ]
@@ -229,11 +242,6 @@
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo globals | jq -r '.rows[0].season_id')
   [ $result = "1" ]
-
-  run cleos push action app.pomelo setseason '[1, null, null, [101], "Season 1", 100000]' -p app.pomelo
-  [ $status -eq 0 ]
-  result=$(cleos get table app.pomelo app.pomelo seasons | jq -r '.rows[0].round_ids[0]')
-  [ $result = "101" ]
 
   run cleos transfer user1 app.pomelo "10.0000 EOS" "grant:grant1"
   echo "Output: $output"
@@ -263,23 +271,50 @@
   [ $result = "1044.61524227066342974" ]
 
 }
-@test "add grant to two active rounds " {
 
-  run cleos push action app.pomelo setseason '[1, null, null, [101,102], null, null]' -p app.pomelo
+@test "unjoin and join round 101" {
+
+  run cleos push action app.pomelo unjoinround '["grant1", 101]' -p app.pomelo
   [ $status -eq 0 ]
-  result=$(cleos get table app.pomelo app.pomelo seasons | jq -r '.rows[0].round_ids[1]')
-  [ $result = "102" ]
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].grant_ids | length')
+  [ $result = "0" ]
 
-  run cleos transfer user1 app.pomelo "50.0000 EOS" "grant:grant1"
-  echo "Output: $output"
-  [ $status -eq 1 ]
-  [[ "$output" =~ "[grant_id] exist in multiple active rounds" ]]
+  run cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo  -p prjman1.eosn
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].grant_ids[0]')
+  [ $result = "grant1" ]
+
+  sleep 1
+
+  run cleos push action app.pomelo unjoinround '["grant1", 101]' -p app.pomelo
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].grant_ids | length')
+  [ $result = "0" ]
+
+  run cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo  -p prjman1.eosn
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].grant_ids[0]')
+  [ $result = "grant1" ]
+
+  sleep 1
+}
+
+@test "unjoin round 101 and join round 102" {
+
+  run cleos push action app.pomelo unjoinround '["grant1", 101]' -p app.pomelo
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].grant_ids | length')
+  [ $result = "0" ]
+
+  run cleos push action app.pomelo joinround '["grant1", 102]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 0 ]
+  result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[1].grant_ids[0]')
+  [ $result = "grant1" ]
+
 }
 
 @test "round #2: fund grant1 with 2 donations by 1 user" {
 
-  run cleos push action app.pomelo setseason '[1, null, null, [102], null, null]' -p app.pomelo
-  [ $status -eq 0 ]
 
   run cleos transfer user1 app.pomelo "50.0000 EOS" "grant:grant1"
   echo "Output: $output"
@@ -354,9 +389,59 @@
   [ $result = "grant2-1.25000000000000000" ]
 }
 
+
+@test "collapse 8 users into 1 on round 102" {
+
+  result=$(cleos get table app.pomelo 102 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
+  [ $result = "grant1-1237.50000000000000000" ]
+
+  result=$(cleos get table app.pomelo 102 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[1] | .id + "-" + .value')
+  [ $result = "grant2-2.25000000000000000" ]
+
+  result=$(cleos get table app.pomelo 102 users | jq -r '.rows' |  jq length)
+  [ $result = "8" ]
+
+  result=$(cleos get table app.pomelo 102 match -L grant2 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .square')
+  [ $result = "8.00000000000000000-5.25000000000000000-104.71793703910751105" ]
+
+  result=$(cleos get table app.pomelo 102 match -L grant1 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + "-" + .square')
+  [ $result = "550.00000000000000000687.50000000000000000-1237.49999999999977263" ]
+
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 102 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .sum_square')
+  [ $result = "558.00000000000000000-692.75000000000000000-1342.21793703910725526" ]
+
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 102 -l 1 | jq -r '.rows[0].user_ids' | jq length)
+  [ $result = "8" ]
+
+  run cleos push action app.pomelo collapse '[["user2.eosn","user3.eosn","user4.eosn","user5.eosn","user11.eosn","user12.eosn","user13.eosn"], "user1.eosn", 102]' -p app.pomelo
+  [ $status -eq 0 ]
+
+  result=$(cleos get table app.pomelo 102 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
+  [ $result = "grant1-1237.50000000000000000" ]
+
+  result=$(cleos get table app.pomelo 102 users | jq -r '.rows' |  jq length)
+  [ $result = "1" ]
+
+  result=$(cleos get table app.pomelo 102 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[1] | .id + "-" + .value')
+  [ $result = "grant2-18.00000000000000000" ]
+
+  result=$(cleos get table app.pomelo 102 match -L grant2 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + "-" + .square')
+  [ $result = "8.0000000000000000010.00000000000000000-17.99999999999998934" ]
+
+  result=$(cleos get table app.pomelo 102 match -L grant1 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + "-" + .square')
+  [ $result = "550.00000000000000000687.50000000000000000-1237.49999999999977263" ]
+
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 102 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .sum_square')
+  [ $result = "558.00000000000000000-697.50000000000000000-1255.49999999999977263" ]
+
+  result=$(cleos get table app.pomelo app.pomelo rounds -L 102 -l 1 | jq -r '.rows[0].user_ids' | jq length)
+  [ $result = "1" ]
+
+}
+
 @test "round #3: 4 projects, 6 users: spreadsheet simulation" {
 
-  run cleos push action app.pomelo setround '[103, "2021-05-20T20:00:00", "2022-09-25T20:00:00", "2021-05-20T20:00:00", "2022-09-25T20:00:00", "This is round 3 of Pomelo!", 100000]' -p app.pomelo
+  run cleos push action app.pomelo setround '[103, 1, "This is round 3 of Pomelo!", 100000]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo setproject '["prjman3.eosn", "grant", "grant3", "prjgrant3", ["EOS"]]' -p app.pomelo -p prjman3.eosn
@@ -371,6 +456,12 @@
   run cleos push action app.pomelo enable '["grant", "grant4", "ok"]' -p app.pomelo -p prjman4.eosn
   [ $status -eq 0 ]
 
+  run cleos push action app.pomelo unjoinround '["grant1", 102]' -p app.pomelo
+  [ $status -eq 0 ]
+
+  run cleos push action app.pomelo unjoinround '["grant2", 102]' -p app.pomelo
+  [ $status -eq 0 ]
+
   run cleos push action app.pomelo joinround '["grant1", 103]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 
@@ -381,12 +472,6 @@
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo joinround '["grant4", 103]' -p app.pomelo -p prjman4.eosn
-  [ $status -eq 0 ]
-
-  run cleos push action app.pomelo setseason '[1, null, null, [103], null, null]' -p app.pomelo
-  [ $status -eq 0 ]
-
-  run cleos push action app.pomelo setconfig '[1, 0, 0, null, null]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos transfer user1 app.pomelo "80.0000 EOS" "grant:grant1"
@@ -442,6 +527,9 @@
 
   result=$(cleos get table login.eosn login.eosn users -L user11.eosn | jq -r '.rows[0].socials | length')
   [ $result = "1" ]
+
+  result=$(cleos get table app.pomelo 103 match -L grant3 | jq -r '.rows[0].square')
+  [ $result = "36124.99999999999272404" ]
 
   run cleos push action login.eosn social '["user11.eosn", "sms"]' -p login.eosn -p user11.eosn
   [ $status -eq 0 ]
@@ -596,55 +684,6 @@
 
   result=$(cleos get table app.pomelo 103 users -L user11.eosn -l 1 | jq -r '.rows[0].user_id')
   [ $result = "user2.eosn" ]
-}
-
-@test "collapse 8 users into 1 on round 2" {
-
-  result=$(cleos get table app.pomelo 102 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
-  [ $result = "grant1-1237.50000000000000000" ]
-
-  result=$(cleos get table app.pomelo 102 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[1] | .id + "-" + .value')
-  [ $result = "grant2-2.25000000000000000" ]
-
-  result=$(cleos get table app.pomelo 102 users | jq -r '.rows' |  jq length)
-  [ $result = "8" ]
-
-  result=$(cleos get table app.pomelo 102 match -L grant2 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .square')
-  [ $result = "8.00000000000000000-5.25000000000000000-104.71793703910751105" ]
-
-  result=$(cleos get table app.pomelo 102 match -L grant1 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + "-" + .square')
-  [ $result = "550.00000000000000000687.50000000000000000-1237.49999999999977263" ]
-
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 102 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .sum_square')
-  [ $result = "558.00000000000000000-692.75000000000000000-1342.21793703910725526" ]
-
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 102 -l 1 | jq -r '.rows[0].user_ids' | jq length)
-  [ $result = "8" ]
-
-  run cleos push action app.pomelo collapse '[["user2.eosn","user3.eosn","user4.eosn","user5.eosn","user11.eosn","user12.eosn","user13.eosn"], "user1.eosn", 102]' -p app.pomelo
-  [ $status -eq 0 ]
-
-  result=$(cleos get table app.pomelo 102 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[0] | .id + "-" + .value')
-  [ $result = "grant1-1237.50000000000000000" ]
-
-  result=$(cleos get table app.pomelo 102 users | jq -r '.rows' |  jq length)
-  [ $result = "1" ]
-
-  result=$(cleos get table app.pomelo 102 users -L user1.eosn -l 1 | jq -r '.rows[0].contributions[1] | .id + "-" + .value')
-  [ $result = "grant2-18.00000000000000000" ]
-
-  result=$(cleos get table app.pomelo 102 match -L grant2 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + "-" + .square')
-  [ $result = "8.0000000000000000010.00000000000000000-17.99999999999998934" ]
-
-  result=$(cleos get table app.pomelo 102 match -L grant1 -l 1 | jq -r '.rows[0] | .sum_value + .sum_boost + "-" + .square')
-  [ $result = "550.00000000000000000687.50000000000000000-1237.49999999999977263" ]
-
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 102 -l 1 | jq -r '.rows[0] | .sum_value + "-" + .sum_boost + "-" + .sum_square')
-  [ $result = "558.00000000000000000-697.50000000000000000-1255.49999999999977263" ]
-
-  result=$(cleos get table app.pomelo app.pomelo rounds -L 102 -l 1 | jq -r '.rows[0].user_ids' | jq length)
-  [ $result = "1" ]
-
 }
 
 @test "donate less than minamount" {

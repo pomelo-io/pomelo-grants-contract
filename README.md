@@ -271,9 +271,6 @@ $ ./test.sh
 - `{uint16_t} season_id` - (primary key) season_id
 - `{string} description` - season description
 - `{vector<uint16_t>} round_ids` - round ids participating in this season
-- `{set<name>} grant_ids` - grants IDs participating
-- `{set<name>} user_ids` - user IDs participating
-- `{vector<extended_asset>} donated_tokens` - donated tokens
 - `{double} match_value` - total matching pool value for this season
 - `{time_point_sec} start_at` - start at time
 - `{time_point_sec} end_at` - end at time
@@ -289,9 +286,6 @@ $ ./test.sh
     "season_id": 1,
     "description": "Season #1",
     "round_ids": [101, 102, 103],
-    "grant_ids": ["grant1"],
-    "user_ids": ["user1.eosn"],
-    "donated_tokens": [{"contract": "eosio.token", "quantity": "100.0000 EOS"}],
     "match_value": 100000,
     "start_at": "2020-12-06T00:00:00",
     "end_at": "2020-12-12T00:00:00",
