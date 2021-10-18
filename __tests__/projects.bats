@@ -5,21 +5,21 @@
   run cleos transfer user1 app.pomelo "1000.0000 EOS" "grant:grant1"
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::donate_project: project not found" ]]
+  [[ "$output" =~ "pomelo::donate_project: project not found" ]] || false
 }
 
 @test "donate to grant with invalid name" {
   run cleos transfer user1 app.pomelo "1000.0000 EOS" "grant:grant9"
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::on_transfer: invalid project id" ]]
+  [[ "$output" =~ "pomelo::on_transfer: invalid project id" ]] || false
 
   run cleos transfer user1 app.pomelo "1000.0000 EOS" "grant:grant132323."
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::on_transfer: invalid project id" ]]
+  [[ "$output" =~ "pomelo::on_transfer: invalid project id" ]] || false
 
   run cleos transfer user1 app.pomelo "1000.0000 EOS" "grant:grant1234212vsddsas"
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::on_transfer: invalid project id" ]]
+  [[ "$output" =~ "pomelo::on_transfer: invalid project id" ]] || false
 }
 
 
@@ -33,7 +33,7 @@
   run cleos transfer user1 app.pomelo "100.0000 EOS" "grant:grant1"
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "project not available for donation" ]]
+  [[ "$output" =~ "project not available for donation" ]] || false
 
   run cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
@@ -43,17 +43,17 @@
   run cleos transfer user1 app.pomelo "200.0000 USDT" "grant:grant1" --contract tethertether
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "not acceptable tokens for this project" ]]
+  [[ "$output" =~ "not acceptable tokens for this project" ]] || false
 
   run cleos transfer user1 app.pomelo "300.0000 EOS" "grant:grant1"
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "is not active" ]]
+  [[ "$output" =~ "is not active" ]] || false
 
   run cleos push action app.pomelo setproject '["prjaaa.eosn", "grant", "grant2", "prjgrant2", ["USDT"]]' -p app.pomelo
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "[user_id] does not exist" ]]
+  [[ "$output" =~ "[user_id] does not exist" ]] || false
 
 }
 
@@ -61,7 +61,7 @@
 
   run cleos push action app.pomelo setproject '["prjman1.eosn", "bounty", "grant1", "", ["EOS"]]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 1 ]
-  [[ "$output" =~ "Grant with [project_id] already exists" ]]
+  [[ "$output" =~ "Grant with [project_id] already exists" ]] || false
 
 }
 
@@ -69,7 +69,7 @@
 
   run cleos push action app.pomelo setproject '["prjman2.eosn", "grant", "grant1", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman2.eosn
   [ $status -eq 1 ]
-  [[ "$output" =~ "project [author_id] cannot be modifed" ]]
+  [[ "$output" =~ "project [author_id] cannot be modifed" ]] || false
 
 }
 
@@ -77,7 +77,7 @@
 
   run cleos push action app.pomelo setproject '["prjman1.eosn", "bounty", "bounty1", "prjbounty1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 1 ]
-  [[ "$output" =~ "[funding_account] must be empty for bounties" ]]
+  [[ "$output" =~ "[funding_account] must be empty for bounties" ]] || false
 
   run cleos push action app.pomelo setproject '["prjman1.eosn", "bounty", "bounty1", "", ["EOS"]]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
@@ -87,7 +87,7 @@
   run cleos transfer user1 app.pomelo "400.0000 EOS" "bounty:bounty1"
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "project not available for donation" ]]
+  [[ "$output" =~ "project not available for donation" ]] || false
 
   run cleos push action app.pomelo enable '["bounty", "bounty1", "ok"]' -p app.pomelo prjman1.eosn
   [ $status -eq 0 ]
@@ -96,7 +96,7 @@
 
   run cleos transfer user1 app.pomelo "100.0000 EOS" "bounty:bounty1"
   [ $status -eq 1 ]
-  [[ "$output" =~ "[funding_account] is not set" ]]
+  [[ "$output" =~ "[funding_account] is not set" ]] || false
 
   run cleos push action app.pomelo setproject '["prjman1.eosn", "bounty", "bounty1", "prjbounty1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
@@ -105,11 +105,11 @@
 
   run cleos transfer user1 app.pomelo "100.0000 EOS" "bounty:bounty1" --contract fake.token
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::calculate_value: invalid token" ]]
+  [[ "$output" =~ "pomelo::calculate_value: invalid token" ]] || false
 
   run cleos transfer user1 app.pomelo "100.0000 USDT" "bounty:bounty1" --contract tethertether
   [ $status -eq 1 ]
-  [[ "$output" =~ "not acceptable tokens for this project" ]]
+  [[ "$output" =~ "not acceptable tokens for this project" ]] || false
 
   run cleos transfer user1 app.pomelo "500.0000 EOS" "bounty:bounty1"
   [ $status -eq 0 ]
@@ -123,27 +123,27 @@
 @test "set bad season" {
   run cleos push action app.pomelo setseason '[123, null, null, null, null, "Bad season", 100000]' -p app.pomelo
   [ $status -eq 1 ]
-  [[ "$output" =~ "[end_at] must be after [start_at]" ]]
+  [[ "$output" =~ "[end_at] must be after [start_at]" ]] || false
 
   run cleos push action app.pomelo setseason '[123, "2021-08-25T20:00:00", "2021-08-26T10:00:00", "2021-08-20T20:00:00", "2021-08-25T20:00:00", "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
-  [[ "$output" =~ "active minimum period must be at least" ]]
+  [[ "$output" =~ "active minimum period must be at least" ]] || false
 
   run cleos push action app.pomelo setseason '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-20T20:00:00", "2021-08-21T10:00:00", "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
-  [[ "$output" =~ "submission minimum period must be at least" ]]
+  [[ "$output" =~ "submission minimum period must be at least" ]] || false
 
   run cleos push action app.pomelo setseason '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-21T20:00:00", "2021-08-29T20:00:00", "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
-  [[ "$output" =~ "[submission_start_at] must be before [start_at]" ]]
+  [[ "$output" =~ "[submission_start_at] must be before [start_at]" ]] || false
 
   run cleos push action app.pomelo setseason '[123, "2021-08-20T20:00:00", "2021-08-29T20:00:00", "2021-08-20T20:00:00", "2021-08-29T21:00:00", "Bad round", 100000]' -p app.pomelo
   [ $status -eq 1 ]
-  [[ "$output" =~ "[submission_end_at] must be before [end_at]" ]]
+  [[ "$output" =~ "[submission_end_at] must be before [end_at]" ]] || false
 
   run cleos push action app.pomelo setseason '[0, "2022-08-25T20:00:00", "2022-09-25T20:00:00", "2022-08-25T20:00:00", "2022-09-25T20:00:00", "This is season 1 of Pomelo!", 50000]' -p app.pomelo
   [ $status -eq 1 ]
-  [[ "$output" =~ "[season_id] must be positive" ]]
+  [[ "$output" =~ "[season_id] must be positive" ]] || false
 }
 
 @test "create seasons" {
@@ -166,14 +166,14 @@
 
   run cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 1 ]
-  [[ "$output" =~ "[round_id] submission period has ended" ]]
+  [[ "$output" =~ "[round_id] submission period has ended" ]] || false
 
   run cleos push action app.pomelo setseason '[1, "2022-08-25T20:00:00", "2022-09-25T20:00:00", "2022-08-25T20:00:00", "2022-09-25T20:00:00", "Season 1", 100000]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 1 ]
-  [[ "$output" =~ "[round_id] submission period has not started" ]]
+  [[ "$output" =~ "[round_id] submission period has not started" ]] || false
 
 }
 
@@ -197,12 +197,12 @@
   run cleos push action app.pomelo joinround '["grant1", 1111]' -p app.pomelo -p prjman1.eosn
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "[round_id] does not exist" ]]
+  [[ "$output" =~ "[round_id] does not exist" ]] || false
 
   run cleos transfer user1 app.pomelo "600.0000 EOS" "grant:grant1"
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "[round_id] is not active" ]]
+  [[ "$output" =~ "[round_id] is not active" ]] || false
 
   run cleos push action app.pomelo setround '[102, 1, "This is round 2 of Pomelo!", 50000]' -p app.pomelo
   [ $status -eq 0 ]
@@ -215,14 +215,14 @@
 
   run cleos push action app.pomelo joinround '["grant1", 102]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 1 ]
-  [[ "$output" =~ "grant already exists in this season" ]]
+  [[ "$output" =~ "grant already exists in this season" ]] || false
 
 }
 
 @test "add round to 2 seasons" {
   run cleos push action app.pomelo setround '[101, 2, "This is round 2 of Pomelo!", 50000]' -p app.pomelo
   [ $status -eq 1 ]
-  [[ "$output" =~ "[round_id] already exists in another season" ]]
+  [[ "$output" =~ "[round_id] already exists in another season" ]] || false
 }
 
 @test "update round #2" {
@@ -593,7 +593,7 @@
 
   run cleos transfer user2 app.pomelo "3000.0000 USDT" "grant:grant5" --contract tethertether
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::donate_project: project not available for donation" ]]
+  [[ "$output" =~ "pomelo::donate_project: project not available for donation" ]] || false
 
   run cleos push action app.pomelo enable '["grant", "grant5", "ok"]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
@@ -602,11 +602,11 @@
 @test "fund grant by a user without EOSN login" {
   run cleos transfer user.noeosn app.pomelo "30.0000 EOS" "grant:grant5"
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::get_user_id: account is not linked to EOSN account" ]]
+  [[ "$output" =~ "pomelo::get_user_id: account is not linked to EOSN account" ]] || false
 
   run cleos transfer user.noeosn app.pomelo "30.0000 EOS" "bounty:bounty1"
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::get_user_id: account is not linked to EOSN account" ]]
+  [[ "$output" =~ "pomelo::get_user_id: account is not linked to EOSN account" ]] || false
 }
 
 
@@ -689,18 +689,18 @@
 @test "donate less than minamount" {
   run cleos transfer user1 app.pomelo "0.9000 USDT" "grant:grant2" --contract tethertether
   [ $status -eq 1 ]
-  [[ "$output" =~ "[quantity=0.9000 USDT] is less than [tokens.min_amount=10000]" ]]
+  [[ "$output" =~ "[quantity=0.9000 USDT] is less than [tokens.min_amount=10000]" ]] || false
 
   run cleos transfer user1 app.pomelo "0.0999 EOS" "grant:grant3"
   [ $status -eq 1 ]
-  [[ "$output" =~ "[quantity=0.0999 EOS] is less than [tokens.min_amount=10000]" ]]
+  [[ "$output" =~ "[quantity=0.0999 EOS] is less than [tokens.min_amount=10000]" ]] || false
 
   run cleos push action app.pomelo token '["4,EOS", "eosio.token", 1001, 1]' -p app.pomelo
   [ $status -eq 0 ]
 
   run cleos transfer user1 app.pomelo "0.1000 EOS" "grant:grant3"
   [ $status -eq 1 ]
-  [[ "$output" =~ "[quantity=0.1000 EOS] is less than [tokens.min_amount=1001]" ]]
+  [[ "$output" =~ "[quantity=0.1000 EOS] is less than [tokens.min_amount=1001]" ]] || false
 }
 
 @test "donate with a 5% fee" {
@@ -736,7 +736,7 @@
 
   run cleos transfer user1 app.pomelo "1.0000 PLAY" "grant:grant1" --contract play.pomelo
   [ $status -eq 1 ]
-  [[ "$output" =~ "not acceptable tokens for this project" ]]
+  [[ "$output" =~ "not acceptable tokens for this project" ]] || false
 
   run cleos transfer user1 app.pomelo "1.0000 PLAY" "grant:grant2" --contract play.pomelo
   [ $status -eq 0 ]

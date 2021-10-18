@@ -4,7 +4,7 @@
   run cleos transfer user1 app.pomelo "1000.0000 EOS" "grant:grant1"
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::on_transfer: contract is under maintenance" ]]
+  [[ "$output" =~ "pomelo::on_transfer: contract is under maintenance" ]] || false
 }
 
 
