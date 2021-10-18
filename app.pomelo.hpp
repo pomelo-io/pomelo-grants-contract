@@ -490,7 +490,7 @@ public:
      *
      * ### params
      *
-     * - `{uint16_t} season_id` - season ID (0 = not active)
+     * - `{uint16_t} season_id` - season ID (should be > 0)
      * - `{optional<time_point_sec>} start_at` - round start time
      * - `{optional<time_point_sec>} end_at` - round end time
      * - `{optional<time_point_sec>} submission_start_at` - round submission start time

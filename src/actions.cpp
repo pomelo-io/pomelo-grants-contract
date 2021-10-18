@@ -33,6 +33,9 @@ void pomelo::token( const symbol sym, const name contract, const uint64_t min_am
 void pomelo::setseason( const uint16_t season_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const optional<time_point_sec> submission_start_at, const optional<time_point_sec> submission_end_at, const optional<string> description, const optional<double> match_value )
 {
     require_auth( get_self() );
+
+    check( season_id > 0, "pomelo::setseason: [season_id] must be positive");
+
     pomelo::seasons_table seasons( get_self(), get_self().value );
     const auto itr = seasons.find( season_id );
 
@@ -230,6 +233,7 @@ void pomelo::setround(  const uint16_t round_id,
 {
     require_auth( get_self() );
 
+    check( season_id > 0,  "pomelo::setround: [season_id] must exist");)
     pomelo::rounds_table rounds( get_self(), get_self().value );
     pomelo::seasons_table seasons( get_self(), get_self().value );
 
