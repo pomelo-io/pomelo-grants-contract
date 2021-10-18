@@ -52,14 +52,16 @@ bool pomelo::is_user( const name user_id )
 
 void pomelo::validate_round( const uint16_t round_id )
 {
-    pomelo::rounds_table _rounds( get_self(), get_self().value );
+    pomelo::rounds_table rounds( get_self(), get_self().value );
+    pomelo::seasons_table seasons( get_self(), get_self().value );
 
     check(round_id != 0, "pomelo::validate_round: [round_id] is not active");
 
     const auto now = current_time_point().sec_since_epoch();
-    const auto rounds = _rounds.get( round_id, "pomelo::validate_round: [round_id] not found");
-    check(rounds.start_at.sec_since_epoch() <= now, "pomelo::validate_round: [round_id] has not started");
-    check(now <= rounds.end_at.sec_since_epoch(), "pomelo::validate_round: [round_id] has expired");
+    const auto round = rounds.get( round_id, "pomelo::validate_round: [round_id] not found");
+    const auto season = seasons.get( round.season_id, "pomelo::validate_round: [season_id] not found");
+    check(season.start_at.sec_since_epoch() <= now, "pomelo::validate_round: [season_id] has not started");
+    check(now <= season.end_at.sec_since_epoch(), "pomelo::validate_round: [season_id] has expired");
 }
 
 uint16_t pomelo::get_active_round( const name grant_id )

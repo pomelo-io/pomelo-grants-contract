@@ -44,7 +44,7 @@ public:
     /**
      * ## TABLE `globals`
      *
-     * - `{uint16_t} round_id` - round ID (0 = not active)
+     * - `{uint16_t} season_id` - season ID (0 = not active)
      * - `{uint64_t} grant_fee` - grant fee (bips - 1/100 1%)
      * - `{uint64_t} bounty_fee` - bounty fee (bips - 1/100 1%)
      * - `{name} login_contract` - EOSN Login contract
@@ -54,7 +54,7 @@ public:
      *
      * ```json
      * {
-     *     "round_id": 1,
+     *     "season_id": 1,
      *     "grant_fee": 500,
      *     "bounty_fee": 500,
      *     "login_contractt": "login.eosn",
@@ -82,6 +82,10 @@ public:
      * - `{double} match_value` - total matching pool value for this season
      * - `{time_point_sec} start_at` - start at time
      * - `{time_point_sec} end_at` - end at time
+     * - `{time_point_sec} submission_start_at` - submission start time
+     * - `{time_point_sec} submission_end_at` - submission end time
+     * - `{time_point_sec} created_at` - created at time
+     * - `{time_point_sec} updated_at` - updated at time
      *
      * ### example
      *
@@ -93,6 +97,10 @@ public:
      *      "match_value": 100000,
      *      "start_at": "2020-12-06T00:00:00",
      *      "end_at": "2020-12-12T00:00:00",
+     *      "submission_start_at": "2020-11-06T00:00:00",
+     *      "submission_end_at": "2020-12-06T00:00:00",
+     *      "created_at": "2020-12-06T00:00:00",
+     *      "updated_at": "2020-12-06T00:00:00",
      * }
      * ```
      */
@@ -103,6 +111,10 @@ public:
         double              match_value;
         time_point_sec      start_at;
         time_point_sec      end_at;
+        time_point_sec      submission_start_at;
+        time_point_sec      submission_end_at;
+        time_point_sec      created_at;
+        time_point_sec      updated_at;
 
         uint64_t primary_key() const { return season_id; }
     };
@@ -213,10 +225,11 @@ public:
      * |--------------- |------------------|------------|
      * | `byfrom`       | 2                | i64        |
      * | `byuser`       | 3                | i64        |
-     * | `byround`      | 4                | i64        |
-     * | `bygrant`      | 5                | i64        |
-     * | `byvalue`      | 6                | i64        |
-     * | `bycreated`    | 7                | i64        |
+     * | `byseason`     | 4                | i64        |
+     * | `byround`      | 5                | i64        |
+     * | `bygrant`      | 6                | i64        |
+     * | `byvalue`      | 7                | i64        |
+     * | `bycreated`    | 8                | i64        |
      *
      * ### params
      *
@@ -227,7 +240,8 @@ public:
      * - `{asset} fee` - fee charged and sent to `global.fee_account`
      * - `{string} memo` - transfer memo
      * - `{name} user_id` - Pomelo user account ID
-     * - `{uint16_t} season_id` - season ID (0 if outside season)
+     * - `{uint16_t} season_id` - participating season ID
+     * - `{uint16_t} round_id` - participating round ID
      * - `{name} project_type` - project type ("grant" / "bounty")
      * - `{name} project_id` - project ID
      * - `{double} value` - valuation at time of received
@@ -246,6 +260,7 @@ public:
      *     "memo": "grant:grant1",
      *     "user_id": "user1.eosn",
      *     "season_id": 1,
+     *     "round_id": 101,
      *     "project_type": "grant",
      *     "project_id": "grant1",
      *     "value": 100.0,
@@ -262,6 +277,7 @@ public:
         asset                   fee;
         string                  memo;
         name                    user_id;
+        uint16_t                season_id;
         uint16_t                round_id;
         name                    project_type;
         name                    project_id;
@@ -272,6 +288,7 @@ public:
         uint64_t primary_key() const { return transfer_id; };
         uint64_t byfrom() const { return from.value; };
         uint64_t byuser() const { return user_id.value; };
+        uint64_t byseason() const { return season_id; };
         uint64_t byround() const { return round_id; };
         uint64_t byproject() const { return project_id.value; };
         uint64_t byvalue() const { return static_cast<uint64_t> ( value * VALUE_SYM.get_symbol().precision() ); };
@@ -281,6 +298,7 @@ public:
     typedef eosio::multi_index< "transfers"_n, transfers_row,
         indexed_by< "byfrom"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byfrom> >,
         indexed_by< "byuser"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byuser> >,
+        indexed_by< "byseason"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byseason> >,
         indexed_by< "byround"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byround> >,
         indexed_by< "byproject"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byproject> >,
         indexed_by< "byvalue"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byvalue> >,
@@ -306,7 +324,7 @@ public:
      * ```json
      * {
      *     "grant_id": "grant_id",
-     *     "round_id": 1,
+     *     "round_id": 101,
      *     "total_users": 2,
      *     "sum_value": 150.0,
      *     "sum_boost": 325.0,
@@ -389,8 +407,9 @@ public:
      *
      * ### params
      *
-     * - `{uint64_t} round` - (primary key) matching rounds
+     * - `{uint16_t} round_id` - (primary key) matching rounds
      * - `{string} description` - grant text description
+     * - `{uint16_t} season_id` - season ID
      * - `{set<name>} grant_ids` - grants IDs participating
      * - `{set<name>} user_ids` - user IDs participating
      * - `{vector<extended_asset>} donated_tokens` - donated tokens
@@ -398,10 +417,6 @@ public:
      * - `{double} sum_value` - total value donated this round
      * - `{double} sum_boost` - total boost received this round
      * - `{double} sum_square` - square of total sqrt sum
-     * - `{time_point_sec} start_at` - start at time
-     * - `{time_point_sec} end_at` - end at time
-     * - `{time_point_sec} submission_start_at` - submission start time
-     * - `{time_point_sec} submission_end_at` - submission end time
      * - `{time_point_sec} created_at` - created at time
      * - `{time_point_sec} updated_at` - updated at time
      *
@@ -409,8 +424,9 @@ public:
      *
      * ```json
      * {
-     *     "round": 1,
+     *     "round_id": 101,
      *     "description": "Grant Round #1",
+     *     "season_id": 1,
      *     "grant_ids": ["grant1"],
      *     "user_ids": ["user1.eosn"],
      *     "donated_tokens": [{"contract": "eosio.token", "quantity": "100.0000 EOS"}],
@@ -418,18 +434,15 @@ public:
      *     "sum_value": 12345,
      *     "sum_boost": 3231,
      *     "sum_square": 423451.1233,
-     *     "start_at": "2020-12-06T00:00:00",
-     *     "end_at": "2020-12-12T00:00:00",
-     *     "submission_start_at": "2020-11-06T00:00:00",
-     *     "submission_end_at": "2020-12-06T00:00:00",
      *     "created_at": "2020-12-06T00:00:00",
      *     "updated_at": "2020-12-06T00:00:00",
      * }
      * ```
      */
     struct [[eosio::table("rounds")]] rounds_row {
-        uint64_t                round;
+        uint16_t                round_id;
         string                  description;
+        uint16_t                season_id;
         vector<name>            grant_ids;
         vector<name>            user_ids;
         vector<extended_asset>  donated_tokens;
@@ -437,23 +450,22 @@ public:
         double                  sum_value;
         double                  sum_boost;
         double                  sum_square;
-        time_point_sec          start_at;
-        time_point_sec          end_at;
-        time_point_sec          submission_start_at;
-        time_point_sec          submission_end_at;
         time_point_sec          created_at;
         time_point_sec          updated_at;
 
-        uint64_t primary_key() const { return round; };
+        uint64_t primary_key() const { return round_id; };
+        uint64_t byseason() const { return season_id; };
     };
-    typedef eosio::multi_index< "rounds"_n, rounds_row > rounds_table;
+    typedef eosio::multi_index< "rounds"_n, rounds_row,
+        indexed_by< "byseason"_n, const_mem_fun<rounds_row, uint64_t, &rounds_row::byseason> >
+    > rounds_table;
 
     /**
      * ## ACTION `setconfig`
      *
      * ### params
      *
-     * - `{uint16_t} round_id` - round ID (0 = not active)
+     * - `{uint16_t} season_id` - season ID (0 = not active)
      * - `{uint64_t} grant_fee` - grant fee (bips - 1/100 1%)
      * - `{uint64_t} bounty_fee` - bounty fee (bips - 1/100 1%)
      * - `{name} login_contract` - EOSN Login contract
@@ -466,7 +478,7 @@ public:
      * ```
      */
     [[eosio::action]]
-    void setconfig( const optional<uint16_t> round_id, const optional<uint64_t> grant_fee, const optional<uint64_t> bounty_fee, const optional<name> login_contract, const optional<name> fee_account );
+    void setconfig( const optional<uint16_t> season_id, const optional<uint64_t> grant_fee, const optional<uint64_t> bounty_fee, const optional<name> login_contract, const optional<name> fee_account );
 
     /**
      * ## ACTION `setseason`
@@ -475,21 +487,22 @@ public:
      *
      * ### params
      *
-     * - `{uint16_t} season_id` - season ID (0 = not active)
-     * - `{vector<uint16_t>} round_ids` - round ids
-     * - `{optional<time_point_sec>} start_at` - start at time
-     * - `{optional<time_point_sec>} end_at` - end at time
+     * - `{uint16_t} season_id` - season ID (should be > 0)
+     * - `{optional<time_point_sec>} start_at` - round start time
+     * - `{optional<time_point_sec>} end_at` - round end time
+     * - `{optional<time_point_sec>} submission_start_at` - round submission start time
+     * - `{optional<time_point_sec>} submission_end_at` - round submission end time
      * - `{optional<string>} description` - season description
      * - `{optional<double>} match_value` - match value (for information purposes)
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo setseason '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", [101, 102], "Season 1", 500]' -p app.pomelo
+     * $ cleos push action app.pomelo setseason '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Season 1", 100000]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void setseason( const uint16_t season_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const vector<uint16_t> round_ids, const optional<string> description, const optional<double> match_value );
+    void setseason( const uint16_t season_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const optional<time_point_sec> submission_start_at, const optional<time_point_sec> submission_end_at, const optional<string> description, const optional<double> match_value );
 
     /**
      * ## ACTION `setproject`
@@ -541,21 +554,18 @@ public:
      * ### params
      *
      * - `{uint16_t} round_id` - round id
-     * - `{optional<time_point_sec>} start_at` - round start time
-     * - `{optional<time_point_sec>} end_at` - round end time
-     * - `{optional<time_point_sec>} submission_start_at` - round submission start time
-     * - `{optional<time_point_sec>} submission_end_at` - round submission end time
+     * - `{uint16_t} season_id` - season id
      * - `{optional<string>} description` - grant description
      * - `{optional<double>} match_value` - total value of the matching pool
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Grant Round #1", 100000]' -p app.pomelo
+     * $ cleos push action app.pomelo setround '[101, 1, "Grant Round #1", 100000]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void setround( const uint16_t round_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const optional<time_point_sec> submission_start_at, const optional<time_point_sec> submission_end_at, const optional<string> description, const optional<double> match_value );
+    void setround( const uint16_t round_id, const uint16_t season_id, const optional<string> description, const optional<double> match_value );
 
     /**
      * ## ACTION `joinround`
@@ -570,7 +580,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo joinround '["grant1", 1]' -p app.pomelo -p 123.eosn
+     * $ cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo -p 123.eosn
      * ```
      */
     [[eosio::action]]
@@ -589,7 +599,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo unjoinround '["grant1", 1]' -p app.pomelo
+     * $ cleos push action app.pomelo unjoinround '["grant1", 101]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
@@ -653,7 +663,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo cleartable '["transfers", 1, 500]' -p app.pomelo
+     * $ cleos push action app.pomelo cleartable '["transfers", 101, 500]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
@@ -759,6 +769,7 @@ private:
 
     int get_index(const vector<name>& vec, name value);
     int get_index(const vector<contribution_t>& vec, name id);
+    int get_index(const vector<uint16_t>& vec, uint16_t id);
 
     template <typename T>
     vector<T> remove_element(const vector<T>& vec, name id);

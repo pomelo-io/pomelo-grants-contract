@@ -94,7 +94,7 @@ $ ./test.sh
 
 ## TABLE `globals`
 
-- `{uint16_t} round_id` - round ID (0 = not active)
+- `{uint16_t} season_id` - season ID (0 = not active)
 - `{uint64_t} grant_fee` - grant fee (bips - 1/100 1%)
 - `{uint64_t} bounty_fee` - bounty fee (bips - 1/100 1%)
 - `{name} login_contract` - EOSN Login contract
@@ -104,7 +104,7 @@ $ ./test.sh
 
 ```json
 {
-    "round_id": 1,
+    "season_id": 1,
     "grant_fee": 500,
     "bounty_fee": 500,
     "login_contractt": "login.eosn",
@@ -158,10 +158,11 @@ $ ./test.sh
 |--------------- |------------------|------------|
 | `byfrom`       | 2                | i64        |
 | `byuser`       | 3                | i64        |
-| `byround`      | 4                | i64        |
-| `bygrant`      | 5                | i64        |
-| `byvalue`      | 6                | i64        |
-| `bycreated`    | 7                | i64        |
+| `byseason`     | 4                | i64        |
+| `byround`      | 5                | i64        |
+| `bygrant`      | 6                | i64        |
+| `byvalue`      | 7                | i64        |
+| `bycreated`    | 8                | i64        |
 
 ### params
 
@@ -172,6 +173,7 @@ $ ./test.sh
 - `{asset} fee` - fee charged and sent to `global.fee_account`
 - `{string} memo` - transfer memo
 - `{name} user_id` - Pomelo user account ID
+- `{uint16_t} season_id` - participating season ID
 - `{uint16_t} round_id` - participating round ID
 - `{name} project_type` - project type ("grant" / "bounty")
 - `{name} project_id` - project ID
@@ -190,7 +192,8 @@ $ ./test.sh
     "fee": "1.0000 EOS",
     "memo": "grant:grant1",
     "user_id": "user1.eosn",
-    "round": 1,
+    "season_id": 1,
+    "round_id": 101,
     "project_type": "grant",
     "project_id": "grant1",
     "value": 100.0,
@@ -219,7 +222,7 @@ $ ./test.sh
 ```json
 {
     "grant_id": "grant1",
-    "round_id": 1,
+    "round_id": 101,
     "total_users": 2,
     "sum_value": 150.0,
     "sum_boost": 325.0,
@@ -260,43 +263,15 @@ $ ./test.sh
 }
 
 ```
+
 ## TABLE `seasons`
 
 ### params
 
-- `{uint16_t} season_id` - (primary key)
-- `{vector<uint16_t>} round_ids` - round ids in this season
-- `{string} description` - grant text description
-- `{double} match_value` - estimated total matching pool value for this season
-- `{time_point_sec} start_at` - start at time
-- `{time_point_sec} end_at` - end at time
-
-### example
-
-```json
-{
-    "season_id": 1,
-    "round_ids": [101, 102],
-    "description": "Season #1",
-    "match_value": 100000,
-    "start_at": "2020-12-06T00:00:00",
-    "end_at": "2020-12-12T00:00:00",
-}
-```
-
-## TABLE `rounds`
-
-### params
-
-- `{uint64_t} round_id` - (primary key) matching rounds
-- `{string} description` - grant text description
-- `{set<name>} grant_ids` - grants IDs participating
-- `{set<name>} user_ids` - user IDs participating
-- `{vector<extended_asset>} donated_tokens` - donated tokens
-- `{double} match_value` - total value of the matching pool
-- `{double} sum_value` - total value donated this round
-- `{double} sum_boost` - total boost received this round
-- `{double} sum_square` - square of total sqrt sum
+- `{uint16_t} season_id` - (primary key) season_id
+- `{string} description` - season description
+- `{vector<uint16_t>} round_ids` - round ids participating in this season
+- `{double} match_value` - total matching pool value for this season
 - `{time_point_sec} start_at` - start at time
 - `{time_point_sec} end_at` - end at time
 - `{time_point_sec} submission_start_at` - submission start time
@@ -308,8 +283,43 @@ $ ./test.sh
 
 ```json
 {
-    "round_id": 1,
+    "season_id": 1,
+    "description": "Season #1",
+    "round_ids": [101, 102, 103],
+    "match_value": 100000,
+    "start_at": "2020-12-06T00:00:00",
+    "end_at": "2020-12-12T00:00:00",
+    "submission_start_at": "2020-11-06T00:00:00",
+    "submission_end_at": "2020-12-06T00:00:00",
+    "created_at": "2020-12-06T00:00:00",
+    "updated_at": "2020-12-06T00:00:00",
+}
+```
+
+## TABLE `rounds`
+
+### params
+
+- `{uint64_t} round_id` - (primary key) matching rounds
+- `{string} description` - grant text description
+- `{uint16_t} season_id` - season ID
+- `{set<name>} grant_ids` - grants IDs participating
+- `{set<name>} user_ids` - user IDs participating
+- `{vector<extended_asset>} donated_tokens` - donated tokens
+- `{double} match_value` - estimated value of the matching pool
+- `{double} sum_value` - total value donated this round
+- `{double} sum_boost` - total boost received this round
+- `{double} sum_square` - square of total sqrt sum
+- `{time_point_sec} created_at` - created at time
+- `{time_point_sec} updated_at` - updated at time
+
+### example
+
+```json
+{
+    "round_id": 101,
     "description": "Grant Round #1",
+    "season_id": 1,
     "grant_ids": ["grant1"],
     "user_ids": ["user1.eosn"],
     "donated_tokens": [{"contract": "eosio.token", "quantity": "100.0000 EOS"}],
@@ -317,10 +327,6 @@ $ ./test.sh
     "sum_value": 12345,
     "sum_boost": 3231,
     "sum_square": 423451.1233,
-    "start_at": "2020-12-06T00:00:00",
-    "end_at": "2020-12-12T00:00:00",
-    "submission_start_at": "2020-12-06T00:00:00",
-    "submission_end_at": "2020-12-12T00:00:00",
     "created_at": "2020-12-06T00:00:00",
     "updated_at": "2020-12-06T00:00:00",
 }
@@ -364,19 +370,22 @@ $ cleos push action app.pomelo setconfig '[1, 500, 500, "login.eosn", "fee.pomel
 
 ## ACTION `setseason`
 
+Set season parameters. If optional parameter undefined - don't change it. If all parameters undefined - delete
+
 ### params
 
-- `{uint16_t} season_id` - season ID
-- `{vector<uint16_t>} round_ids` - round ids in this season
-- `{optional<time_point_sec>} start_at` - start at time
-- `{optional<time_point_sec>} end_at` - end at time
+- `{uint16_t} season_id` - season ID (0 = not active)
+- `{optional<time_point_sec>} start_at` - round start time
+- `{optional<time_point_sec>} end_at` - round end time
+- `{optional<time_point_sec>} submission_start_at` - round submission start time
+- `{optional<time_point_sec>} submission_end_at` - round submission end time
 - `{optional<string>} description` - season description
-- `{optional<value>} match_value` - estimated total matching pool value for this season
+- `{optional<double>} match_value` - match value (for information purposes)
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo setseason '[1, "2021-08-20T10:00:00", "2021-10-28T10:00:00", [101,102], "Season #1", 100000]' -p app.pomelo
+$ cleos push action app.pomelo setseason '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Season 1", 100000]' -p app.pomelo
 ```
 
 ## ACTION `setproject`
@@ -417,22 +426,19 @@ $ cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo
 
 ## ACTION `setround`
 
-Create/update round. If parameter not set - don't modify it
+Create/update round. If a parameter is null - don't change it
 
 ### params
 
 - `{uint16_t} round_id` - round id
-- `{optional<time_point_sec>} start_at` - round start time
-- `{optional<time_point_sec>} end_at` - round end time
-- `{optional<time_point_sec>} submission_start_at` - round submission start time
-- `{optional<time_point_sec>} submission_end_at` - round submission end time
+- `{uint16_t} season_id` - season id
 - `{optional<string>} description` - grant description
-- `{optional<double>} match_value` - matching pool value
+- `{optional<double>} match_value` - total value of the matching pool
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo setround '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Grant Round #1", 100000]' -p app.pomelo
+$ cleos push action app.pomelo setround '[101, 1, "Grant Round #1", 100000]' -p app.pomelo
 ```
 
 ## ACTION `joinround`
@@ -449,7 +455,7 @@ Adds grant to round
 ### example
 
 ```bash
-$ cleos push action app.pomelo joinround '["grant1", 1]' -p app.pomelo -p 123.eosn
+$ cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo -p 123.eosn
 ```
 
 ## ACTION `unjoinround`
@@ -466,7 +472,7 @@ Remove grant from round and update all matchings
 ### example
 
 ```bash
-$ cleos push action app.pomelo unjoinround '["grant1", 1]' -p app.pomelo
+$ cleos push action app.pomelo unjoinround '["grant1", 101]' -p app.pomelo
 ```
 
 ## ACTION `cleartable`
@@ -482,7 +488,7 @@ Clear table
 ### example
 
 ```bash
-$ cleos push action app.pomelo cleartable '["transfers", 1, 500]' -p app.pomelo
+$ cleos push action app.pomelo cleartable '["transfers", 101, 500]' -p app.pomelo
 ```
 
 ## ACTION `removeuser`

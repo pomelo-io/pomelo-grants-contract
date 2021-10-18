@@ -110,6 +110,8 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
 
     // update round
     rounds.modify( round_itr, get_self(), [&]( auto & row ) {
+        // TO-DO refactor adding extended asset into dedicated method
+        // row.donated_tokens = sum_extended_asset( row.donated_tokens, ext_quantity );
         bool added = false;
         for ( extended_asset & donated_token : row.donated_tokens ) {
             if ( donated_token.get_extended_symbol() == ext_quantity.get_extended_symbol() ) {
@@ -130,6 +132,7 @@ void pomelo::save_transfer( const name from, const name to, const extended_asset
 {
     const auto user_id = get_user_id( from );
     const auto round_id = get_active_round( project_id );
+    const auto season_id = get_globals().season_id;
 
     pomelo::transfers_table transfers( get_self(), get_self().value );
     transfers.emplace( get_self(), [&]( auto & row ) {
@@ -140,6 +143,7 @@ void pomelo::save_transfer( const name from, const name to, const extended_asset
         row.fee = fee;
         row.memo = memo;
         row.user_id = user_id;
+        row.season_id = season_id;
         row.round_id = round_id;
         row.project_type = project_type;
         row.project_id = project_id;
@@ -183,7 +187,6 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
     else projects.modify( itr, get_self(), insert );
 }
 
-
 int pomelo::get_index(const vector<name>& vec, name value)
 {
     for(int i = 0; i < vec.size(); i++){
@@ -192,11 +195,18 @@ int pomelo::get_index(const vector<name>& vec, name value)
     return -1;
 }
 
-
 int pomelo::get_index(const vector<contribution_t>& vec, name id)
 {
     for(int i = 0; i < vec.size(); i++){
         if(vec[i].id == id ) return i;
+    }
+    return -1;
+}
+
+int pomelo::get_index(const vector<uint16_t>& vec, uint16_t value)
+{
+    for(int i = 0; i < vec.size(); i++){
+        if(vec[i] == value ) return i;
     }
     return -1;
 }
