@@ -233,7 +233,7 @@ void pomelo::setround(  const uint16_t round_id,
 {
     require_auth( get_self() );
 
-    check( season_id > 0,  "pomelo::setround: [season_id] must exist");)
+    check( season_id > 0,  "pomelo::setround: [season_id] must exist");
     pomelo::rounds_table rounds( get_self(), get_self().value );
     pomelo::seasons_table seasons( get_self(), get_self().value );
 
@@ -243,12 +243,14 @@ void pomelo::setround(  const uint16_t round_id,
     if ( get_index(season.round_ids, round_id) == -1 ) {
         seasons.modify( season, get_self(), [&]( auto & row ) {
             row.round_ids.push_back(round_id);
-            check( row.start_at >= current_time_point(), "pomelo::setround: [current_time_point] must be before [start_at]");
+            // check( row.start_at >= current_time_point(), "pomelo::setround: [current_time_point] must be before [start_at]");
         });
     }
 
     const auto insert = [&]( auto & row ) {
         row.round_id = round_id;
+        check(row.season_id == 0 || row.season_id == season_id, "pomelo::setround: [round_id] already exists in another season");
+        row.season_id = season_id;
         if(description) row.description = *description;
         if(match_value) row.match_value = *match_value;
         row.updated_at = current_time_point();
