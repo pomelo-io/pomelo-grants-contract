@@ -52,9 +52,9 @@ void pomelo::setseason( const uint16_t season_id, const optional<time_point_sec>
 
         // validate times
         check( row.end_at > row.start_at, "pomelo::setseason: [end_at] must be after [start_at]");
-        check( row.end_at.sec_since_epoch() - row.start_at.sec_since_epoch() >= DAY * 7, "pomelo::setseason: active minimum period must be at least 7 days");
+        check( row.end_at.sec_since_epoch() - row.start_at.sec_since_epoch() >= DAY * 1, "pomelo::setseason: active minimum period must be at least 1 day");
         check( row.submission_end_at > row.submission_start_at, "pomelo::setseason: [submission_end_at] must be after [submission_start_at]");
-        check( row.submission_end_at.sec_since_epoch() - row.submission_start_at.sec_since_epoch() >= DAY * 7, "pomelo::setseason: submission minimum period must be at least 7 days");
+        check( row.submission_end_at.sec_since_epoch() - row.submission_start_at.sec_since_epoch() >= DAY * 1, "pomelo::setseason: submission minimum period must be at least 1 day");
         check( row.submission_start_at <= row.start_at, "pomelo::setseason: [submission_start_at] must be before [start_at]");
         check( row.submission_end_at <= row.end_at, "pomelo::setseason: [submission_end_at] must be before [end_at]");
     };
