@@ -102,6 +102,13 @@ void pomelo::setproject( const name author_id, const name project_type, const na
 
 // @user
 [[eosio::action]]
+void pomelo::setgrant( const name author_id, const name project_id, const name funding_account, const set<symbol_code> accepted_tokens )
+{
+    setproject( author_id, "grant"_n, project_id, funding_account, accepted_tokens);
+}
+
+// @user
+[[eosio::action]]
 void pomelo::joinround( const name grant_id, const uint16_t round_id )
 {
     // authenticate user

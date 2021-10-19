@@ -527,6 +527,27 @@ public:
     void setproject( const name author_id, const name project_type, const name project_id, const name funding_account, const set<symbol_code> accepted_tokens );
 
     /**
+     * ## ACTION `setgrant`
+     *
+     * Create/update grant - wrapper for setproject for grants
+     *
+     * ### params
+     *
+     * - `{name} author_id` - author user id
+     * - `{name} project_id` - project ID
+     * - `{name} funding_account` - account to forward donations to
+     * - `{set<symbol_code>} accepted_tokens` - accepted tokens (ex: `["EOS"]`)
+     *
+     * ### Example
+     *
+     * ```bash
+     * $ cleos push action app.pomelo setgrant '["123.eosn", "mygrant", "project2fund", ["EOS"]]' -p app.pomelo -p 123.eosn
+     * ```
+     */
+    [[eosio::action]]
+    void setgrant( const name author_id, const name project_id, const name funding_account, const set<symbol_code> accepted_tokens );
+
+    /**
      * ## ACTION `enable`
      *
      * Enable/disable grant or bounty

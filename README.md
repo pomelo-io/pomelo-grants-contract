@@ -83,6 +83,7 @@ $ ./test.sh
 - [ACTION `setconfig`](#action-setconfig)
 - [ACTION `setseason`](#action-setseason)
 - [ACTION `setproject`](#action-setproject)
+- [ACTION `setgrant`](#action-setgrant)
 - [ACTION `enable`](#action-enable)
 - [ACTION `setround`](#action-setround)
 - [ACTION `joinround`](#action-joinround)
@@ -404,6 +405,23 @@ Create/update grant/bounty project without modifying project status
 
 ```bash
 $ cleos push action app.pomelo setproject '["123.eosn", "grant", "mygrant", "project2fund", ["EOS"]]' -p app.pomelo -p 123.eosn
+```
+
+## ACTION `setgrant`
+
+Create/update grant - wrapper for setproject for grants
+
+### params
+
+- `{name} author_id` - author user id - cannot be modified
+- `{name} project_id` - project ID - cannot be modified
+- `{name} funding_account` - account to forward donations to, when creating bounty should be `""_n`
+- `{set<symbol_code>} accepted_tokens` - accepted tokens
+
+### example
+
+```bash
+$ cleos push action app.pomelo setgrant '["123.eosn", "mygrant", "project2fund", ["EOS"]]' -p app.pomelo -p 123.eosn
 ```
 
 ## ACTION `enable`

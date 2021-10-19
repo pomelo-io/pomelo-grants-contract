@@ -50,7 +50,7 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "is not active" ]] || false
 
-  run cleos push action app.pomelo setproject '["prjaaa.eosn", "grant", "grant2", "prjgrant2", ["USDT"]]' -p app.pomelo
+  run cleos push action app.pomelo setgrant '["prjaaa.eosn", "grant2", "prjgrant2", ["USDT"]]' -p app.pomelo
   echo "Output: $output"
   [ $status -eq 1 ]
   [[ "$output" =~ "[user_id] does not exist" ]] || false
@@ -67,7 +67,7 @@
 
 @test "attempt to change author id" {
 
-  run cleos push action app.pomelo setproject '["prjman2.eosn", "grant", "grant1", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman2.eosn
+  run cleos push action app.pomelo setgrant '["prjman2.eosn", "grant1", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman2.eosn
   [ $status -eq 1 ]
   [[ "$output" =~ "project [author_id] cannot be modifed" ]] || false
 
@@ -346,7 +346,7 @@
 
 @test "round #2: create grant2 and fund with 8 microdonations" {
 
-  run cleos push action app.pomelo setproject '["prjman2.eosn", "grant", "grant2", "prjgrant2", ["EOS", "USDT", "PLAY"]]' -p app.pomelo -p prjman2.eosn
+  run cleos push action app.pomelo setgrant '["prjman2.eosn", "grant2", "prjgrant2", ["EOS", "USDT", "PLAY"]]' -p app.pomelo -p prjman2.eosn
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo enable '["grant", "grant2", "ok"]' -p app.pomelo -p prjman2.eosn
@@ -444,10 +444,10 @@
   run cleos push action app.pomelo setround '[103, 1, "This is round 3 of Pomelo!", 100000]' -p app.pomelo
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo setproject '["prjman3.eosn", "grant", "grant3", "prjgrant3", ["EOS"]]' -p app.pomelo -p prjman3.eosn
+  run cleos push action app.pomelo setgrant '["prjman3.eosn", "grant3", "prjgrant3", ["EOS"]]' -p app.pomelo -p prjman3.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo setproject '["prjman4.eosn", "grant", "grant4", "prjgrant4", ["EOS"]]' -p app.pomelo -p prjman4.eosn
+  run cleos push action app.pomelo setgrant '["prjman4.eosn", "grant4", "prjgrant4", ["EOS"]]' -p app.pomelo -p prjman4.eosn
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo enable '["grant", "grant3", "ok"]' -p app.pomelo -p prjman3.eosn
@@ -582,7 +582,7 @@
 
 @test "disable/enable grant5" {
 
-  run cleos push action app.pomelo setproject '["prjman1.eosn", "grant", "grant5", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
+  run cleos push action app.pomelo setgrant '["prjman1.eosn", "grant5", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo joinround '["grant5", 103]' -p app.pomelo -p prjman1.eosn
