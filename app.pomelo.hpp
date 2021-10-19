@@ -505,23 +505,7 @@ public:
     void setseason( const uint16_t season_id, const optional<time_point_sec> start_at, const optional<time_point_sec> end_at, const optional<time_point_sec> submission_start_at, const optional<time_point_sec> submission_end_at, const optional<string> description, const optional<double> match_value );
 
     /**
-     * ## ACTION `setproject`
-     *
-     * Create/update grant/bounty project without modifying project status
-     *
-     * ### params
-     *
-     * - `{name} author_id` - author user id
-     * - `{name} project_type` - project type (grant/bounty)
-     * - `{name} project_id` - project ID
-     * - `{name} funding_account` - account to forward donations to
-     * - `{set<symbol_code>} accepted_tokens` - accepted tokens (ex: `["EOS"]`)
-     *
-     * ### Example
-     *
-     * ```bash
-     * $ cleos push action app.pomelo setproject '["123.eosn", "grant", "mygrant", "project2fund", ["EOS"]]' -p app.pomelo -p 123.eosn
-     * ```
+     * ❗️DEPRECATED
      */
     [[eosio::action]]
     void setproject( const name author_id, const name project_type, const name project_id, const name funding_account, const set<symbol_code> accepted_tokens );
