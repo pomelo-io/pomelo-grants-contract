@@ -25,7 +25,7 @@
 
 @test "create grant1" {
 
-  run cleos push action app.pomelo setproject '["prjman1.eosn", "grant", "grant1", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
+  run cleos push action app.pomelo setgrant '["prjman1.eosn", "grant1", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo grants | jq -r '.rows[0].id')
   [ $result = "grant1" ]
@@ -595,9 +595,20 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "pomelo::donate_project: project not available for donation" ]] || false
 
+  run cleos push action app.pomelo enable '["grant", "grant5", "pending"]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 0 ]
+}
+
+@test "create second pending grant" {
+
+  run cleos push action app.pomelo setgrant '["prjman1.eosn", "grant11", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 1 ]
+  [[ "$output" =~ "pomelo::set_project: only one pending project allowed per author" ]] || false
+
   run cleos push action app.pomelo enable '["grant", "grant5", "ok"]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 }
+
 
 @test "fund grant by a user without EOSN login" {
   run cleos transfer user.noeosn app.pomelo "30.0000 EOS" "grant:grant5"

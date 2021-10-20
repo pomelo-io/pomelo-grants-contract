@@ -165,7 +165,17 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
     }
     else {  // new project
         if ( project_type == "bounty"_n ) check( funding_account.value == 0, "pomelo::set_project: [funding_account] must be empty for bounties" );
-        else check( is_account(funding_account), "pomelo::set_project: [funding_account] does not exists" );
+        else {
+            check( is_account(funding_account), "pomelo::set_project: [funding_account] does not exists" );
+            //reinstantiate table - compiler fails if we just use [projects] here
+            pomelo::grants_table grants( get_self(), get_self().value );
+            auto byauthor = grants.get_index<"byauthor"_n>();
+            int pending = 0;
+            for( auto itr1 = byauthor.lower_bound(author_id.value); itr1 != byauthor.end() && itr1->author_user_id == author_id; ++itr1){
+                if( itr1->status == "pending"_n) pending++;
+                check(pending <= 0, "pomelo::set_project: only one pending project allowed per author");
+            }
+        }
     }
 
     for ( const symbol_code accepted_token : accepted_tokens ) {
