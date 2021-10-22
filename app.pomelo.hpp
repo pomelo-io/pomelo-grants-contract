@@ -474,7 +474,7 @@ public:
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo setconfig '[1, 500, "login.eosn", "fee.pomelo"]' -p app.pomelo
+     * $ cleos push action app.pomelo setconfig '[1, 500, 500, "login.eosn", "fee.pomelo"]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
