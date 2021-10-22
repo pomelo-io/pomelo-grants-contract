@@ -1,4 +1,4 @@
-#include <oracle.defi/oracle.defi.cpp>
+#include <oracle.defi/oracle.defi.hpp>
 
 // @admin
 [[eosio::action]]
@@ -15,7 +15,7 @@ void pomelo::token( const symbol sym, const name contract, const uint64_t min_am
 
     // check if Oracle exists; if not it will assert fail
     if ( is_account( oracle_code ) && extended_symbol{ sym, contract } != VALUE_SYM )
-        oracledefi::get_value( {10000, extended_symbol{ sym, contract }}, oracle_id );
+        defi::oracle::get_value( {10000, extended_symbol{ sym, contract }}, oracle_id );
 
     const auto insert = [&]( auto & row ) {
         row.sym = sym;
