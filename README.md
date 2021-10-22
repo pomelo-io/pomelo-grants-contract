@@ -62,15 +62,6 @@ $ ./test.sh
 | Owners        | Grant/Bounty Owners           |
 | SC            | Smart Contract                |
 
-
-## SPECIFICATION
-
-- [ ] Grants
-- [ ] Bounties
-- [ ] Donations
-- [ ] Restrictions
-- [ ] Matching
-
 ## Table of Content
 
 - [TABLE `globals`](#table-globals)
