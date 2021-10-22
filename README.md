@@ -1,5 +1,9 @@
 # 🍈 Pomelo - EOSIO Smart Contract
 
+## Security Audits
+
+- <a href="https://s3.eu-central-1.wasabisys.com/audit-certificates/Smart%20Contract%20Audit%20Certificate%20-%20Pomelo.app.pdf"><img height=30px src="https://user-images.githubusercontent.com/550895/132641907-6425e632-1b1b-4015-9b84-b7f26a25ec58.png" /> Sentnl Audit</a> (2021-10)
+
 ## Usage
 
 ### `@user`
