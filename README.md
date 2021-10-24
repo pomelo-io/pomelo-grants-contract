@@ -28,8 +28,8 @@ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 1]' -p app.p
 cleos push action app.pomelo token '["4,USDT", "tethertether", 10000, 0]' -p app.pomelo
 
 # create matching round and season add it to season and start it
-cleos push action app.pomelo setround '[101, 1, "Grant Round #1", 100000]' -p app.pomelo
 cleos push action app.pomelo setseason '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Season 1", 100000]' -p app.pomelo
+cleos push action app.pomelo setround '[101, 1, "Grant Round #1", 100000]' -p app.pomelo
 
 
 # approve grant by admin

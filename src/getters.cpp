@@ -15,10 +15,17 @@ pomelo::globals_row pomelo::get_globals()
     return _globals.get();
 }
 
-pomelo::tokens_row pomelo::get_token( const symbol_code symcode )
+pomelo::tokens_row pomelo::get_token( const extended_symbol ext_sym )
 {
     pomelo::tokens_table _tokens( get_self(), get_self().value );
-    return _tokens.get( symcode.raw(), "pomelo::get_token: [symcode] not supported" );
+    const auto& token = _tokens.get( ext_sym.get_symbol().code().raw(), "pomelo::get_token: [symcode] not supported" );
+    check(token.contract == ext_sym.get_contract(), "pomelo::get_token: [token.contract] is invalid");
+    return token;
+}
+
+pomelo::tokens_row pomelo::get_token( const extended_asset ext_quantity )
+{
+    return get_token(ext_quantity.get_extended_symbol());
 }
 
 bool pomelo::is_token_enabled( const symbol_code symcode )
@@ -30,8 +37,7 @@ bool pomelo::is_token_enabled( const symbol_code symcode )
 
 double pomelo::calculate_value( const extended_asset ext_quantity )
 {
-    const auto& token = get_token( ext_quantity.quantity.symbol.code() );
-    check(token.contract == ext_quantity.contract || ext_quantity.contract == "play.pomelo"_n, "pomelo::calculate_value: invalid token");
+    const auto& token = get_token( ext_quantity );
     return defi::oracle::get_value( ext_quantity, token.oracle_id );
 }
 

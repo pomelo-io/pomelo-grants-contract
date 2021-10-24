@@ -23,7 +23,9 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
 
     check(project_id.value, "pomelo::on_transfer: invalid project id");
 
+    // handle token transfer
     const extended_asset ext_quantity = { quantity, get_first_receiver() };
+    get_token( ext_quantity ); // check if valid token & exists
 
     if (project_type == "grant"_n) {
         donate_project(_grants, project_id, from, ext_quantity, memo );

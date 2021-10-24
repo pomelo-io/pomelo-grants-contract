@@ -105,7 +105,7 @@
 
   run cleos transfer user1 app.pomelo "100.0000 EOS" "bounty:bounty1" --contract fake.token
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::calculate_value: invalid token" ]] || false
+  [[ "$output" =~ "pomelo::get_token: [token.contract] is invalid" ]] || false
 
   run cleos transfer user1 app.pomelo "100.0000 USDT" "bounty:bounty1" --contract tethertether
   [ $status -eq 1 ]

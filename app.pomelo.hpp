@@ -749,7 +749,8 @@ private:
     extended_asset calculate_fee( const extended_asset ext_quantity );
 
     // tokens
-    tokens_row get_token( const symbol_code symcode );
+    tokens_row get_token( const extended_symbol ext_sym );
+    tokens_row get_token( const extended_asset ext_quantity );
     bool is_token_enabled( const symbol_code symcode );
 
     // globals key/value
