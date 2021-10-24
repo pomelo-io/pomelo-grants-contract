@@ -16,7 +16,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
 
     const asset quantity = ext_quantity.quantity;
     const symbol_code symcode = quantity.symbol.code();
-    const int64_t min_amount = get_token( symcode ).min_amount;
+    const int64_t min_amount = get_token( ext_quantity ).min_amount;
 
     // validate incoming transfer
     check( quantity.amount >= min_amount, "pomelo::donate_project: [quantity=" + ext_quantity.quantity.to_string() + "] is less than [tokens.min_amount=" + to_string( min_amount ) + "]");
@@ -42,10 +42,10 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     }
 
     // transfer quantity to funding account & system fee
-    transfer( get_self(), project.funding_account, ext_quantity - fee, "🍈 " + memo + " donated via Pomelo");
+    transfer( get_self(), project.funding_account, ext_quantity - fee, "🍈 " + memo + " donation received via Pomelo");
     const name fee_account = get_globals().fee_account;
     if ( is_account( fee_account ) && fee.quantity.amount > 0 ) {
-        transfer( get_self(), fee_account, fee, "🍈 " + memo + " fee ");
+        transfer( get_self(), fee_account, fee, "🍈 " + memo + " re-allocation to next Pomelo season");
     }
 
     // save for logging
