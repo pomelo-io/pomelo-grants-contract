@@ -172,8 +172,8 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
             auto byauthor = grants.get_index<"byauthor"_n>();
             int pending = 0;
             for( auto itr1 = byauthor.lower_bound(author_id.value); itr1 != byauthor.end() && itr1->author_user_id == author_id; ++itr1){
-                check(pending <= 3, "pomelo::set_project: 3 pending grants allowed per author");
                 if( itr1->status == "pending"_n) pending++;
+                check(pending < 3, "pomelo::set_project: 3 pending grants allowed per author");
             }
         }
     }

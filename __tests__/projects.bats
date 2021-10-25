@@ -614,11 +614,17 @@
   [ $status -eq 0 ]
 }
 
-@test "create second pending grant" {skip
+@test "create 4 pending grants" {
 
   run cleos push action app.pomelo setgrant '["prjman1.eosn", "grant11", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 0 ]
+
+  run cleos push action app.pomelo setgrant '["prjman1.eosn", "grant12", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 0 ]
+
+  run cleos push action app.pomelo setgrant '["prjman1.eosn", "grant13", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::set_project: only one pending project allowed per author" ]] || false
+  [[ "$output" =~ "pomelo::set_project: 3 pending grants allowed per author" ]] || false
 }
 
 
