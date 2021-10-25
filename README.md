@@ -33,7 +33,7 @@ cleos push action app.pomelo setround '[101, 1, "Grant Round #1", 100000]' -p ap
 
 
 # approve grant by admin
-cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo
+cleos push action app.pomelo setstate '["grant1", "published"]' -p app.pomelo
 ```
 
 ## Dependencies
@@ -78,7 +78,7 @@ $ ./test.sh
 - [ACTION `setconfig`](#action-setconfig)
 - [ACTION `setseason`](#action-setseason)
 - [ACTION `setgrant`](#action-setgrant)
-- [ACTION `enable`](#action-enable)
+- [ACTION `setstate`](#action-setstate)
 - [ACTION `setround`](#action-setround)
 - [ACTION `joinround`](#action-joinround)
 - [ACTION `unjoinround`](#action-unjoinround)
@@ -124,7 +124,7 @@ $ ./test.sh
 - `{name} author_user_id` - (❗️**IMMUTABLE**) author (Pomelo User Id)
 - `{name} [funding_account=""]` - funding account (EOS account)
 - `{set<symbol_code>} [accepted_tokens=["EOS"]]` - accepted tokens (ex: `["EOS"]`)
-- `{name} [status="pending"]` - status (`pending/ok/disabled`)
+- `{name} [status="pending"]` - status (`pending/published/retired/banned/denied`)
 - `{time_point_sec} created_at` - created at time
 - `{time_point_sec} updated_at` - updated at time
 
@@ -137,7 +137,7 @@ $ ./test.sh
     "author_user_id": "user1.eosn",
     "funding_account": "myreceiver",
     "accepted_tokens": ["EOS"],
-    "status": "ok",
+    "status": "published",
     "created_at": "2020-12-06T00:00:00",
     "updated_at": "2020-12-06T00:00:00",
 }
@@ -400,22 +400,21 @@ Create/update grant - wrapper for setproject for grants
 $ cleos push action app.pomelo setgrant '["123.eosn", "mygrant", "project2fund", ["EOS"]]' -p app.pomelo -p 123.eosn
 ```
 
-## ACTION `enable`
+## ACTION `setstate`
 
-- **authority**: `get_self()` + `author_id`
+- **authority**: `get_self()`
 
-Enable/disable grant or bounty
+Set grant or bounty state
 
 ### params
 
-- `{name} project_type` - project type `grant/bounty`
 - `{name} project_id` - project ID
-- `{name} status` - project status ("pending", "ok", "disabled")
+- `{name} status` - project status ("pending", "published", "retired", "banned", "denied")
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo
+$ cleos push action app.pomelo setstate '["grant1", "published"]' -p app.pomelo
 ```
 
 ## ACTION `setround`

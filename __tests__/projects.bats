@@ -35,10 +35,10 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "project not available for donation" ]] || false
 
-  run cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo -p prjman1.eosn
+  run cleos push action app.pomelo setstate '["grant1", "published"]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo grants | jq -r '.rows[0].status')
-  [ $result = "ok" ]
+  [ $result = "published" ]
 
   run cleos transfer user1 app.pomelo "200.0000 USDT" "grant:grant1" --contract tethertether
   echo "Output: $output"
@@ -89,10 +89,10 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "project not available for donation" ]] || false
 
-  run cleos push action app.pomelo enable '["bounty", "bounty1", "ok"]' -p app.pomelo prjman1.eosn
+  run cleos push action app.pomelo setstate '["bounty1", "published"]' -p app.pomelo prjman1.eosn
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo bounties | jq -r '.rows[0].status')
-  [ $result = "ok" ]
+  [ $result = "published" ]
 
   run cleos transfer user1 app.pomelo "100.0000 EOS" "bounty:bounty1"
   [ $status -eq 1 ]
@@ -349,7 +349,7 @@
   run cleos push action app.pomelo setgrant '["prjman2.eosn", "grant2", "prjgrant2", ["EOS", "USDT", "PLAY"]]' -p app.pomelo -p prjman2.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo enable '["grant", "grant2", "ok"]' -p app.pomelo -p prjman2.eosn
+  run cleos push action app.pomelo setstate '["grant2", "published"]' -p app.pomelo -p prjman2.eosn
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo joinround '["grant2", 102]' -p app.pomelo -p prjman2.eosn
@@ -450,10 +450,10 @@
   run cleos push action app.pomelo setgrant '["prjman4.eosn", "grant4", "prjgrant4", ["EOS"]]' -p app.pomelo -p prjman4.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo enable '["grant", "grant3", "ok"]' -p app.pomelo -p prjman3.eosn
+  run cleos push action app.pomelo setstate '["grant3", "published"]' -p app.pomelo -p prjman3.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo enable '["grant", "grant4", "ok"]' -p app.pomelo -p prjman4.eosn
+  run cleos push action app.pomelo setstate '["grant4", "published"]' -p app.pomelo -p prjman4.eosn
   [ $status -eq 0 ]
 
   run cleos push action app.pomelo unjoinround '["grant1", 102]' -p app.pomelo
@@ -580,6 +580,21 @@
   [ $result = "0.00000000000000000" ]
 }
 
+@test "set bad state" {
+
+  run cleos push action app.pomelo setstate '["grant1", "disabled"]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 1 ]
+  [[ "$output" =~ "pomelo::setstate: invalid [status]" ]] || false
+
+  run cleos push action app.pomelo setstate '["bounty1", "published"]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 1 ]
+  [[ "$output" =~ "pomelo::setstate: status was not modified" ]] || false
+
+  run cleos push action app.pomelo setstate '["grant115", "published"]' -p app.pomelo -p prjman1.eosn
+  [ $status -eq 1 ]
+  [[ "$output" =~ "pomelo::setstate: [project_id] does not exist" ]] || false
+}
+
 @test "disable/enable grant5" {
 
   run cleos push action app.pomelo setgrant '["prjman1.eosn", "grant5", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
@@ -588,14 +603,14 @@
   run cleos push action app.pomelo joinround '["grant5", 103]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 
-  run cleos push action app.pomelo enable '["grant", "grant5", "disabled"]' -p app.pomelo -p prjman1.eosn
+  run cleos push action app.pomelo setstate '["grant5", "banned"]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 
   run cleos transfer user2 app.pomelo "3000.0000 USDT" "grant:grant5" --contract tethertether
   [ $status -eq 1 ]
   [[ "$output" =~ "pomelo::donate_project: project not available for donation" ]] || false
 
-  run cleos push action app.pomelo enable '["grant", "grant5", "pending"]' -p app.pomelo -p prjman1.eosn
+  run cleos push action app.pomelo setstate '["grant5", "pending"]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 }
 
@@ -609,7 +624,7 @@
 
 @test "fund grant by a user without EOSN login" {
 
-  run cleos push action app.pomelo enable '["grant", "grant5", "ok"]' -p app.pomelo -p prjman1.eosn
+  run cleos push action app.pomelo setstate '["grant5", "published"]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 0 ]
 
   run cleos transfer user.noeosn app.pomelo "30.0000 EOS" "grant:grant5"

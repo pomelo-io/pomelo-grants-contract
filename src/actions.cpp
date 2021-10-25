@@ -202,33 +202,26 @@ void pomelo::unjoinround( const name grant_id, const uint16_t round_id )
 
 // @admin
 [[eosio::action]]
-void pomelo::enable( const name project_type, const name project_id, const name status )
+void pomelo::setstate( const name project_id, const name status )
 {
     require_auth( get_self() );
+    check( STATUS_TYPES.count(status), "pomelo::setstate: invalid [status]" );
 
-    // tables
     pomelo::grants_table _grants( get_self(), get_self().value );
     pomelo::bounties_table _bounties( get_self(), get_self().value );
 
-    // validate
-    check( status == "ok"_n || status == "pending"_n || status == "disabled"_n, "pomelo::enable: invalid [status]" );
-
-    if ( project_type == "grant"_n ) enable_project( _grants, project_id, status );
-    else if ( project_type == "bounty"_n ) enable_project( _bounties, project_id, status );
-    else check( false, "pomelo::enable: invalid [project_type]");
-}
-
-template <typename T>
-void pomelo::enable_project( T& table, const name project_id, const name status )
-{
-    auto & itr = table.get( project_id.value, "pomelo::enable_project: [project_id] does not exist");
-    // eosn::login::require_auth_user_id( itr.author_user_id );
-
-    table.modify( itr, get_self(), [&]( auto & row ) {
-        check( row.status != status, "pomelo::enable_project: status was not modified");
+    const auto modify = [&]( auto & row ) {
+        check( row.status != status, "pomelo::setstate: status was not modified");
         row.status = status;
         row.updated_at = current_time_point();
-    });
+    };
+
+    if( auto it = _grants.find( project_id.value ); it != _grants.end())
+        _grants.modify( it, get_self(), modify );
+    else if ( auto it = _bounties.find( project_id.value ); it != _bounties.end())
+        _bounties.modify( it, get_self(), modify );
+    else check( false, "pomelo::setstate: [project_id] does not exist");
+
 }
 
 // @admin

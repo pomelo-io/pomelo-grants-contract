@@ -13,5 +13,5 @@ cleos push action app.pomelo setround '[101, 1, "Grant Round #1", 100000]' -p ap
 
 # create grant, enable it and join round
 cleos push action app.pomelo setproject '["myaccount", "grant", "mygrant", "myaccount", ["EOS", "USDT"]]' -p myaccount
-cleos push action app.pomelo enable '["grant", "mygrant", "ok"]' -p app.pomelo
+cleos push action app.pomelo enable '["mygrant", "published"]' -p app.pomelo
 cleos push action app.pomelo joinround '["mygrant", 1]' -p myaccount

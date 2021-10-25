@@ -11,7 +11,7 @@ using namespace std;
 // static values
 
 static constexpr extended_symbol VALUE_SYM = { symbol {"USDT", 4}, "tethertether"_n };
-static set<name> STATUS_TYPES = set<name>{"ok"_n, "testing"_n, "pending"_n, "disabled"_n};
+static set<name> STATUS_TYPES = set<name>{"published"_n, "pending"_n, "retired"_n, "banned"_n, "denied"_n};
 static constexpr uint32_t DAY = 86400;
 
 static string ERROR_INVALID_MEMO = "invalid transfer memo (ex: \"grant:mygrant\" or \"bounty:mybounty\")";
@@ -161,7 +161,7 @@ public:
      * - `{name} author_user_id - (❗️IMMUTABLE) author (Pomelo User Id)
      * - `{name} funding_account - ""` - funding account (EOS account)
      * - `{set<symbol_code>} accepted_tokens (ex: `["EOS"]`)
-     * - `{name} status = "pending" - status (`pending/ok/disabled`)
+     * - `{name} status = "pending" - status (`pending/published/banned/retired/denied`)
      * - `{time_point_sec} created_at` - created at time
      * - `{time_point_sec} updated_at` - updated at time
      *
@@ -180,7 +180,7 @@ public:
      *     "author_user_id": "123.eosn",
      *     "funding_account": "myreceiver",
      *     "accepted_tokens": ["EOS"],
-     *     "status": "ok",
+     *     "status": "published",
      *     "created_at": "2020-12-06T00:00:00",
      *     "updated_at": "2020-12-06T00:00:00",
      * }
@@ -532,24 +532,23 @@ public:
     void setgrant( const name author_id, const name project_id, const name funding_account, const set<symbol_code> accepted_tokens );
 
     /**
-     * ## ACTION `enable`
+     * ## ACTION `setstate`
      *
-     * Enable/disable grant or bounty
+     * Set grant or bounty state
      *
      * ### params
      *
-     * - `{name} project_type` - project type (grant/bounty)
      * - `{name} project_id` - project ID
-     * - `{name} status` - status `pending/ok/disabled'
+     * - `{name} status` - status `pending/published/banned/retired/denied'
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo enable '["grant", "grant1", "ok"]' -p app.pomelo
+     * $ cleos push action app.pomelo setstate '["grant1", "published"]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void enable( const name project_type, const name project_id, const name status );
+    void setstate( const name project_id, const name state );
 
     /**
      * ## ACTION `setround`
@@ -759,9 +758,6 @@ private:
     // bool del_key( const name key );
 
     globals_row get_globals();
-
-    template <typename T>
-    void enable_project( T& table, const name project_id, const name status );
 
     template <typename T>
     void donate_project(const T& table, const name project_id, const name from, const extended_asset ext_quantity, const string memo );

@@ -20,7 +20,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
 
     // validate incoming transfer
     check( quantity.amount >= min_amount, "pomelo::donate_project: [quantity=" + ext_quantity.quantity.to_string() + "] is less than [tokens.min_amount=" + to_string( min_amount ) + "]");
-    check( project.status == "ok"_n, "pomelo::donate_project: project not available for donation");
+    check( project.status == "published"_n, "pomelo::donate_project: project not available for donation");
     check( project.accepted_tokens.count(symcode), "pomelo::donate_project: not acceptable tokens for this project");
     check( project.funding_account.value, "pomelo::donate_project: [funding_account] is not set");
     check( is_token_enabled( symcode ), "pomelo::donate_project: [token=" + symcode.to_string() + "] is disabled");
