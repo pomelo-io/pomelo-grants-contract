@@ -170,10 +170,10 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
             //reinstantiate table - compiler fails if we just use [projects] here
             pomelo::grants_table grants( get_self(), get_self().value );
             auto byauthor = grants.get_index<"byauthor"_n>();
-            int pending = 0;
+            int active = 0;
             for( auto itr1 = byauthor.lower_bound(author_id.value); itr1 != byauthor.end() && itr1->author_user_id == author_id; ++itr1){
-                if( itr1->status == "pending"_n) pending++;
-                check(pending < 3, "pomelo::set_project: 3 pending grants allowed per author");
+                if( itr1->status == "pending"_n || itr1->status == "published"_n) active++;
+                check(active < 3, "pomelo::set_project: 3 active grants allowed per author");
             }
         }
     }

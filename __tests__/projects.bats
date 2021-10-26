@@ -610,8 +610,6 @@
   [ $status -eq 1 ]
   [[ "$output" =~ "pomelo::donate_project: project not available for donation" ]] || false
 
-  run cleos push action app.pomelo setstate '["grant5", "pending"]' -p app.pomelo -p prjman1.eosn
-  [ $status -eq 0 ]
 }
 
 @test "create 4 pending grants" {
@@ -624,7 +622,7 @@
 
   run cleos push action app.pomelo setgrant '["prjman1.eosn", "grant13", "prjgrant1", ["EOS"]]' -p app.pomelo -p prjman1.eosn
   [ $status -eq 1 ]
-  [[ "$output" =~ "pomelo::set_project: 3 pending grants allowed per author" ]] || false
+  [[ "$output" =~ "pomelo::set_project: 3 active grants allowed per author" ]] || false
 }
 
 
