@@ -3,6 +3,7 @@
 #include <eosio.token/eosio.token.hpp>
 #include <eosio/crypto.hpp>
 #include <pomelo.play/play.pomelo.hpp>
+#include <signature/signature.hpp>
 
 #include "login.eosn.hpp"
 
@@ -19,10 +20,10 @@ void login::create( const name user_id, const set<public_key> public_keys )
     // validate user ID
     const name suffix = user_id.suffix();
     auto itr = _users.find( user_id.value );
-    check( itr == _users.end(), "login::create: [user_id] already exists" );
+    check( itr == _users.end(), "login::create: [user_id=" + user_id.to_string() + "] already exists" );
     check( public_keys.size(), "login::create: [public_keys] is empty" );
-    check( suffix.value, "login::create: [user_id] does not include a suffix" );
-    check( suffix == "eosn"_n, "login::create: [user_id] suffix must be *.eosn" );
+    check( suffix.value, "login::create: [user_id=" + user_id.to_string() + "] does not include a suffix" );
+    check( suffix == "eosn"_n, "login::create: [user_id=" + user_id.to_string() + "] suffix must be *.eosn" );
 
     // create user row
     _users.emplace( get_self(), [&]( auto & row ) {
@@ -72,7 +73,7 @@ void login::status( const name user_id, const name status )
     // validate user ID
     login::users_table _users( get_self(), get_self().value );
     auto itr = _users.find( user_id.value );
-    check( itr != _users.end(), "login::status: [user_id] does not exist" );
+    check( itr != _users.end(), "login::status: [user_id=" + user_id.to_string() + "] does not exist" );
 
     // modify user row
     _users.modify( itr, get_self(), [&]( auto & row ) {
@@ -95,8 +96,8 @@ void login::deluser( const name user_id )
     unlink_by_user( user_id );
 }
 
-void login::verify_sig(const name user_id, const name account, const signature& sig ){
-
+void login::verify_sig(const name user_id, const name account, const signature& sig )
+{
     login::users_table _users( get_self(), get_self().value );
     auto user = _users.get( user_id.value, "login::verify_sig: [user_id] does not exist" );
 
@@ -106,7 +107,7 @@ void login::verify_sig(const name user_id, const name account, const signature& 
 }
 
 [[eosio::action]]
-void login::link( const name user_id, const name account, const signature sig )
+void login::link( const name user_id, const name account, const signature sig)
 {
     require_auth( account );
     verify_sig( user_id, account, sig );
@@ -117,50 +118,56 @@ void login::link( const name user_id, const name account, const signature sig )
 
     // validate user ID
     auto itr = _users.find( user_id.value );
-    check( itr != _users.end(), "login::link: [user_id] does not exist" );
-    check( is_account( account ), "login::link: [" + account.to_string() + "] account does not exist" );
-    check( user_id != account, "login::link: [user_id] cannot be the same as [account]" );
+    check( itr != _users.end(), "login::link: [user_id=" + user_id.to_string() + "] does not exist" );
+    check( is_account( account ), "login::link: [account=" + account.to_string() + "] account does not exist" );
+    check( user_id != account, "login::link: [user_id=" + user_id.to_string() + "] cannot be the same as [account=" + account.to_string() + "]" );
+    check( !itr->accounts.count( account ), "login::link: [user_id=" + user_id.to_string() + "] is already linked" );
 
     // modify user row
     _users.modify( itr, get_self(), [&]( auto & row ) {
-        check( !row.accounts.count( account ), "login::link: [account] is already linked" );
         row.accounts.insert( account );
         row.updated_at = current_time_point();
+
+        // account can only have one linked account
+        check( row.accounts.size() <= 1, "login::link: [user_id=" + user_id.to_string() + "] can only have one linked account" );
     });
 
     // link account related to user id
     auto accounts_itr = _accounts.find( account.value );
-    check( accounts_itr == _accounts.end(), "login::link: [" + account.to_string() + "] account already linked with [" + accounts_itr->user_id.to_string() + "] user_id" );
+    check( accounts_itr == _accounts.end(), "login::link: [account=" + account.to_string() + "] account already linked with [user_id=" + accounts_itr->user_id.to_string() + "] user_id" );
 
     _accounts.emplace( get_self(), [&]( auto & row ) {
         row.account = account;
         row.user_id = user_id;
     });
 
-    const auto play_balance = pomelo::playtoken::get_balance("play.pomelo"_n, account, symbol_code("PLAY"));
-    if( !play_balance.symbol.is_valid() ){  // if already issued before - quietly don't issue
-        pomelo::playtoken::faucet_action faucet( "play.pomelo"_n, { "play.pomelo"_n, "active"_n });
-        faucet.send( account, symbol_code("PLAY") );
+    if (is_account("play.pomelo"_n)) {
+        const auto play_balance = pomelo::playtoken::get_balance("play.pomelo"_n, account, symbol_code("PLAY"));
+        if ( !play_balance.symbol.is_valid() ) {  // if already issued before - quietly don't issue
+            pomelo::playtoken::faucet_action faucet( "play.pomelo"_n, { "play.pomelo"_n, "active"_n });
+            faucet.send( account, symbol_code("PLAY") );
+        }
     }
 }
 
 [[eosio::action]]
 void login::unlink( const name user_id, const optional<name> account )
 {
-    check( is_auth( user_id, get_self() ) || has_auth( *account), "login::unlink: is not authorized");
+    const bool is_authed = has_auth( get_self() ) || is_auth( user_id, get_self() ) || has_auth( *account);
+    check( is_authed, "login::unlink: is not authorized");
     alert_notifiers();
 
     login::users_table _users( get_self(), get_self().value );
 
     // validate user ID
     auto itr = _users.find( user_id.value );
-    check( itr != _users.end(), "login::unlink: [user_id] does not exist" );
-    check( itr->accounts.size(), "login::unlink: [user_id] has no linked accounts" );
+    check( itr != _users.end(), "login::unlink: [user_id=" + user_id.to_string() + "] does not exist" );
+    check( itr->accounts.size(), "login::unlink: [user_id=" + user_id.to_string() + "] has no linked accounts" );
 
     // modify user row
     _users.modify( itr, get_self(), [&]( auto & row ) {
         if ( account ) {
-            check( row.accounts.count( *account ), "login::unlink: [account] is already unlinked" );
+            check( row.accounts.count( *account ), "login::unlink: [account=" + account->to_string() + "] is already unlinked" );
             row.accounts.erase( *account );
             unlink_by_account( *account );
         } else row.accounts = {};
@@ -201,12 +208,12 @@ void login::social( const name user_id, const name social )
 
     // validate user ID
     auto itr = _users.find( user_id.value );
-    check( itr != _users.end(), "login::social: [user_id] does not exist" );
-    check( _socials.find( social.value ) != _socials.end(), "login::social: one of the [socials] is unknown" );
+    check( itr != _users.end(), "login::social: [user_id=" + user_id.to_string() + "] does not exist" );
+    check( _socials.find( social.value ) != _socials.end(), "login::social: [social=" + social.to_string() + "] is unknown" );
 
     // modify user row
     _users.modify( itr, get_self(), [&]( auto & row ) {
-        check( !row.socials.count( social ), "login::unsocial: [social] is already exists" );
+        check( !row.socials.count( social ), "login::unsocial: [social=" + social.to_string() + "] is already exists" );
         row.socials.insert( social );
         row.updated_at = current_time_point();
     });
@@ -226,12 +233,12 @@ void login::unsocial( const name user_id, const optional<name> social )
     // validate user ID
     auto itr = _users.find( user_id.value );
     check( itr != _users.end(), "login::social: [user_id] does not exist" );
-    check( _socials.find( social->value ) != _socials.end(), "login::social: [socials] is unknown" );
+    check( _socials.find( social->value ) != _socials.end(), "login::social: [social=" + social->to_string() + "] is unknown" );
 
     // modify user row
     _users.modify( itr, get_self(), [&]( auto & row ) {
         if ( social ) {
-            check( row.socials.count( *social ), "login::unsocial: [social] is already removed" );
+            check( row.socials.count( *social ), "login::unsocial: [social=" + social->to_string() + "] is already removed" );
             row.socials.erase( *social );
         } else row.socials = {};
         row.updated_at = current_time_point();
@@ -265,7 +272,7 @@ void login::setnotifiers( const vector<name> notifiers )
     require_auth( get_self() );
 
     for ( const name notifier : notifiers ) {
-        check( is_account( notifier ), "login::setnotifiers: `notifier` does not exist");
+        check( is_account( notifier ), "login::setnotifiers: [notifier=" + notifier.to_string() + "] does not exist");
     }
     login::config_table _config( get_self(), get_self().value );
     auto config = _config.get_or_default();
@@ -324,7 +331,7 @@ void login::reset( const name table )
 void login::configsocial( const name social, const uint32_t weight )
 {
     require_auth( get_self() );
-    check( weight <= 20000, "login::setsocial: [weight] should be <= 20000");
+    check( weight <= 20000, "login::setsocial: [weight=" + to_string(weight) + "] should be <= 20000");
 
     login::socials_table _socials( get_self(), get_self().value );
 
