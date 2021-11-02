@@ -125,3 +125,41 @@
   [ $status -eq 0 ]
 
 }
+
+
+@test "re-link user unlinking another one" {
+
+  result=$(cleos get table login.eosn login.eosn users -L user2.eosn | jq -r '.rows[0].accounts[0]')
+  [ $result = "user2" ]
+  result=$(cleos get table login.eosn login.eosn accounts -L user2 | jq -r '.rows[0].user_id')
+  [ $result = "user2.eosn" ]
+
+  run cleos push action login.eosn unlink '["user2.eosn", "user2"]' -p user2
+  [ $status -eq 0 ]
+
+  result=$(cleos get table login.eosn login.eosn users -L user2.eosn | jq -r '.rows[0].accounts | length')
+  [ $result = "0" ]
+  result=$(cleos get table login.eosn login.eosn accounts -L user2 -U user2 | jq -r '.rows | length')
+  [ $result = "0" ]
+  result=$(cleos get table login.eosn login.eosn accounts -L user3 | jq -r '.rows[0].user_id')
+  [ $result = "user3.eosn" ]
+
+  run cleos push action login.eosn link '["user2.eosn", "user3", "SIG_K1_KcJy4yEpUYbLQWfpaNo5EcjMoGMTXcyjyrymWpJyXwrnJSBWtsjibWKcGTWtEnWb4WMfXqtEtFUt3AkauEqLPXt9Q2evBv"]' -p user3
+  [ $status -eq 0 ]
+  result=$(cleos get table login.eosn login.eosn users -L user2.eosn -U user2.eosn | jq -r '.rows[0].accounts[0]')
+  [ $result = "user3" ]
+  result=$(cleos get table login.eosn login.eosn users -L user3.eosn -U user3.eosn | jq -r '.rows[0].accounts | length')
+  [ $result = "0" ]
+  result=$(cleos get table login.eosn login.eosn accounts -L user3 -U user3 | jq -r '.rows[0].user_id')
+  [ $result = "user2.eosn" ]
+
+  run cleos push action login.eosn link '["user3.eosn", "user3", "SIG_K1_KcJy4yEpUYbLQWfpaNo5EcjMoGMTXcyjyrymWpJyXwrnJSBWtsjibWKcGTWtEnWb4WMfXqtEtFUt3AkauEqLPXt9Q2evBv"]' -p user3
+  [ $status -eq 0 ]
+  result=$(cleos get table login.eosn login.eosn users -L user3.eosn -U user3.eosn | jq -r '.rows[0].accounts[0]')
+  [ $result = "user3" ]
+  result=$(cleos get table login.eosn login.eosn accounts -L user3 -U user3 | jq -r '.rows[0].user_id')
+  [ $result = "user3.eosn" ]
+
+  run cleos push action login.eosn link '["user2.eosn", "user2", "SIG_K1_KYuJhk7iCjKkct5MxeMrTuUEmHgd9S27n33sWGGoT45x8J85xMVnpi6k2UWUgx9s5Wc7K76KryoKC8YuRkcXnv51cXqomo"]' -p user2
+  [ $status -eq 0 ]
+}

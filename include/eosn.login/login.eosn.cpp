@@ -134,7 +134,11 @@ void login::link( const name user_id, const name account, const signature sig)
 
     // link account related to user id
     auto accounts_itr = _accounts.find( account.value );
-    check( accounts_itr == _accounts.end(), "login::link: [account=" + account.to_string() + "] account already linked with [user_id=" + accounts_itr->user_id.to_string() + "] user_id" );
+    //check( accounts_itr == _accounts.end(), "login::link: [account=" + account.to_string() + "] account already linked with [user_id=" + accounts_itr->user_id.to_string() + "] user_id" );
+    if( accounts_itr != _accounts.end()){
+        // unlink [account] from another [user_id] it's linked to
+        unlink( accounts_itr->user_id, account );
+    }
 
     _accounts.emplace( get_self(), [&]( auto & row ) {
         row.account = account;
