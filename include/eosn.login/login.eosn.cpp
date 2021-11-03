@@ -113,6 +113,14 @@ void login::link( const name user_id, const name account, const signature sig)
     verify_sig( user_id, account, sig );
     alert_notifiers();
 
+    // unlink account related to user id
+    login::accounts_table _accounts( get_self(), get_self().value );
+    auto accounts_itr = _accounts.find( account.value );
+    if( accounts_itr != _accounts.end()){
+        // unlink [account] from another [user_id] it's linked to
+        unlink( accounts_itr->user_id, account );
+    }
+
     login::users_table _users( get_self(), get_self().value );
 
     // validate user ID
@@ -131,15 +139,6 @@ void login::link( const name user_id, const name account, const signature sig)
         // account can only have one linked account
         check( row.accounts.size() <= 1, "login::link: [user_id=" + user_id.to_string() + "] can only have one linked account" );
     });
-
-
-    // link account related to user id
-    login::accounts_table _accounts( get_self(), get_self().value );
-    auto accounts_itr = _accounts.find( account.value );
-    if( accounts_itr != _accounts.end()){
-        // unlink [account] from another [user_id] it's linked to
-        unlink( accounts_itr->user_id, account );
-    }
 
     // re-instantiate accounts table
     login::accounts_table _accounts1( get_self(), get_self().value );
