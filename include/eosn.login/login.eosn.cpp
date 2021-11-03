@@ -114,17 +114,17 @@ void login::link( const name user_id, const name account, const signature sig)
     alert_notifiers();
 
     login::users_table _users( get_self(), get_self().value );
-    login::accounts_table _accounts( get_self(), get_self().value );
 
     // validate user ID
     auto itr = _users.find( user_id.value );
     check( itr != _users.end(), "login::link: [user_id=" + user_id.to_string() + "] does not exist" );
     check( is_account( account ), "login::link: [account=" + account.to_string() + "] account does not exist" );
     check( user_id != account, "login::link: [user_id=" + user_id.to_string() + "] cannot be the same as [account=" + account.to_string() + "]" );
-    check( !itr->accounts.count( account ), "login::link: [user_id=" + user_id.to_string() + "] is already linked" );
+    check( itr->accounts.count( account ) == 0, "login::link: [user_id=" + user_id.to_string() + "] is already linked to [account=" + account.to_string() + "]" );
 
     // modify user row
     _users.modify( itr, get_self(), [&]( auto & row ) {
+        row.accounts.clear();
         row.accounts.insert( account );
         row.updated_at = current_time_point();
 
@@ -132,15 +132,18 @@ void login::link( const name user_id, const name account, const signature sig)
         check( row.accounts.size() <= 1, "login::link: [user_id=" + user_id.to_string() + "] can only have one linked account" );
     });
 
+
     // link account related to user id
+    login::accounts_table _accounts( get_self(), get_self().value );
     auto accounts_itr = _accounts.find( account.value );
-    //check( accounts_itr == _accounts.end(), "login::link: [account=" + account.to_string() + "] account already linked with [user_id=" + accounts_itr->user_id.to_string() + "] user_id" );
     if( accounts_itr != _accounts.end()){
         // unlink [account] from another [user_id] it's linked to
         unlink( accounts_itr->user_id, account );
     }
 
-    _accounts.emplace( get_self(), [&]( auto & row ) {
+    // re-instantiate accounts table
+    login::accounts_table _accounts1( get_self(), get_self().value );
+    _accounts1.emplace( get_self(), [&]( auto & row ) {
         row.account = account;
         row.user_id = user_id;
     });
