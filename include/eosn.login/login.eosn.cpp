@@ -117,9 +117,9 @@ void login::link( const name user_id, const name account, const signature sig)
     login::accounts_table _accounts( get_self(), get_self().value );
     auto accounts_itr = _accounts.find( account.value );
     if( accounts_itr != _accounts.end()){
-        // unlink [account] from another [user_id] it's linked to
-        unlink( accounts_itr->user_id, account );
+        unlink_user( accounts_itr->user_id, account );
     }
+    unlink_by_account( account );
 
     login::users_table _users( get_self(), get_self().value );
 
@@ -200,6 +200,20 @@ void login::unlink_by_user( const name user_id )
     auto itr = index.find( user_id.value );
     if ( itr != index.end() ) index.erase( itr );
 }
+
+void login::unlink_user( const name user_id, const name account )
+{
+    login::users_table _users( get_self(), get_self().value );
+
+    auto itr = _users.find( user_id.value );
+    if ( itr != _users.end() ) {
+        _users.modify( itr, get_self(), [&]( auto & row ) {
+            row.accounts.erase( account );
+            row.updated_at = current_time_point();
+        });
+    }
+}
+
 
 [[eosio::action]]
 void login::social( const name user_id, const name social )

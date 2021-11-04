@@ -499,6 +499,8 @@ public:
 private:
     void unlink_by_user( const name user_id );
     void unlink_by_account( const name account );
+    void unlink_user( const name user_id, const name account );
+
     template <typename T>
     bool erase_table( T& table );
     void erase_stale_proofs();
