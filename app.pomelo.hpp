@@ -736,6 +736,12 @@ public:
     [[eosio::action]]
     void deltoken( const symbol_code symcode );
 
+    [[eosio::action]]
+    void setfunding( const name grant_id, const name user_id);
+
+    [[eosio::action]]
+    void setgrantid( const name grant_id, const name new_grant_id );
+
 private:
     void transfer( const name from, const name to, const extended_asset value, const string memo );
 

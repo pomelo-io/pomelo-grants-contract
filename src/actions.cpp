@@ -2,6 +2,40 @@
 
 // @admin
 [[eosio::action]]
+void pomelo::setfunding( const name grant_id, const name funding_account)
+{
+    require_auth( get_self() );
+    pomelo::grants_table grants( get_self(), get_self().value );
+
+    auto & grant = grants.get(grant_id.value, "pomelo::setgrantid: [grant_id] does not exists");
+    grants.modify( grant, get_self(), [&]( auto & row ) {
+        row.funding_account = funding_account;
+    });
+}
+
+// @admin
+[[eosio::action]]
+void pomelo::setgrantid( const name grant_id, const name new_grant_id )
+{
+    require_auth( get_self() );
+    pomelo::grants_table grants( get_self(), get_self().value );
+
+    auto & grant = grants.get(grant_id.value, "pomelo::setgrantid: [grant_id] does not exists");
+    grants.emplace( get_self(), [&]( auto & row ) {
+        row.id              = new_grant_id;
+        row.type            = grant.type;
+        row.author_user_id  = grant.author_user_id;
+        row.funding_account = grant.funding_account;
+        row.accepted_tokens = grant.accepted_tokens;
+        row.status          = grant.status;
+        row.created_at      = grant.created_at;
+        row.updated_at      = grant.updated_at;
+    });
+    grants.erase( grant );
+}
+
+// @admin
+[[eosio::action]]
 void pomelo::token( const symbol sym, const name contract, const uint64_t min_amount, const uint64_t oracle_id )
 {
     // authenticate
@@ -311,7 +345,6 @@ void pomelo::cleartable( const name table_name, const optional<uint16_t> round_i
     else if (table_name == "status"_n) status.remove();
     else check(false, "pomelo::cleartable: [table_name] unknown table to clear" );
 }
-
 
 // @admin
 [[eosio::action]]
