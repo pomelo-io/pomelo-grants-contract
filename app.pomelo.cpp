@@ -25,11 +25,11 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     check( project.funding_account.value, "pomelo::donate_project: [funding_account] is not set");
     check( is_token_enabled( symcode ), "pomelo::donate_project: [token=" + symcode.to_string() + "] is disabled");
 
-    // check sender is not self (prevent circular donations)
+    // check sender is not self (prevent circular donations) only from funding account
     const name user_id = get_user_id( from );
-    check( project.author_user_id != user_id, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be linked to [author_user_id]");
     check( project.funding_account != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [funding_account]");
-    check( project.author_user_id != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [author_user_id]");
+    // check( project.author_user_id != user_id, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be linked to [author_user_id]");
+    // check( project.author_user_id != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [author_user_id]");
 
     // calculate fee
     const extended_asset fee = calculate_fee( ext_quantity );
