@@ -5,6 +5,6 @@ echo "Killing nodeos ..."
 echo "Starting nodeos ..."
 ./scripts/start_nodeos.sh
 
-sleep 5
+sleep 10
 echo "Deploying contracts ..."
 ./scripts/deploy.sh
