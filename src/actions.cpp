@@ -219,12 +219,10 @@ void pomelo::unjoinround( const name grant_id, const uint16_t round_id )
             }
             _users.modify( users_itr, get_self(), [&]( auto & row ) {
                 const auto value = users_itr->contributions[index].value;
-                const auto donated = value / ( users_itr->multiplier + 1);
-                const auto boost = donated * users_itr->multiplier;
-                vector<contribution_t> vec;
-                for(const auto c: users_itr->contributions)
-                    if(c.id != grant_id) vec.push_back(c);
-                row.contributions = vec;
+                const auto multiplier = users_itr->boost / users_itr->value;
+                const auto donated = value / (multiplier + 1);      // edge case: change social between donations
+                const auto boost = donated * multiplier;
+                row.contributions.erase(row.contributions.begin() + index);
                 row.value -= donated;
                 row.boost -= boost;
                 row.updated_at = current_time_point();
