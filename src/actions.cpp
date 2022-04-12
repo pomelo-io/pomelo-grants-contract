@@ -94,7 +94,7 @@ void pomelo::setseason( const uint16_t season_id, const optional<time_point_sec>
     };
 
     // erase if all parameters are undefined
-    if( !description && !match_value && !start_at && !end_at) seasons.erase(itr);
+    if( !description && !match_value && !start_at && !end_at && !submission_start_at && !submission_end_at) seasons.erase(itr);
     else if ( itr == seasons.end() ) seasons.emplace( get_self(), insert );
     else seasons.modify( itr, get_self(), insert );
 }
