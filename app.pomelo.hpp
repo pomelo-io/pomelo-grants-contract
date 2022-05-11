@@ -676,21 +676,21 @@ public:
     /**
      * ## ACTION `removeuser`
      *
-     * Remove user from all projects at this round and update all matchings
+     * Remove users from all projects in this round and update all matchings
      *
      * ### params
      *
-     * - `{name} user_id` - user ID
+     * - `{vector<name>} user_ids` - user IDs to remove
      * - `{uint16_t} round_id` - round ID
      *
      * ### example
      *
      * ```bash
-     * $ cleos push action app.pomelo removeuser '["user1.eosn", 1]' -p app.pomelo
+     * $ cleos push action app.pomelo removeuser '[["user1.eosn", "user2.eosn"], 1]' -p app.pomelo
      * ```
      */
     [[eosio::action]]
-    void removeuser( const name user_id, const uint16_t round_id );
+    void removeuser( const vector<name> user_ids, const uint16_t round_id );
 
     /**
      * ## ACTION `collapse`
@@ -780,7 +780,10 @@ private:
     int get_index(const vector<uint16_t>& vec, uint16_t id);
 
     template <typename T>
-    vector<T> remove_element(const vector<T>& vec, name id);
+    vector<T> remove_element(const vector<T>& vec, T id);
+
+    template <typename T>
+    vector<T> remove_elements(const vector<T>& vec, const vector<T>& id);
 
     template <typename T>
     void clear_table( T& table, uint64_t rows_to_clear );

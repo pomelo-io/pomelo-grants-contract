@@ -231,11 +231,22 @@ void pomelo::clear_table( T& table, uint64_t rows_to_clear )
 }
 
 template <typename T>
-vector<T> pomelo::remove_element(const vector<T>& vec, name id)
+vector<T> pomelo::remove_element(const vector<T>& vec, T id)
 {
     vector<T> res;
     for(const auto e: vec){
         if(e != id) res.push_back(e);
+    }
+    return res;
+}
+
+
+template <typename T>
+vector<T> pomelo::remove_elements(const vector<T>& vec, const vector<T>& ids)
+{
+    vector<T> res;
+    for(const auto id: vec){
+        if(get_index(ids, id) == -1) res.push_back(id);
     }
     return res;
 }
