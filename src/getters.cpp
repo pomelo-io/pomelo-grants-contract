@@ -73,7 +73,7 @@ void pomelo::validate_round( const uint16_t round_id )
 uint16_t pomelo::get_active_round( const name grant_id )
 {
     const auto season_id = get_globals().season_id;
-    if( season_id == 0) return 0;
+    check(season_id != 0, "pomelo::donate_grant: season is not active");
 
     pomelo::seasons_table _seasons( get_self(), get_self().value );
     pomelo::rounds_table _rounds( get_self(), get_self().value );

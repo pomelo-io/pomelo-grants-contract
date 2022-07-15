@@ -48,7 +48,7 @@
   run cleos transfer user1 app.pomelo "300.0000 EOS" "grant:grant1"
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "is not active" ]] || false
+  [[ "$output" =~ "season is not active" ]] || false
 
   run cleos push action app.pomelo setgrant '["prjaaa.eosn", "grant2", "prjgrant2", ["USDT"]]' -p app.pomelo
   echo "Output: $output"
@@ -202,7 +202,7 @@
   run cleos transfer user1 app.pomelo "600.0000 EOS" "grant:grant1"
   echo "Output: $output"
   [ $status -eq 1 ]
-  [[ "$output" =~ "[round_id] is not active" ]] || false
+  [[ "$output" =~ "season is not active" ]] || false
 
   run cleos push action app.pomelo setround '[102, 1, "This is round 2 of Pomelo!", 50000]' -p app.pomelo
   [ $status -eq 0 ]
@@ -278,6 +278,11 @@
   [ $status -eq 0 ]
   result=$(cleos get table app.pomelo app.pomelo rounds | jq -r '.rows[0].grant_ids | length')
   [ $result = "0" ]
+
+  run cleos transfer user1 app.pomelo "600.0000 EOS" "grant:grant1"
+  echo "Output: $output"
+  [ $status -eq 1 ]
+  [[ "$output" =~ "[grant_id] hasn't joined active rounds" ]] || false
 
   run cleos push action app.pomelo joinround '["grant1", 101]' -p app.pomelo  -p prjman1.eosn
   [ $status -eq 0 ]
@@ -774,4 +779,6 @@
 
   run cleos transfer user1 app.pomelo "1.0000 PLAY" "grant:grant2" --contract play.pomelo
   [ $status -eq 0 ]
+  balance=$(cleos get currency balance play.pomelo prjgrant2 PLAY)
+  [ "$balance" = "0.9500 PLAY" ]
 }
