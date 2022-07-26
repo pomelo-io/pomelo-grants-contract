@@ -145,19 +145,7 @@ $ ./test.sh
 
 ## TABLE `transfers`
 
-- **scope**: `get_self() {name}`
-
-### multi-indexes
-
-| `param`        | `index_position` | `key_type` |
-|--------------- |------------------|------------|
-| `byfrom`       | 2                | i64        |
-| `byuser`       | 3                | i64        |
-| `byseason`     | 4                | i64        |
-| `byround`      | 5                | i64        |
-| `bygrant`      | 6                | i64        |
-| `byvalue`      | 7                | i64        |
-| `bycreated`    | 8                | i64        |
+- **scope**: `get_self()`
 
 ### params
 

@@ -217,19 +217,7 @@ public:
     /**
      * ## TABLE `transfer`
      *
-     * - **scope**: `get_self() {name}`
-     *
-     * ### multi-indexes
-     *
-     * | `param`        | `index_position` | `key_type` |
-     * |--------------- |------------------|------------|
-     * | `byfrom`       | 2                | i64        |
-     * | `byuser`       | 3                | i64        |
-     * | `byseason`     | 4                | i64        |
-     * | `byround`      | 5                | i64        |
-     * | `bygrant`      | 6                | i64        |
-     * | `byvalue`      | 7                | i64        |
-     * | `bycreated`    | 8                | i64        |
+     * - **scope**: `get_self()`
      *
      * ### params
      *
@@ -286,24 +274,9 @@ public:
         time_point_sec          created_at;
 
         uint64_t primary_key() const { return transfer_id; };
-        uint64_t byfrom() const { return from.value; };
-        uint64_t byuser() const { return user_id.value; };
-        uint64_t byseason() const { return season_id; };
-        uint64_t byround() const { return round_id; };
-        uint64_t byproject() const { return project_id.value; };
-        uint64_t byvalue() const { return static_cast<uint64_t> ( value * VALUE_SYM.get_symbol().precision() ); };
-        uint64_t bycreated() const { return created_at.sec_since_epoch(); };
     };
 
-    typedef eosio::multi_index< "transfers"_n, transfers_row,
-        indexed_by< "byfrom"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byfrom> >,
-        indexed_by< "byuser"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byuser> >,
-        indexed_by< "byseason"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byseason> >,
-        indexed_by< "byround"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byround> >,
-        indexed_by< "byproject"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byproject> >,
-        indexed_by< "byvalue"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::byvalue> >,
-        indexed_by< "bycreated"_n, const_mem_fun<transfers_row, uint64_t, &transfers_row::bycreated> >
-    > transfers_table;
+    typedef eosio::multi_index< "transfers"_n, transfers_row> transfers_table;
 
     /**
      * ## TABLE `match`
