@@ -148,7 +148,7 @@ void pomelo::joinround( const name grant_id, const uint16_t round_id )
     // authenticate user
     pomelo::grants_table grants( get_self(), get_self().value );
     const auto grant = grants.get( grant_id.value, "pomelo::joinround: [grant_id] does not exist" );
-    eosn::login::require_auth_user_id( grant.author_user_id, get_globals().login_contract );
+    if ( !has_auth(get_self()) ) eosn::login::require_auth_user_id( grant.author_user_id, get_globals().login_contract );
     const auto now = current_time_point().sec_since_epoch();
 
     // join round
@@ -158,7 +158,7 @@ void pomelo::joinround( const name grant_id, const uint16_t round_id )
     const auto & season = seasons.get( round.season_id, "pomelo::joinround: [round.season_id] does not exist");
     check( get_index(round.grant_ids, grant_id ) == -1, "pomelo::joinround: grant already exists in this round");
     check( season.submission_start_at.sec_since_epoch() <= now, "pomelo::joinround: [round_id] submission period has not started");
-    check( now <= season.submission_end_at.sec_since_epoch(), "pomelo::joinround: [round_id] submission period has ended");
+    // check( now <= season.submission_end_at.sec_since_epoch(), "pomelo::joinround: [round_id] submission period has ended");
 
     for(const auto ex_round_id: season.round_ids){
         const auto round = rounds.get(ex_round_id, "pomelo::joinround: bad existing round in a season");
@@ -169,7 +169,6 @@ void pomelo::joinround( const name grant_id, const uint16_t round_id )
         row.grant_ids.push_back(grant_id);
         row.updated_at = current_time_point();
     });
-
 }
 
 // @admin
