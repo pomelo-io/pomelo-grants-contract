@@ -18,8 +18,9 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
     // parse memo
     const auto memo_parts = sx::utils::split(memo, ":");
     check( memo_parts.size() == 2, ERROR_INVALID_MEMO);
+    const auto project_parts = sx::utils::split(memo_parts[1], "@");
     const name project_type = sx::utils::parse_name(memo_parts[0]);
-    const name project_id = sx::utils::parse_name(memo_parts[1]);
+    const name project_id = sx::utils::parse_name(project_parts[0]);
 
     check(project_id.value, "pomelo::on_transfer: invalid project id");
 
