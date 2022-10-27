@@ -289,7 +289,11 @@ void pomelo::setround(  const uint16_t round_id,
     };
 
     const auto itr = rounds.find( round_id );
-    if ( itr == rounds.end() ) rounds.emplace( get_self(), insert );
+    if( !description && !match_value) {
+        check(itr->grant_ids.size() == 0, "pomelo::setround: can't delete round with joined grants");
+        rounds.erase(itr);
+    }
+    else if ( itr == rounds.end() ) rounds.emplace( get_self(), insert );
     else rounds.modify( itr, get_self(), insert );
 }
 
