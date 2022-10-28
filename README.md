@@ -107,7 +107,7 @@ $ ./test.sh
 }
 ```
 
-## TABLES `grants` and `bounties`
+## TABLES `grants`
 
 ### multi-indexes
 

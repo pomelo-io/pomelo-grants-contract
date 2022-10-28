@@ -152,7 +152,7 @@ public:
     typedef eosio::multi_index< "tokens"_n, tokens_row> tokens_table;
 
     /**
-     * ## TABLE `grants` & `bounties`
+     * ## TABLE `grants`
      *
      * *scope*: `get_self()` (name)
      *
@@ -186,7 +186,7 @@ public:
      * }
      * ```
      */
-    struct [[eosio::table]] projects_row {
+    struct [[eosio::table]] grants_row {
         name                    id;
         name                    type;
         name                    author_user_id;
@@ -202,17 +202,11 @@ public:
         uint64_t byupdated() const { return updated_at.sec_since_epoch(); };
     };
 
-    typedef eosio::multi_index< "grants"_n, projects_row,
-        indexed_by< "byauthor"_n, const_mem_fun<projects_row, uint64_t, &projects_row::byauthor> >,
-        indexed_by< "bystatus"_n, const_mem_fun<projects_row, uint64_t, &projects_row::bystatus> >,
-        indexed_by< "byupdated"_n, const_mem_fun<projects_row, uint64_t, &projects_row::byupdated> >
+    typedef eosio::multi_index< "grants"_n, grants_row,
+        indexed_by< "byauthor"_n, const_mem_fun<grants_row, uint64_t, &grants_row::byauthor> >,
+        indexed_by< "bystatus"_n, const_mem_fun<grants_row, uint64_t, &grants_row::bystatus> >,
+        indexed_by< "byupdated"_n, const_mem_fun<grants_row, uint64_t, &grants_row::byupdated> >
     > grants_table;
-
-    typedef eosio::multi_index< "bounties"_n, projects_row,
-        indexed_by< "byauthor"_n, const_mem_fun<projects_row, uint64_t, &projects_row::byauthor> >,
-        indexed_by< "bystatus"_n, const_mem_fun<projects_row, uint64_t, &projects_row::bystatus> >,
-        indexed_by< "byupdated"_n, const_mem_fun<projects_row, uint64_t, &projects_row::byupdated> >
-    > bounties_table;
 
     /**
      * ## TABLE `transfer`
