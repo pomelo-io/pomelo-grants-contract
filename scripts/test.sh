@@ -7,7 +7,7 @@ cleos wallet unlock --password $(cat ~/eosio-wallet/.pass)
 cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 1]' -p app.pomelo
 
 # create matching round and start it
-cleos push action app.pomelo setconfig '[1, 500, 500, "login.eosn", "fee.pomelo"]' -p app.pomelo
+cleos push action d.app.pomelo setconfig '[2, 1000, 1000, "d.login.eosn", "d.fee.pomelo"]' -p d.app.pomelo
 cleos push action app.pomelo setseason '[1, "2021-05-19T20:00:00", "2021-05-25T20:00:00", "2021-05-19T20:00:00", "2021-05-25T20:00:00", "Season 1", 100000]' -p app.pomelo
 cleos push action app.pomelo setround '[101, 1, "Grant Round #1", 100000]' -p app.pomelo
 
