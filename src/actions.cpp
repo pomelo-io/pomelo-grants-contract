@@ -120,18 +120,10 @@ void pomelo::setproject( const name author_id, const name project_type, const na
 
     // tables
     pomelo::grants_table grants( get_self(), get_self().value );
-    pomelo::bounties_table bounties( get_self(), get_self().value );
 
-    // set project
-    if ( project_type == "grant"_n ) {
-        set_project( grants, "grant"_n, project_id, author_id, funding_account, accepted_tokens );
-        check( bounties.find(project_id.value) == bounties.end(), "pomelo::setproject: Bounty with [project_id] already exists" );
-    }
-    else if ( project_type == "bounty"_n ) {
-        set_project( bounties, "bounty"_n, project_id, author_id, funding_account, accepted_tokens );
-        check( grants.find(project_id.value) == grants.end(), "pomelo::setproject: Grant with [project_id] already exists" );
-    }
-    else check( false, "pomelo::setproject: invalid [project_type]");
+    check( project_type == "grant"_n, "pomelo::setproject: invalid [project_type]");
+    set_project( grants, "grant"_n, project_id, author_id, funding_account, accepted_tokens );
+    check( grants.find(project_id.value) == grants.end(), "pomelo::setproject: Grant with [project_id] already exists" );
 }
 
 // @user
@@ -240,20 +232,13 @@ void pomelo::setstate( const name project_id, const name status )
     check( STATUS_TYPES.count(status), "pomelo::setstate: invalid [status]" );
 
     pomelo::grants_table _grants( get_self(), get_self().value );
-    pomelo::bounties_table _bounties( get_self(), get_self().value );
+    const auto & it = _grants.get( project_id.value, "pomelo::setstate: [project_id] does not exist");
 
-    const auto modify = [&]( auto & row ) {
+    _grants.modify( it, get_self(), [&]( auto & row ) {
         check( row.status != status, "pomelo::setstate: status was not modified");
         row.status = status;
         row.updated_at = current_time_point();
-    };
-
-    if( auto it = _grants.find( project_id.value ); it != _grants.end())
-        _grants.modify( it, get_self(), modify );
-    else if ( auto it = _bounties.find( project_id.value ); it != _bounties.end())
-        _bounties.modify( it, get_self(), modify );
-    else check( false, "pomelo::setstate: [project_id] does not exist");
-
+    });
 }
 
 // @admin
@@ -327,7 +312,6 @@ void pomelo::cleartable( const name table_name, const optional<uint16_t> round_i
     pomelo::transfers_table transfers( get_self(), scope );
     pomelo::rounds_table rounds( get_self(), scope );
     pomelo::match_table match( get_self(), scope );
-    pomelo::bounties_table bounties( get_self(), scope );
     pomelo::grants_table grants( get_self(), scope );
     pomelo::globals_table globals( get_self(), scope );
     pomelo::tokens_table tokens( get_self(), scope );
@@ -338,7 +322,6 @@ void pomelo::cleartable( const name table_name, const optional<uint16_t> round_i
     if (table_name == "transfers"_n) clear_table( transfers, rows_to_clear );
     else if (table_name == "rounds"_n) clear_table( rounds, rows_to_clear );
     else if (table_name == "match"_n) clear_table( match, rows_to_clear );
-    else if (table_name == "bounties"_n) clear_table( bounties, rows_to_clear );
     else if (table_name == "grants"_n) clear_table( grants, rows_to_clear );
     else if (table_name == "tokens"_n) clear_table( tokens, rows_to_clear );
     else if (table_name == "users"_n) clear_table( users, rows_to_clear );

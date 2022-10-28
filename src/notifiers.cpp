@@ -9,7 +9,6 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
 
     // tables
     pomelo::grants_table _grants( get_self(), get_self().value );
-    pomelo::bounties_table _bounties( get_self(), get_self().value );
     pomelo::globals_table _globals( get_self(), get_self().value );
 
     // state
@@ -30,8 +29,6 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
 
     if (project_type == "grant"_n) {
         donate_project(_grants, project_id, from, ext_quantity, memo );
-    } else if (project_type == "bounty"_n) {
-        donate_project(_bounties, project_id, from, ext_quantity, memo );
     } else {
         check( false, ERROR_INVALID_MEMO);
     }
