@@ -19,17 +19,17 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
     const int64_t min_amount = get_token( ext_quantity ).min_amount;
 
     // validate incoming transfer
-    check( quantity.amount >= min_amount, "pomelo::donate_project: [quantity=" + ext_quantity.quantity.to_string() + "] is less than [tokens.min_amount=" + to_string( min_amount ) + "]");
-    check( project.status == "published"_n, "pomelo::donate_project: project not available for donation");
-    check( project.accepted_tokens.count(symcode), "pomelo::donate_project: not acceptable tokens for this project");
-    check( project.funding_account.value, "pomelo::donate_project: [funding_account] is not set");
-    check( is_token_enabled( symcode ), "pomelo::donate_project: [token=" + symcode.to_string() + "] is disabled");
+    check( quantity.amount >= min_amount, "pomelo::donate_project("+project_id.to_string()+"): " + ext_quantity.quantity.to_string() + " is less than min amount");
+    check( project.status == "published"_n, "pomelo::donate_project("+project_id.to_string()+"): grant is not published");
+    check( project.accepted_tokens.count(symcode), "pomelo::donate_project("+project_id.to_string()+"): " + symcode.to_string() + " is not accepted by this project");
+    check( project.funding_account.value, "pomelo::donate_project("+project_id.to_string()+"): grant funding account is not set");
+    check( is_token_enabled( symcode ), "pomelo::donate_project("+project_id.to_string()+"): token " + symcode.to_string() + " is disabled");
 
     // check sender is not self (prevent circular donations) only from funding account
     const name user_id = get_user_id( from );
-    check( project.funding_account != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [funding_account]");
-    check( project.author_user_id != user_id, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be linked to [author_user_id]");
-    check( project.author_user_id != from, "pomelo::donate_project: [from=" + from.to_string() + "] account cannot be the same as [author_user_id]");
+    check( project.funding_account != from, "pomelo::donate_project("+project_id.to_string()+"): sender is the same as grant funding account");
+    check( project.author_user_id != user_id, "pomelo::donate_project("+project_id.to_string()+"): sender is linked to grant author");
+    check( project.author_user_id != from, "pomelo::donate_project("+project_id.to_string()+"): sender is the same as grant author id");
 
     // calculate fee
     const extended_asset fee = calculate_fee( ext_quantity );
@@ -55,7 +55,7 @@ void pomelo::donate_project(const T& table, const name project_id, const name fr
 void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity, const name user_id, const double value )
 {
     const auto round_id = get_active_round( grant_id );
-    check(round_id != 0, "pomelo::donate_grant: [grant_id] hasn't joined active rounds");
+    check(round_id != 0, "pomelo::donate_grant("+grant_id.to_string()+"): has not joined active rounds");
 
     validate_round( round_id );
 
@@ -63,8 +63,7 @@ void pomelo::donate_grant(const name grant_id, const extended_asset ext_quantity
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto round_itr = rounds.find( round_id );
     const symbol_code symcode = ext_quantity.quantity.symbol.code();
-    check( get_index(round_itr->grant_ids, grant_id) != -1, "pomelo::donate_grant: [grant_id] has not joined current matching round");
-    check( is_token_enabled( symcode ), "pomelo::donate_grant: [token=" + symcode.to_string() + "] is currently disabled");
+    check( get_index(round_itr->grant_ids, grant_id) != -1, "pomelo::donate_grant("+grant_id.to_string()+"): has not joined the matching round");
 
     // update project matching records
     const auto weight = eosn::login::get_user_weight( user_id, get_globals().login_contract );

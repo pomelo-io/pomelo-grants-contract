@@ -158,7 +158,8 @@ void pomelo::joinround( const name grant_id, const uint16_t round_id )
     const auto & season = seasons.get( round.season_id, "pomelo::joinround: [round.season_id] does not exist");
     check( get_index(round.grant_ids, grant_id ) == -1, "pomelo::joinround: grant already exists in this round");
     check( season.submission_start_at.sec_since_epoch() <= now, "pomelo::joinround: [round_id] submission period has not started");
-    // check( now <= season.submission_end_at.sec_since_epoch(), "pomelo::joinround: [round_id] submission period has ended");
+    // allow joining until the round ends
+    check( now <= season.end_at.sec_since_epoch(), "pomelo::joinround: [round_id] submission period has ended");
 
     for(const auto ex_round_id: season.round_ids){
         const auto round = rounds.get(ex_round_id, "pomelo::joinround: bad existing round in a season");
@@ -359,7 +360,7 @@ void pomelo::removeuser( const vector<name> user_ids, const uint16_t round_id )
 
     for(const auto user_id: user_ids) {
         auto user_itr = _users.find( user_id.value );
-        check(user_itr != _users.end(), "pomelo::removeuser: no donations from [user_id] during [round_id]: " + user_id.to_string() );
+        check(user_itr != _users.end(), "pomelo::removeuser: no donations from "+user_id.to_string()+" during round " + to_string(round_id) );
         const auto user = *user_itr;
         _users.erase(user_itr);
 
@@ -393,7 +394,7 @@ void pomelo::removeuser( const vector<name> user_ids, const uint16_t round_id )
 
     pomelo::rounds_table rounds( get_self(), get_self().value );
     const auto round_itr = rounds.find( round_id );
-    check( round_itr != rounds.end(),  "pomelo::removeuser: [round_id] does not exist" );
+    check( round_itr != rounds.end(),  "pomelo::removeuser: round " + to_string(round_id) + " does not exist" );
     //check( get_index(round_itr->user_ids, user_id ) != -1, "pomelo::removeuser: grant does not exist in this round");
 
     rounds.modify( round_itr, get_self(), [&]( auto & row ) {
@@ -410,7 +411,7 @@ void pomelo::removeuser( const vector<name> user_ids, const uint16_t round_id )
 void pomelo::collapse(set<name> user_ids, name user_id, uint16_t round_id)
 {
     require_auth( get_self() );
-    check(user_ids.count(user_id) == 0, "pomelo::collapse: [user_ids] cannot contain [user_id] itself" );
+    check(user_ids.count(user_id) == 0, "pomelo::collapse: users cannot contain user " + user_id.to_string() + " itself" );
 
     pomelo::users_table _users( get_self(), round_id );
     pomelo::match_table _match( get_self(), round_id );

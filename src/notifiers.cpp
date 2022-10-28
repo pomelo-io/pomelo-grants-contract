@@ -22,7 +22,7 @@ void pomelo::on_transfer( const name from, const name to, const asset quantity, 
     const name project_type = sx::utils::parse_name(memo_parts[0]);
     const name project_id = sx::utils::parse_name(project_parts[0]);
 
-    check(project_id.value, "pomelo::on_transfer: invalid project id");
+    check(project_id.value, "pomelo::on_transfer: invalid project id: " + project_id.to_string());
 
     // handle token transfer
     const extended_asset ext_quantity = { quantity, get_first_receiver() };
