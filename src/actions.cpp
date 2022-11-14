@@ -123,7 +123,6 @@ void pomelo::setproject( const name author_id, const name project_type, const na
 
     check( project_type == "grant"_n, "pomelo::setproject: invalid [project_type]");
     set_project( grants, "grant"_n, project_id, author_id, funding_account, accepted_tokens );
-    check( grants.find(project_id.value) == grants.end(), "pomelo::setproject: Grant with [project_id] already exists" );
 }
 
 // @user
