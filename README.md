@@ -1,4 +1,4 @@
-# 🍈 Pomelo - EOSIO Smart Contract
+# 🍈 Pomelo - Antelope Smart Contract
 
 ## Security Audits
 
@@ -40,7 +40,7 @@ cleos push action app.pomelo setstate '["grant1", "published"]' -p app.pomelo
 
 - [eosn.login](https://github.com/pomelo-io/eosn.login)
 - [sx.utils](https://github.com/stableex/sx.utils)
-- [eosio.token](https://github.com/EOSIO/eosio.contracts)
+- [eosio.token](https://github.com/eosnetworkfoundation/eos-system-contracts)
 
 ## Testing
 
@@ -48,7 +48,7 @@ cleos push action app.pomelo setstate '["grant1", "published"]' -p app.pomelo
 # build contract
 $ ./scripts/build.sh
 
-# restart node, create EOSIO users, deploy contracts, issue tokens
+# restart node, create Antelope users, deploy contracts, issue tokens
 $ ./scripts/restart
 
 # run tests
