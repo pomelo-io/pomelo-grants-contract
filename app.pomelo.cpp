@@ -162,6 +162,7 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
     if (itr != projects.end()) {
         check( project_type == itr->type, "pomelo::set_project: project [type] cannot be modified" );
         check( author_id == itr->author_user_id, "pomelo::set_project: project [author_id] cannot be modifed" );
+        check( itr->funding_account.value == 0 || funding_account == itr->funding_account, "pomelo::set_project: existing [funding_account] cannot be modifed" );
         check( is_account(funding_account) || (project_type == "bounty"_n && funding_account.value == 0), "pomelo::set_project: [funding_account] does not exists" );
     }
     else {  // new project
