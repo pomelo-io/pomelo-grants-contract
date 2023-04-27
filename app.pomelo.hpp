@@ -13,6 +13,7 @@ using namespace std;
 static constexpr extended_symbol VALUE_SYM = { symbol {"USDT", 4}, "tethertether"_n };
 static set<name> STATUS_TYPES = set<name>{"published"_n, "pending"_n, "retired"_n, "banned"_n, "denied"_n};
 static constexpr uint32_t DAY = 86400;
+static constexpr uint32_t MAX_GRANTS_PER_AUTHOR = 10;
 
 static string ERROR_INVALID_MEMO = "invalid transfer memo (ex: \"grant:mygrant\" or \"bounty:mybounty\")";
 

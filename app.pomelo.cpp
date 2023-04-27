@@ -175,7 +175,7 @@ void pomelo::set_project( T& projects, const name project_type, const name proje
             int active = 0;
             for( auto itr1 = byauthor.lower_bound(author_id.value); itr1 != byauthor.end() && itr1->author_user_id == author_id; ++itr1){
                 if( itr1->status == "pending"_n || itr1->status == "published"_n) active++;
-                check(active < 3, "pomelo::set_project: 3 active grants allowed per author");
+                check(active < MAX_GRANTS_PER_AUTHOR, "pomelo::set_project: limit of active grants per author reached");
             }
         }
     }
