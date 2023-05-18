@@ -68,24 +68,74 @@ $ ./test.sh
 
 ## Table of Content
 
-- [TABLE `globals`](#table-globals)
-- [TABLES `grants` & `bounties`](#tables-grants-and-bounties)
-- [TABLE `transfers`](#table-transfers)
-- [TABLE `match`](#table-match)
-- [TABLE `seasons`](#table-seasons)
-- [TABLE `rounds`](#table-rounds)
-- [TABLE `tokens`](#table-tokens)
-- [ACTION `setconfig`](#action-setconfig)
-- [ACTION `setseason`](#action-setseason)
-- [ACTION `setgrant`](#action-setgrant)
-- [ACTION `setstate`](#action-setstate)
-- [ACTION `setround`](#action-setround)
-- [ACTION `joinround`](#action-joinround)
-- [ACTION `unjoinround`](#action-unjoinround)
-- [ACTION `cleartable`](#action-cleartable)
-- [ACTION `removeuser`](#action-removeuser)
-- [ACTION `collapse`](#action-collapse)
-- [ACTION `token`](#action-token)
+- [🍈 Pomelo - Antelope Smart Contract](#-pomelo---antelope-smart-contract)
+  - [Security Audits](#security-audits)
+  - [Usage](#usage)
+    - [`@user`](#user)
+    - [`@admin`](#admin)
+  - [Dependencies](#dependencies)
+  - [Testing](#testing)
+  - [Definitions](#definitions)
+    - [Roles](#roles)
+  - [Table of Content](#table-of-content)
+  - [TABLE `globals`](#table-globals)
+    - [example](#example)
+  - [TABLES `grants`](#tables-grants)
+    - [multi-indexes](#multi-indexes)
+    - [params](#params)
+    - [example](#example-1)
+  - [TABLE `transfers`](#table-transfers)
+    - [params](#params-1)
+    - [example](#example-2)
+  - [TABLE `match`](#table-match)
+    - [params](#params-2)
+    - [example](#example-3)
+  - [TABLE `users`](#table-users)
+    - [multi-indexes](#multi-indexes-1)
+    - [params](#params-3)
+    - [example](#example-4)
+  - [TABLE `seasons`](#table-seasons)
+    - [params](#params-4)
+    - [example](#example-5)
+  - [TABLE `rounds`](#table-rounds)
+    - [params](#params-5)
+    - [example](#example-6)
+  - [TABLE `tokens`](#table-tokens)
+    - [params](#params-6)
+    - [example](#example-7)
+  - [ACTION `setconfig`](#action-setconfig)
+    - [params](#params-7)
+    - [example](#example-8)
+  - [ACTION `setseason`](#action-setseason)
+    - [params](#params-8)
+    - [example](#example-9)
+  - [ACTION `setgrant`](#action-setgrant)
+    - [params](#params-9)
+    - [example](#example-10)
+  - [ACTION `setstate`](#action-setstate)
+    - [params](#params-10)
+    - [example](#example-11)
+  - [ACTION `setround`](#action-setround)
+    - [params](#params-11)
+    - [example](#example-12)
+  - [ACTION `joinround`](#action-joinround)
+    - [params](#params-12)
+    - [example](#example-13)
+  - [ACTION `unjoinround`](#action-unjoinround)
+    - [params](#params-13)
+    - [example](#example-14)
+  - [ACTION `cleartable`](#action-cleartable)
+    - [params](#params-14)
+    - [example](#example-15)
+  - [ACTION `removeuser`](#action-removeuser)
+    - [params](#params-15)
+    - [example](#example-16)
+  - [ACTION `collapse`](#action-collapse)
+    - [params](#params-16)
+    - [example](#example-17)
+  - [ACTION `token`](#action-token)
+    - [params](#params-17)
+    - [example](#example-18)
 
 ## TABLE `globals`
 
@@ -322,7 +372,8 @@ $ ./test.sh
 - `{symbol} sym` - (primary key) symbol
 - `{name} contract` - token contract
 - `{uint64_t} min_amount` - min amount required when donating
-- `{uint64_t} oracle_id` - Defibox oracle ID (0 for base token)
+- `{name} oracle_contract` - Oracle contract (swap.defi, oracle.defi)
+- `{uint64_t} oracle_id` - Defibox Oracle ID for oracle.defi or pair ID for swap.defi
 
 ### example
 
@@ -331,6 +382,7 @@ $ ./test.sh
     "sym": "4,EOS",
     "contract": "eosio.token",
     "min_amount": 10000,
+    "oracle_contract": "oracle.defi",
     "oracle_id": 1
 }
 ```
@@ -516,10 +568,11 @@ Set token information
 - `{symbol} sym` - (primary key) symbol
 - `{name} contract` - token contract
 - `{uint64_t} min_amount` - min amount required when donating
-- `{uint64_t} oracle_id` - Defibox oracle id for price discovery (0 for base token)
+- `{name} oracle_contract` - Oracle contract, i.e. swap.defi, oracle.defi
+- `{uint64_t} oracle_id` - Defibox oracle ID (for oracle.defi) or pair ID (for swap.defi)
 
 ### example
 
 ```bash
-$ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, 1]' -p app.pomelo
+$ cleos push action app.pomelo token '["4,EOS", "eosio.token", 10000, "oracle.defi", 1]' -p app.pomelo
 ```

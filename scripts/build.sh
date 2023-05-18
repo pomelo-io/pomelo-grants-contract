@@ -17,8 +17,8 @@ if [ ! -f "./include/eosn.login/login.eosn.wasm" ]; then
     blanc++ ./include/eosn.login/login.eosn.cpp -I include -o include/eosn.login/login.eosn.wasm --no-missing-ricardian-clause
 fi
 
-if [ ! -f "./include/oracle.defi/oracle.defi.wasm" ]; then
-    blanc++ ./include/oracle.defi/oracle.defi.cpp -I include -o include/oracle.defi/oracle.defi.wasm --no-missing-ricardian-clause
+if [ ! -f "./include/defi.oracle/oracle.defi.wasm" ]; then
+    blanc++ ./include/defi.oracle/oracle.defi.cpp -I include -o include/defi.oracle/oracle.defi.wasm --no-missing-ricardian-clause
 fi
 
 if [ ! -f "./include/pomelo.play/play.pomelo.wasm" ]; then

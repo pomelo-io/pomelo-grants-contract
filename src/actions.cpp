@@ -1,4 +1,4 @@
-#include <oracle.defi/oracle.defi.hpp>
+#include <defi.oracle/oracle.defi.hpp>
 
 // @admin
 [[eosio::action]]
@@ -36,7 +36,7 @@ void pomelo::setgrantid( const name grant_id, const name new_grant_id )
 
 // @admin
 [[eosio::action]]
-void pomelo::token( const symbol sym, const name contract, const uint64_t min_amount, const uint64_t oracle_id )
+void pomelo::token( const symbol sym, const name contract, const uint64_t min_amount, const name oracle_contract, const uint64_t oracle_id )
 {
     // authenticate
     require_auth( get_self() );
@@ -46,21 +46,24 @@ void pomelo::token( const symbol sym, const name contract, const uint64_t min_am
     const asset supply = token::get_supply( contract, sym.code() );
     check( supply.symbol == sym, "pomelo::token: [sym] symbol does not match with token supply");
     check( supply.amount, "pomelo::token: [sym] has no supply");
-
-    // check if Oracle exists; if not it will assert fail
-    if ( is_account( oracle_code ) && extended_symbol{ sym, contract } != VALUE_SYM )
-        defi::oracle::get_value( {10000, extended_symbol{ sym, contract }}, oracle_id );
+    check( oracle_contract == defi::oracle::code || oracle_contract == defi::swap::code, "pomelo::token: [oracle_contract] not allowed");
 
     const auto insert = [&]( auto & row ) {
         row.sym = sym;
         row.contract = contract;
         row.min_amount = min_amount;
+        row.oracle_contract = oracle_contract;
         row.oracle_id = oracle_id;
     };
 
     const auto itr = tokens.find( sym.code().raw() );
     if ( itr == tokens.end() ) tokens.emplace( get_self(), insert );
     else tokens.modify( itr, get_self(), insert );
+
+    // check if it works
+    if ( is_account( oracle_contract ) && extended_symbol{ sym, contract } != VALUE_SYM ) {
+        check( calculate_value( {10000, extended_symbol{ sym, contract }} ), "pomelo::token: value can't be calculated correctly");
+    }
 }
 
 [[eosio::action]]

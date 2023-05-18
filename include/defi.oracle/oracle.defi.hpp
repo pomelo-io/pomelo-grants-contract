@@ -6,14 +6,14 @@
 
 using namespace eosio;
 
-constexpr extended_symbol value_symbol { symbol{"USDT",4}, "tethertether"_n };
-constexpr name oracle_code = "oracle.defi"_n;
 
 namespace defi {
 
 class [[eosio::contract("oracle.defi")]] oracle : public eosio::contract {
 public:
     using contract::contract;
+    static constexpr name code = "oracle.defi"_n;
+    static constexpr extended_symbol value_symbol { symbol{"USDT",4}, "tethertether"_n };
 
     struct [[eosio::table]] oracle_row {
         uint64_t                id;
@@ -59,8 +59,8 @@ public:
         if (in.get_extended_symbol() == value_symbol)
             return static_cast<double>(in.quantity.amount) / pow(10, in.quantity.symbol.precision());
 
-        prices prices_tbl( oracle_code, oracle_code.value);
-        const auto row = prices_tbl.get(oracle_id, "defilend: no oracle");
+        prices prices_tbl( code, code.value);
+        const auto row = prices_tbl.get(oracle_id, "defi.oracle: no oracle");
         print("\nUsing ", row.avg_price, " rate");
 
         return static_cast<double>(in.quantity.amount) / pow(10, in.quantity.symbol.precision()) * (static_cast<double>(row.avg_price) / pow(10, row.precision));

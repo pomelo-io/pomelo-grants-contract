@@ -1,6 +1,5 @@
-#include <oracle.defi/oracle.defi.hpp>
-
-using namespace sx;
+#include <defi.oracle/oracle.defi.hpp>
+#include <defi.swap/swap.defi.hpp>
 
 extended_asset pomelo::calculate_fee( const extended_asset ext_quantity )
 {
@@ -37,8 +36,13 @@ bool pomelo::is_token_enabled( const symbol_code symcode )
 
 double pomelo::calculate_value( const extended_asset ext_quantity )
 {
-    const auto& token = get_token( ext_quantity );
-    return defi::oracle::get_value( ext_quantity, token.oracle_id );
+    auto token = get_token( ext_quantity );
+    extended_asset in = ext_quantity;
+    if (token.oracle_contract == defi::swap::code) {
+        in = defi::swap::convert( in, token.oracle_id );
+        token = get_token( in );
+    }
+    return defi::oracle::get_value( in, token.oracle_id );
 }
 
 name pomelo::get_user_id( const name account )

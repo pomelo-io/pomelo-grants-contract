@@ -129,7 +129,8 @@ public:
      * - `{symbol} sym` - (primary key) symbol
      * - `{name} contract` - token contract
      * - `{uint64_t} min_amount` - min amount required when donating
-     * - `{uint64_t} oracle_id` - Defibox Oracle ID
+     * - `{name} oracle_contract` - Oracle contract (swap.defi, oracle.defi)
+     * - `{uint64_t} oracle_id` - Defibox Oracle ID for oracle.defi or pair ID for swap.defi
      *
      * ### example
      *
@@ -138,6 +139,7 @@ public:
      *     "sym": "4,EOS",
      *     "contract": "eosio.token",
      *     "min_amount": 10000,
+     *     "orcacle_contract": "oracle.defi",
      *     "oracle_id": 1
      * }
      * ```
@@ -146,6 +148,7 @@ public:
         symbol              sym;
         name                contract;
         uint64_t            min_amount;
+        name                oracle_contract;
         uint64_t            oracle_id;
 
         uint64_t primary_key() const { return sym.code().raw(); }
@@ -690,7 +693,8 @@ public:
      * - `{symbol} sym` - (primary key) symbol
      * - `{name} contract` - token contract
      * - `{uint64_t} min_amount` - min amount required when donating
-     * - `{uint64_t} oracle_id` - Defibox oracle ID
+     * - `{name} oracle_contract` - Oracle contract, i.e. swap.defi, oracle.defi
+     * - `{uint64_t} oracle_id` - Defibox oracle ID (for oracle.defi) or pair ID (for swap.defi)
      *
      * ### example
      *
@@ -699,7 +703,7 @@ public:
      * ```
      */
     [[eosio::action]]
-    void token( const symbol sym, const name contract, const uint64_t min_amount, const uint64_t oracle_id );
+    void token( const symbol sym, const name contract, const uint64_t min_amount, const name oracle_contract, const uint64_t oracle_id );
 
     [[eosio::action]]
     void deltoken( const symbol_code symcode );
@@ -709,6 +713,13 @@ public:
 
     [[eosio::action]]
     void setgrantid( const name grant_id, const name new_grant_id );
+
+    [[eosio::action]]
+    void value( const extended_asset in ) {
+        const auto out = calculate_value( in );
+        check(false, in.quantity.to_string() + " => " + to_string(out));
+    }
+
 
 private:
     void transfer( const name from, const name to, const extended_asset value, const string memo );
