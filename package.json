@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "name": "app.pomelo",
+  "version": "0.1.0",
+  "description": "Pomelo Grants",
+  "license": "MIT OR Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "blanc++ app.pomelo.cpp -I include",
+    "release": "cdt-cpp app.pomelo.cpp -I include",
+    "test": "node *.spec.js"
+  },
+  "devDependencies": {
+    "@proton/vert": "*"
+  }
+}
